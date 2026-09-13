@@ -29,4 +29,4 @@ The nezuai sounds are redistributed/adapted under CC BY 4.0; the full license te
 
 ## Application icon
 
-`assets/squarestar.ico` is original first-party artwork created by the SquareStar maintainer using Affinity software and is distributed under the repository's MIT license.
+`assets/squarestar.ico` is original first-party artwork created by the SquareStar maintainer ( Bo Blitz Chow ) using Affinity software and is distributed under the repository's MIT license.
