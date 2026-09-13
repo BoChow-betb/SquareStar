@@ -44,7 +44,6 @@ using squarestar::application::RequestGuiRedraw;
 using squarestar::presentation::RebuildApplicationFonts;
 using squarestar::application::ConfiguredPriceAlert;
 using squarestar::application::AppState;
-using squarestar::application::UserFeedbackType;
 using squarestar::application::ConfigureGuiLayoutPersistence;
 using squarestar::application::GuiLayoutPersistenceEnabled;
 using squarestar::application::GuiLayoutInitialBaselinePending;
@@ -77,7 +76,6 @@ using squarestar::presentation::SetGuiRendererBackendData;
 using squarestar::presentation::ClearGuiRendererContextRegistry;
 using squarestar::presentation::MainGuiImGuiContext;
 using squarestar::presentation::MainGuiImPlotContext;
-using squarestar::presentation::SetGuiRendererPrimed;
 using squarestar::presentation::EnsureGuiRendererContext;
 using squarestar::presentation::PrimeGuiRendererForStartup;
 using squarestar::presentation::ClearApplicationFontPointers;
@@ -88,7 +86,6 @@ using squarestar::presentation::ShutdownGuiD3D11;
 using squarestar::presentation::GuiD3D11Device;
 using squarestar::presentation::GuiD3D11DeviceContext;
 using squarestar::platform::ApplyFixedGlfwWindowLayout;
-using squarestar::platform::ApplyResizableGlfwWindowLayout;
 using squarestar::platform::ShutdownAppAudio;
 
 // Release vector capacity that is not useful across GUI/LiteGUI transitions.
@@ -363,7 +360,6 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     state.render.appliedZeroGraphics = state.ZeroGraphicsEnabled();
     glfwPollEvents();
     const bool primed = buildFonts && PrimeGuiRendererForStartup(window, &failureReason);
-    SetGuiRendererPrimed(primed);
     if (buildFonts && !primed) {
         if (failureReason.empty())
             failureReason = "The first GUI renderer frame could not be created.";

@@ -154,16 +154,6 @@ bool ShouldPublishMarketMoveNotification(squarestar::application::AppState& stat
                                          const squarestar::application::StockContext& ctx,
                                          double before,
                                          double after);
-void ShowInteractionNotice(
-    squarestar::application::AppState& state,
-    std::string title,
-    std::string body,
-    std::chrono::seconds duration = std::chrono::seconds(4),
-    squarestar::application::UserFeedbackDestination destination =
-        squarestar::application::UserFeedbackDestination::Automatic,
-    std::string actionLabel = {},
-    std::string actionUrl = {},
-    std::string actionPath = {});
 void ShutdownGlfwRuntime();
 void SilencePriceAlertForClosedTab(squarestar::application::AppState& state,
                                    squarestar::application::StockContext& ctx);

@@ -4,15 +4,7 @@
   "serialNumber": "urn:uuid:57582e85-7d39-5ce6-b105-b087f094ab08",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-06T06:22:00Z",
-    "tools": {
-      "components": [
-        {
-          "type": "application",
-          "name": "scripts/refresh-sbom.py"
-        }
-      ]
-    },
+    "timestamp": "2026-09-13T14:46:38Z",
     "component": {
       "type": "application",
       "bom-ref": "pkg:generic/squarestar@1.0.1",
@@ -51,7 +43,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5992b4ef4d459773b744e7b7bebb732d03ac34219e7cff3edd19e667e68f18e"
+          "content": "e55e4a5b108a541fa4c88b428246397087cd1eb658a849e11ce1de9a5a899807"
         }
       ]
     },

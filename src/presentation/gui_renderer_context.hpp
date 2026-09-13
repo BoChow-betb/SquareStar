@@ -17,8 +17,6 @@ void SetGuiRendererBackendData(void* platformBackend, void* rendererBackend) noe
 void ClearGuiRendererContextRegistry() noexcept;
 ImGuiContext* MainGuiImGuiContext() noexcept;
 ImPlotContext* MainGuiImPlotContext() noexcept;
-void SetGuiRendererPrimed(bool primed) noexcept;
-bool GuiRendererPrimed() noexcept;
 bool EnsureGuiRendererContext(GLFWwindow* window);
 bool PrimeGuiRendererForStartup(GLFWwindow* window, std::string* failureReason = nullptr);
 

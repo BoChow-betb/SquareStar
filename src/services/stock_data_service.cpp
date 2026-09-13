@@ -56,11 +56,8 @@ using squarestar::market::ChartAvailability;
 using squarestar::market::CorporateActionStatus;
 using squarestar::market::ResolveProgressiveChartRange;
 using squarestar::providers::ApplyYahooChartPayload;
-using squarestar::secrets::ApiKeyRevision;
 using squarestar::secrets::IsApiKeyRevisionCurrent;
-using squarestar::secrets::GetFinnhubApiKey;
 using squarestar::secrets::GetFinnhubApiKeySnapshot;
-using squarestar::secrets::HasFinnhubApiKey;
 using squarestar::secrets::SecureClear;
 
 struct HttpFailureSummary {

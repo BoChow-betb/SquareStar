@@ -74,10 +74,4 @@ struct GuiRenderDecisionInputs {
     return visualWorkPending || mouseHeld || inputSettleFramePending;
 }
 
-[[nodiscard]] constexpr bool ShouldSuspendGuiFramePump(
-    bool mainWindowSuspended,
-    bool independentFloatingWindowInteractive) noexcept {
-    return mainWindowSuspended && !independentFloatingWindowInteractive;
-}
-
 } // namespace squarestar::application

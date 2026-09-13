@@ -20,7 +20,6 @@
 namespace squarestar::shell {
 
 using squarestar::application::AppState;
-using squarestar::application::ApplicationRuntime;
 using squarestar::application::CanEnterStockComparison;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::StockContext;

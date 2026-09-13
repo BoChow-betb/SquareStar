@@ -25,19 +25,9 @@
 #include <vector>
 namespace squarestar::shell {
 
-using squarestar::application::ApplicationRuntime;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::UiRounding;
 using squarestar::application::AppState;
-using squarestar::application::FindStockModeNoticeTarget;
-using squarestar::application::CountMonitorStockTiles;
-using squarestar::application::StockContext;
-using squarestar::application::TerminalAction;
-using squarestar::application::IsLightGuiTheme;
-using squarestar::application::UserFeedbackType;
-using squarestar::market::TIME_RANGES;
-using squarestar::presentation::ChartExportMethod;
-using squarestar::presentation::ChartVisualType;
 
 void RenderStartupOverlay(AppState& state, ImGuiViewport* viewport) {
     if (!state.StartupAnimationVisible())
@@ -303,18 +293,28 @@ void RenderTerminalMainContent(AppState& state,
                                ImU32 appBg) {
     ImGui::SetCursorPos(ImVec2(currentSidebarWidth, 0.0f));
     const ImVec2 mainContentSize = ImGui::GetContentRegionAvail();
-    ImGui::BeginChild("MainContent",
-                      mainContentSize,
-                      false,
-                      ImGuiWindowFlags_NoScrollbar);
+    const bool stockMainContent =
+        !state.navigation.pureMonitorMode &&
+        state.navigation.activeSidebarTab == squarestar::application::SidebarTab::Stock;
+
+    // WindowPadding is consumed when the child window begins. Pushing it after
+    // BeginChild() does not change that child's WorkRect/ContentRegionRect, and
+    // borderless children need AlwaysUseWindowPadding as well. Without the inset
+    // here, edge-aligned stock controls run into the child clip rect.
+    if (stockMainContent) {
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_WindowPadding,
+            ImVec2(state.config.theme.contentPadding, state.config.theme.contentPadding));
+    }
+    ImGui::BeginChild(
+        "MainContent",
+        mainContentSize,
+        stockMainContent ? ImGuiChildFlags_AlwaysUseWindowPadding : ImGuiChildFlags_None,
+        ImGuiWindowFlags_NoScrollbar);
 
     if (!state.navigation.pureMonitorMode) {
-        if (state.navigation.activeSidebarTab == squarestar::application::SidebarTab::Stock) {
-            ImGui::PushStyleVar(
-                ImGuiStyleVar_WindowPadding,
-                ImVec2(state.config.theme.contentPadding, state.config.theme.contentPadding));
+        if (stockMainContent) {
             RenderTerminalStockTabs(state);
-            ImGui::PopStyleVar();
         } else if (squarestar::application::IsSidebarPage(
                        state.navigation.activeSidebarTab)) {
             ImGui::SetCursorPos(ImVec2(0, 0));
@@ -344,6 +344,8 @@ void RenderTerminalMainContent(AppState& state,
     }
 
     ImGui::EndChild();
+    if (stockMainContent)
+        ImGui::PopStyleVar();
 }
 
 

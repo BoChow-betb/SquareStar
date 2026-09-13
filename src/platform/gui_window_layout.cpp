@@ -102,31 +102,4 @@ void ApplyFixedGlfwWindowLayout(GLFWwindow* window, int width, int height) {
 #endif
 }
 
-void ApplyResizableGlfwWindowLayout(GLFWwindow* window,
-                                    int width,
-                                    int height,
-                                    int minimumWidth,
-                                    int minimumHeight) {
-#ifdef _WIN32
-    if (!window)
-        return;
-    if (glfwGetWindowAttrib(window, GLFW_MAXIMIZED))
-        glfwRestoreWindow(window);
-    glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_TRUE);
-    glfwSetWindowSizeLimits(window,
-                            minimumWidth,
-                            minimumHeight,
-                            GLFW_DONT_CARE,
-                            GLFW_DONT_CARE);
-    glfwSetWindowSize(window, width, height);
-    CenterGlfwWindowInWorkArea(window, width, height);
-#else
-    (void)window;
-    (void)width;
-    (void)height;
-    (void)minimumWidth;
-    (void)minimumHeight;
-#endif
-}
-
 } // namespace squarestar::platform

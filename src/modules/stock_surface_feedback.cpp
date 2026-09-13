@@ -22,8 +22,8 @@ void DrawSelectedWorldClockTooltip(const AppState& state, const std::time_t now)
     if (visibleClocks.empty())
         return;
 
-    // Tooltips belong to the stock window that produced them. Clamping to the
-    // monitor still lets a tooltip escape a small floated stock window.
+    // Tooltips belong to the stock surface that produced them. Clamp to that
+    // owning surface so a tooltip cannot escape a dense Monitor-mode tile.
     const ImGuiStyle& style = ImGui::GetStyle();
     float labelWidth = 0.0f;
     float timeWidth = 0.0f;

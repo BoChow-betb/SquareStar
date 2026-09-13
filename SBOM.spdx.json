@@ -5,9 +5,9 @@
   "name": "SquareStar-1.0.1",
   "documentNamespace": "https://spdx.org/spdxdocs/SquareStar-e43c92a2-9a61-57ac-a046-e877f5f47efd",
   "creationInfo": {
-    "created": "2026-09-06T06:22:00Z",
+    "created": "2026-09-13T14:46:38Z",
     "creators": [
-      "Tool: scripts/refresh-sbom.py"
+      "Person: Bo Blitz Chow"
     ]
   },
   "packages": [
@@ -47,7 +47,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "e5992b4ef4d459773b744e7b7bebb732d03ac34219e7cff3edd19e667e68f18e"
+          "checksumValue": "e55e4a5b108a541fa4c88b428246397087cd1eb658a849e11ce1de9a5a899807"
         }
       ]
     },

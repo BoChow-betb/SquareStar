@@ -21,7 +21,6 @@
 #include "services/stock_data_service.hpp"
 namespace squarestar::shell {
 
-using squarestar::application::ApplicationRuntime;
 using squarestar::market::MarketSymbol;
 using squarestar::market::TIME_RANGES;
 using squarestar::market::kScreenerRoutes;
@@ -39,7 +38,6 @@ using squarestar::application::StockFetchProfile;
 using squarestar::application::StockFetchNews;
 using squarestar::application::StockFetchAll;
 using squarestar::application::HasAnyMarketMetricData;
-using squarestar::application::MergeStockFetchPatch;
 using squarestar::secrets::HasFinnhubApiKey;
 using squarestar::market::FetchKind;
 using squarestar::market::StockData;

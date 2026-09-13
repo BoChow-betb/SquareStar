@@ -301,30 +301,6 @@ void ShowForegroundInteractionNotice(AppState& state,
 
 } // namespace
 
-void ShowInteractionNotice(AppState& state,
-                           std::string title,
-                           std::string body,
-                           std::chrono::seconds duration,
-                           UserFeedbackDestination destination,
-                           std::string actionLabel,
-                           std::string actionUrl,
-                           std::string actionPath) {
-    if (FeedbackUsesBackgroundDestination(destination)) {
-        TriggerTrayNotification(title.c_str(), body.c_str(), std::move(actionPath));
-        return;
-    }
-    if (!ShouldRenderForegroundNotification(
-            ApplicationRuntime().CurrentUiMode(),
-            ForegroundNotificationKind::InteractionFeedback))
-        return;
-    ShowForegroundInteractionNotice(state,
-                                    std::move(title),
-                                    std::move(body),
-                                    duration,
-                                    std::move(actionLabel),
-                                    std::move(actionUrl),
-                                    std::move(actionPath));
-}
 void PublishUserFeedback(AppState& state,
                          UserFeedback feedback) {
     const auto route = ResolveUserFeedbackRoute(feedback);

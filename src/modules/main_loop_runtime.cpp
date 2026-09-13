@@ -50,7 +50,6 @@ using squarestar::application::AppUiMode;
 using squarestar::application::GuiFrameRateUsesVSync;
 using squarestar::application::PersistedStateOf;
 using squarestar::application::ShouldPollGuiEvents;
-using squarestar::application::ShouldSuspendGuiFramePump;
 using squarestar::platform::Win32AppRuntime;
 using squarestar::presentation::EnsureGuiRendererContext;
 
@@ -152,8 +151,7 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
         const bool mainWindowSuspended =
             Win32AppRuntime().MinimizedToTray() || windowIconified ||
             !glfwGetWindowAttrib(window, GLFW_VISIBLE);
-        const bool windowSuspended =
-            ShouldSuspendGuiFramePump(mainWindowSuspended, false);
+        const bool windowSuspended = mainWindowSuspended;
         const bool priceAlertAudioPending =
             std::any_of(state.marketData.activeContexts.begin(), state.marketData.activeContexts.end(), [](const auto& ctx) {
                 return ctx && ctx->alerts.priceAlertSoundPlaysRemaining > 0;
@@ -188,11 +186,8 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
         if (squarestar::benchmark::PollGuiProbe())
             continue;
 
-        // Inspect the queue after both polling paths. Secondary ImGui viewport
-        // windows use backend-owned callbacks, so their activation click may
-        // not update the host window's activity timestamps even though the
-        // input event is ready. Rendering it immediately avoids combining the
-        // press and release after another idle wait.
+        // Inspect the queue after either event-pump path so queued input is
+        // rendered before another idle wait can combine a press and release.
         const bool guiInputQueuedAfterEventPump =
             GImGui && GImGui->InputEventsQueue.Size > 0;
         if (guiInputQueuedAfterEventPump)

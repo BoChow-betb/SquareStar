@@ -30,13 +30,11 @@
 namespace squarestar::shell {
 
 
-using squarestar::application::ApplicationRuntime;
 using squarestar::platform::Win32AppRuntime;
 using squarestar::format::FormatLargeNumber;
 using squarestar::format::FormatDouble;
 using squarestar::market::kScreenerRoutes;
 using squarestar::market::MarketSettlementTimeLabel;
-using squarestar::application::UiModeRequest;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::RequestGuiWakeAt;
 using squarestar::application::UiRounding;
@@ -44,9 +42,7 @@ using squarestar::presentation::kControlHeight;
 using squarestar::presentation::GuiShellRuntime;
 using squarestar::presentation::BuildSparklineUnitGeometry;
 using squarestar::presentation::EllipsizeTextBinary;
-using squarestar::search::LookupSymbols;
 using squarestar::application::AppState;
-using squarestar::application::SearchState;
 using squarestar::application::ScreenerItem;
 using squarestar::application::TerminalAction;
 using squarestar::application::IsLightGuiTheme;
@@ -56,7 +52,6 @@ using squarestar::alerts::PriceAlertToastElapsedSeconds;
 using squarestar::alerts::PriceAlertToastNeedsContinuousRedraw;
 using squarestar::presentation::NotificationBlockStack;
 using squarestar::presentation::NotificationCardWidth;
-using squarestar::text::UppercaseInPlace;
 bool OpenNotificationStock(AppState& state, const std::string& ticker) {
     const StockOpenResult result = OpenStock(state, ticker);
     if (result != StockOpenResult::SelectedExisting &&

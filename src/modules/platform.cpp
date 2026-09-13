@@ -17,9 +17,6 @@
 namespace squarestar::shell {
 
 using squarestar::platform::Win32AppRuntime;
-using squarestar::market::CurrentNewYorkTime;
-using squarestar::market::MarketCloseMinutesForDate;
-using squarestar::market::NextMarketOpenAt;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::presentation::GuiShellRuntime;
 using squarestar::application::AppState;

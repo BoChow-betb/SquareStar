@@ -25,34 +25,9 @@
 #include "platform/audio_runtime.hpp"
 namespace squarestar::shell {
 
-using squarestar::application::ApiKeyValidation;
-using squarestar::application::ApplicationRuntime;
-using squarestar::application::RequestGuiRedraw;
 using squarestar::application::UiRounding;
-using squarestar::presentation::kControlHeight;
-using squarestar::presentation::kDialogButtonHeight;
 using squarestar::presentation::GuiShellRuntime;
-using squarestar::application::GUI_FRAME_RATE_MODE_COUNT;
 using squarestar::application::AppState;
-using squarestar::application::GetActionName;
-using squarestar::application::InitializeDefaultKeybinds;
-using squarestar::application::FormatKeyBind;
-using squarestar::application::PersistedStateOf;
-using squarestar::application::SetThemePreset;
-using squarestar::application::IsLightGuiTheme;
-using squarestar::application::UserFeedback;
-using squarestar::application::UserFeedbackDestination;
-using squarestar::application::UserFeedbackSound;
-using squarestar::application::UserFeedbackType;
-using squarestar::config::ClearSquareStarTemporaryData;
-using squarestar::config::TemporaryDataCleanupResult;
-using squarestar::secrets::CommitFinnhubApiKeyChange;
-using squarestar::secrets::HasFinnhubApiKey;
-using squarestar::secrets::SecureClear;
-using squarestar::marketdata::ClearStockMemoryCache;
-using squarestar::search::ClearSymbolSearchCache;
-using squarestar::platform::StopAllAppAudio;
-using squarestar::platform::PlayAppSoundRuntime;
 
 
 void BeginSettingsCard(AppState& state,

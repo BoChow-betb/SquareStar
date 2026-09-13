@@ -27,7 +27,6 @@ using squarestar::http::ShutdownHttpClient;
 using squarestar::http::UrlEncode;
 using squarestar::json::Document;
 using squarestar::json::JsonNumber;
-using squarestar::json::JsonPath;
 using squarestar::json::JsonString;
 using squarestar::json::ParseJsonInSitu;
 using squarestar::market::IsMarketOpenAt;

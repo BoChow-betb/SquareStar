@@ -95,7 +95,6 @@ int main() {
     using squarestar::application::GuiRenderDecisionInputs;
     using squarestar::application::GuiWindowGeometry;
     using squarestar::application::ShouldRenderGuiFrame;
-    using squarestar::application::ShouldSuspendGuiFramePump;
     using squarestar::application::GuiFrameRateUsesVSync;
     using squarestar::application::GuiFrameTargetSeconds;
     using squarestar::application::GuiPassiveFrameTargetSeconds;
@@ -482,10 +481,6 @@ int main() {
               squarestar::application::ShouldPollGuiEvents(false, true, false) &&
               squarestar::application::ShouldPollGuiEvents(false, false, true),
           "event pump blocks when settled and polls only for active GUI work");
-    Check(ShouldSuspendGuiFramePump(true, false),
-          "suspend the GUI frame pump when the main window is hidden without floating stock windows");
-    Check(!ShouldSuspendGuiFramePump(true, true),
-          "keep the frame pump alive for an independent floating stock window");
     Check(GuiWindowGeometry{1200, 800, 2400, 1600} ==
               GuiWindowGeometry{1200, 800, 2400, 1600},
           "GUI geometry value object compares logical and framebuffer dimensions together");

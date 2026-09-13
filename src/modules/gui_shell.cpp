@@ -26,19 +26,8 @@
 #include <vector>
 namespace squarestar::shell {
 
-using squarestar::application::ApplicationRuntime;
-using squarestar::application::RequestGuiRedraw;
 using squarestar::application::UiRounding;
 using squarestar::application::AppState;
-using squarestar::application::FindStockModeNoticeTarget;
-using squarestar::application::CountMonitorStockTiles;
-using squarestar::application::StockContext;
-using squarestar::application::TerminalAction;
-using squarestar::application::IsLightGuiTheme;
-using squarestar::application::UserFeedbackType;
-using squarestar::market::TIME_RANGES;
-using squarestar::presentation::ChartExportMethod;
-using squarestar::presentation::ChartVisualType;
 
 
 void RenderStockTerminal(AppState& state, GLFWwindow* window) {

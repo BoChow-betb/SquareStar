@@ -17,7 +17,6 @@
 namespace squarestar::presentation {
 namespace {
 
-std::atomic_bool g_GuiRendererPrimed{false};
 std::atomic<ImGuiContext*> g_MainImGuiContext{nullptr};
 std::atomic<ImPlotContext*> g_MainImPlotContext{nullptr};
 std::atomic<void*> g_ExpectedPlatformBackendData{nullptr};
@@ -219,7 +218,6 @@ void ClearGuiRendererContextRegistry() noexcept {
     g_ExpectedPlatformBackendData.store(nullptr, std::memory_order_release);
     g_MainImPlotContext.store(nullptr, std::memory_order_release);
     g_MainImGuiContext.store(nullptr, std::memory_order_release);
-    g_GuiRendererPrimed.store(false, std::memory_order_release);
 }
 
 ImGuiContext* MainGuiImGuiContext() noexcept {
@@ -228,14 +226,6 @@ ImGuiContext* MainGuiImGuiContext() noexcept {
 
 ImPlotContext* MainGuiImPlotContext() noexcept {
     return g_MainImPlotContext.load(std::memory_order_acquire);
-}
-
-void SetGuiRendererPrimed(bool primed) noexcept {
-    g_GuiRendererPrimed.store(primed, std::memory_order_release);
-}
-
-bool GuiRendererPrimed() noexcept {
-    return g_GuiRendererPrimed.load(std::memory_order_acquire);
 }
 
 bool InitializeGuiD3D11(HWND hwnd,

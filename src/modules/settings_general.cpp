@@ -26,12 +26,10 @@
 namespace squarestar::shell {
 
 using squarestar::application::ApiKeyValidation;
-using squarestar::application::ApplicationRuntime;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::UiRounding;
 using squarestar::presentation::kControlHeight;
 using squarestar::presentation::kDialogButtonHeight;
-using squarestar::presentation::GuiShellRuntime;
 using squarestar::application::GUI_FRAME_RATE_MODE_COUNT;
 using squarestar::application::AppState;
 using squarestar::application::GetActionName;

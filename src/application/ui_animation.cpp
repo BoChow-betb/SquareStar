@@ -15,16 +15,6 @@ float EaseOutCubic(float value) noexcept {
     return 1.0f - value * value * value;
 }
 
-double SmoothValue(double current,
-                   double target,
-                   float dt,
-                   bool animEnabled,
-                   float speed) noexcept {
-    if (!animEnabled)
-        return target;
-    return current + (target - current) * (1.0 - std::exp(-(double)speed * (double)dt));
-}
-
 TransientNoticeAnimationStep AdvanceTransientNoticeAnimation(float current,
                                                               bool holding,
                                                               float dt,
