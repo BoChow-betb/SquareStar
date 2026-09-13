@@ -1,0 +1,46 @@
+# CMake / compiler output
+/build/
+/dist/
+/prebuilt/
+/prebuilt-mingw/
+/.squarestar-cache/
+CMakeUserPresets.json
+compile_commands.json
+
+# IDE-local files
+/.vs/
+*.user
+*.suo
+
+# Legacy executable-local runtime state
+/config.json
+/imgui.ini
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Other editor / local tooling state
+/.vscode/
+/.idea/
+/.cache/
+*.log
+
+# Local environment / credentials
+.env
+.env.*
+!.env.example
+
+# Compiler profiling and coverage artifacts
+*.pgc
+*.pgd
+*.gcda
+*.gcno
+*.profraw
+*.profdata
+
+# Patch / backup files
+*.bak
+*.orig
+*.rej
+*~

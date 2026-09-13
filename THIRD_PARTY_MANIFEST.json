@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "digestAlgorithm": "SHA-256 of sorted '<file-sha256>  <repository-relative-path>\\n' records",
+  "components": [
+    {
+      "name": "Dear ImGui",
+      "version": "1.93.0 WIP",
+      "source": "https://github.com/ocornut/imgui",
+      "upstreamCommit": "e236e742061d24c5acd1f6492b519723c9679dc2",
+      "upstreamCommitDate": "2026-08-06T21:32:43+02:00",
+      "localModifications": [
+        "imgui.cpp excludes demo/debug helpers not linked by SquareStar",
+        "backends/imgui_impl_opengl3.cpp is the SquareStar-reviewed OpenGL backend subset",
+        "LICENSE.txt is normalized to the notice text shipped in licenses/Dear-ImGui.txt",
+        "backends/imgui_impl_glfw.{h,cpp} expose/apply an immediate cursor update for SquareStar's event-driven render loop"
+      ],
+      "path": "third_party/imgui",
+      "versionFile": "third_party/imgui/imgui.h",
+      "versionMarker": "#define IMGUI_VERSION       \"1.93.0 WIP\"",
+      "treeSha256": "e5992b4ef4d459773b744e7b7bebb732d03ac34219e7cff3edd19e667e68f18e"
+    },
+    {
+      "name": "ImPlot",
+      "version": "1.1 WIP",
+      "source": "https://github.com/epezent/implot",
+      "upstreamCommit": "d65a2bef53d32502407de3a4be80f191e2f412d7",
+      "upstreamCommitDate": "2026-06-02T07:48:14+02:00",
+      "localModifications": [
+        "LICENSE.txt is normalized to the notice text shipped in licenses/ImPlot.txt"
+      ],
+      "path": "third_party/implot",
+      "versionFile": "third_party/implot/implot.h",
+      "versionMarker": "#define IMPLOT_VERSION \"1.1 WIP\"",
+      "treeSha256": "f3f52f3fb36c5a0bc34515bff1e5a04934a763ee37c7a01f294615f0bf236ab6"
+    },
+    {
+      "name": "yyjson",
+      "version": "0.12.0",
+      "source": "https://github.com/ibireme/yyjson",
+      "upstreamRef": "v0.12.0",
+      "localModifications": [],
+      "path": "third_party/yyjson",
+      "versionFile": "third_party/yyjson/yyjson.h",
+      "versionMarker": "#define YYJSON_VERSION_STRING \"0.12.0\"",
+      "treeSha256": "90beade2207d33d2e0e3578a43248bb5f21cf09b0c49f6c65def2ec701b5b909"
+    }
+  ]
+}

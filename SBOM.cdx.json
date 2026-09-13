@@ -1,0 +1,220 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:57582e85-7d39-5ce6-b105-b087f094ab08",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-06T06:22:00Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "scripts/refresh-sbom.py"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:generic/squarestar@1.0.1",
+      "name": "SquareStar",
+      "version": "1.0.1",
+      "purl": "pkg:generic/squarestar@1.0.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:github/ocornut/imgui@e236e742061d24c5acd1f6492b519723c9679dc2",
+      "name": "Dear ImGui",
+      "version": "1.93.0 WIP",
+      "purl": "pkg:github/ocornut/imgui@e236e742061d24c5acd1f6492b519723c9679dc2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ocornut/imgui"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5992b4ef4d459773b744e7b7bebb732d03ac34219e7cff3edd19e667e68f18e"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:github/epezent/implot@d65a2bef53d32502407de3a4be80f191e2f412d7",
+      "name": "ImPlot",
+      "version": "1.1 WIP",
+      "purl": "pkg:github/epezent/implot@d65a2bef53d32502407de3a4be80f191e2f412d7",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/epezent/implot"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3f52f3fb36c5a0bc34515bff1e5a04934a763ee37c7a01f294615f0bf236ab6"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:github/ibireme/yyjson@0.12.0",
+      "name": "yyjson",
+      "version": "0.12.0",
+      "purl": "pkg:github/ibireme/yyjson@0.12.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ibireme/yyjson"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "90beade2207d33d2e0e3578a43248bb5f21cf09b0c49f6c65def2ec701b5b909"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:github/glfw/glfw@3.5.1",
+      "name": "GLFW",
+      "version": "3.5.1",
+      "purl": "pkg:github/glfw/glfw@3.5.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Zlib"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/glfw/glfw/archive/3.5.1.tar.gz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5234f4f29473e9a06bc7847d8371858dd135d38466eeeaa652fdc9f8f9ff0c20"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:generic/curl@8.22.0",
+      "name": "curl",
+      "version": "8.22.0",
+      "purl": "pkg:generic/curl@8.22.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "curl"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://curl.se/download/curl-8.22.0.tar.gz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d54dd598bf05927a726deb38df31c6a255ba83ff1de57c5d1464dac3ed8f44a1"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:generic/outfit-font@bundled-snapshot",
+      "name": "Outfit",
+      "version": "bundled-snapshot",
+      "purl": "pkg:generic/outfit-font@bundled-snapshot",
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/google/fonts/tree/main/ofl/outfit"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/squarestar@1.0.1",
+      "dependsOn": [
+        "pkg:github/ocornut/imgui@e236e742061d24c5acd1f6492b519723c9679dc2",
+        "pkg:github/epezent/implot@d65a2bef53d32502407de3a4be80f191e2f412d7",
+        "pkg:github/ibireme/yyjson@0.12.0",
+        "pkg:github/glfw/glfw@3.5.1",
+        "pkg:generic/curl@8.22.0",
+        "pkg:generic/outfit-font@bundled-snapshot"
+      ]
+    },
+    {
+      "ref": "pkg:github/ocornut/imgui@e236e742061d24c5acd1f6492b519723c9679dc2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:github/epezent/implot@d65a2bef53d32502407de3a4be80f191e2f412d7",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:github/ibireme/yyjson@0.12.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:github/glfw/glfw@3.5.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:generic/curl@8.22.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:generic/outfit-font@bundled-snapshot",
+      "dependsOn": []
+    }
+  ]
+}

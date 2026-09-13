@@ -1,0 +1,63 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "portable-release",
+      "displayName": "Portable tests",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/portable",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SQUARESTAR_PORTABLE_ONLY": "ON",
+        "SQUARESTAR_STRICT_WARNINGS": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Windows x64 MSVC Release (default Visual Studio)",
+      "binaryDir": "${sourceDir}/build/release-msvc",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/prebuilt",
+        "SQUARESTAR_BUILD_TESTS": "ON",
+        "SQUARESTAR_STRICT_WARNINGS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "portable-release",
+      "configurePreset": "portable-release"
+    },
+    {
+      "name": "windows-msvc-release",
+      "configurePreset": "windows-msvc-release",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "portable-release",
+      "configurePreset": "portable-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc-release",
+      "configurePreset": "windows-msvc-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

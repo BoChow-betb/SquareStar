@@ -1,0 +1,201 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "SquareStar-1.0.1",
+  "documentNamespace": "https://spdx.org/spdxdocs/SquareStar-e43c92a2-9a61-57ac-a046-e877f5f47efd",
+  "creationInfo": {
+    "created": "2026-09-06T06:22:00Z",
+    "creators": [
+      "Tool: scripts/refresh-sbom.py"
+    ]
+  },
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-0",
+      "name": "SquareStar",
+      "versionInfo": "1.0.1",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/squarestar@1.0.1"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-1",
+      "name": "Dear ImGui",
+      "versionInfo": "1.93.0 WIP",
+      "downloadLocation": "https://github.com/ocornut/imgui",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/ocornut/imgui@e236e742061d24c5acd1f6492b519723c9679dc2"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "e5992b4ef4d459773b744e7b7bebb732d03ac34219e7cff3edd19e667e68f18e"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-2",
+      "name": "ImPlot",
+      "versionInfo": "1.1 WIP",
+      "downloadLocation": "https://github.com/epezent/implot",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/epezent/implot@d65a2bef53d32502407de3a4be80f191e2f412d7"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "f3f52f3fb36c5a0bc34515bff1e5a04934a763ee37c7a01f294615f0bf236ab6"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-3",
+      "name": "yyjson",
+      "versionInfo": "0.12.0",
+      "downloadLocation": "https://github.com/ibireme/yyjson",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/ibireme/yyjson@0.12.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "90beade2207d33d2e0e3578a43248bb5f21cf09b0c49f6c65def2ec701b5b909"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-4",
+      "name": "GLFW",
+      "versionInfo": "3.5.1",
+      "downloadLocation": "https://github.com/glfw/glfw/archive/3.5.1.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Zlib",
+      "licenseDeclared": "Zlib",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/glfw/glfw@3.5.1"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "5234f4f29473e9a06bc7847d8371858dd135d38466eeeaa652fdc9f8f9ff0c20"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-5",
+      "name": "curl",
+      "versionInfo": "8.22.0",
+      "downloadLocation": "https://curl.se/download/curl-8.22.0.tar.gz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "curl",
+      "licenseDeclared": "curl",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/curl@8.22.0"
+        }
+      ],
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "d54dd598bf05927a726deb38df31c6a255ba83ff1de57c5d1464dac3ed8f44a1"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-7",
+      "name": "Outfit",
+      "versionInfo": "bundled-snapshot",
+      "downloadLocation": "https://github.com/google/fonts/tree/main/ofl/outfit",
+      "filesAnalyzed": false,
+      "licenseConcluded": "OFL-1.1",
+      "licenseDeclared": "OFL-1.1",
+      "copyrightText": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:generic/outfit-font@bundled-snapshot"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-Package-0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-2"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-5"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-7"
+    }
+  ]
+}

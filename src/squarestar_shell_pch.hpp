@@ -1,0 +1,26 @@
+#pragma once
+
+// Keep the shell PCH limited to state/runtime/UI headers used throughout the shell.
+// Feature and service dependencies stay in the .cpp files that use them.
+#include "squarestar_pch.hpp"
+
+#include "application/app_state.hpp"
+#include "application/main_loop_signal.hpp"
+#include "application/monitor_stock_policy.hpp"
+#include "application/persisted_state.hpp"
+#include "application/price_alert_policy.hpp"
+#include "application/runtime_decisions.hpp"
+#include "application/runtime_state.hpp"
+#include "application/stock_data_merge.hpp"
+#include "application/stock_tab_policy.hpp"
+#include "application/theme_profiles.hpp"
+#include "application/ui_animation.hpp"
+#include "application/user_feedback.hpp"
+#include "domain/number_format.hpp"
+#include "platform/gui_window_layout.hpp"
+#include "platform/win32_app_state.hpp"
+#include "presentation/gui_shell_runtime_state.hpp"
+#include "presentation/notification_layout.hpp"
+#include "presentation/notification_stack.hpp"
+#include "presentation/stock_display_text.hpp"
+#include "presentation/ui_metrics.hpp"

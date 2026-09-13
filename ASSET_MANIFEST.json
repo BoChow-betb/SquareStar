@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "hashAlgorithm": "SHA-256",
+  "provenanceNote": "Hashes identify bundled bytes. Third-party source/creator/license fields are the repository attribution record and do not cryptographically prove derivation from an upstream recording.",
+  "assets": [
+    {
+      "path": "assets/Outfit-Regular.ttf",
+      "type": "font",
+      "sha256": "9e6f3b98756a78421a3537b712464ea97fa6bfec094bcbd29e176120991ffff7",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/main/ofl/outfit"
+    },
+    {
+      "path": "assets/Outfit-Medium.ttf",
+      "type": "font",
+      "sha256": "c4664df1c067ce98129ab1c8d0ed70f03cc30837a393f7a6ef1caea5e3ff8e67",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/main/ofl/outfit"
+    },
+    {
+      "path": "assets/Outfit-SemiBold.ttf",
+      "type": "font",
+      "sha256": "7a1a22db21ebf75dac02fbec8c3802e43b274b4b8cd669eee7be6cb4861dd669",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/main/ofl/outfit"
+    },
+    {
+      "path": "assets/Outfit-Bold.ttf",
+      "type": "font",
+      "sha256": "fdb781822014c086189e8161ea8bf87bff6d7d96d2b77b6a7536f67fa68949d2",
+      "license": "OFL-1.1",
+      "source": "https://github.com/google/fonts/tree/main/ofl/outfit"
+    },
+    {
+      "path": "assets/key.wav",
+      "type": "audio",
+      "sha256": "7efb7a230144969e5abe8307346cff0df80bcbac92c3e596fcfefd0be7d4c985",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/Sadiquecat/sounds/799116/",
+      "creator": "Sadiquecat"
+    },
+    {
+      "path": "assets/click.wav",
+      "type": "audio",
+      "sha256": "0f01deac030c23d6474b1854bb204900edc448196fbdaa0a61489d375a27c265",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/qubodup/sounds/862316/",
+      "creator": "qubodup"
+    },
+    {
+      "path": "assets/decline.wav",
+      "type": "audio",
+      "sha256": "99bf88440af896f9937116a2ed9693ac570ea9dace34b5eb605152a62a71d8be",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/yuugfr1a/sounds/770202/",
+      "creator": "yuugfr1a"
+    },
+    {
+      "path": "assets/error.wav",
+      "type": "audio",
+      "sha256": "7b49da2577d3b800d506528fa92cac813a677a05fc8817e5e7f3096dd8e8bdef",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/SamsterBirdies/sounds/581604/",
+      "creator": "SamsterBirdies"
+    },
+    {
+      "path": "assets/gain.wav",
+      "type": "audio",
+      "sha256": "bee86adf49c489f8e888d4f2a1b451eee2c18082bc73cb5944769207c210d2e2",
+      "license": "CC-BY-4.0",
+      "source": "https://freesound.org/people/nezuai/sounds/582594/",
+      "creator": "nezuai"
+    },
+    {
+      "path": "assets/launch.wav",
+      "type": "audio",
+      "sha256": "a7b6e204651644d07b48094fedeb2b9147c20b8c432db4a4dd0a4cd4b42f5d72",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/Breviceps/sounds/564237/",
+      "creator": "Breviceps"
+    },
+    {
+      "path": "assets/loading.wav",
+      "type": "audio",
+      "sha256": "6532f63ccf6320dbe96f92691a4facbc549231cc0be70ad2372f74debb38c2de",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/morganpurkis/sounds/399268/",
+      "creator": "morganpurkis"
+    },
+    {
+      "path": "assets/loss.wav",
+      "type": "audio",
+      "sha256": "c97f33cb4aae965e9b65c68cba32d55604418946748f372315d95af3c8653058",
+      "license": "CC-BY-4.0",
+      "source": "https://freesound.org/people/nezuai/sounds/582595/",
+      "creator": "nezuai"
+    },
+    {
+      "path": "assets/marketopenclose.wav",
+      "type": "audio",
+      "sha256": "c345c7fb2338369f971c7dc5d60f3c7fb5b319ddc7a6a00ff1db46ed0d681cb7",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/CogFireStudios/sounds/619836/",
+      "creator": "CogFireStudios"
+    },
+    {
+      "path": "assets/off.wav",
+      "type": "audio",
+      "sha256": "b4f2a666e362081b1b9b8e2c136dfc7cdc43020c9afa6c06c2e34331fb38e5d6",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/paep3nguin/sounds/388047/",
+      "creator": "paep3nguin"
+    },
+    {
+      "path": "assets/on.wav",
+      "type": "audio",
+      "sha256": "16147632220c26685852b112470096774ad50f92c4b93674472e191b953c05b8",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/paep3nguin/sounds/388046/",
+      "creator": "paep3nguin"
+    },
+    {
+      "path": "assets/transition.wav",
+      "type": "audio",
+      "sha256": "0f01deac030c23d6474b1854bb204900edc448196fbdaa0a61489d375a27c265",
+      "license": "CC0-1.0",
+      "source": "https://freesound.org/people/qubodup/sounds/862316/",
+      "creator": "qubodup"
+    },
+    {
+      "path": "assets/squarestar.ico",
+      "type": "icon",
+      "sha256": "295020684b2fc4271788e31e1ce97f34bf1f9326d67e84695db882d9acb383f6",
+      "license": "MIT (first-party repository asset)",
+      "source": "first-party artwork created by the SquareStar maintainer",
+      "provenanceStatus": "maintainer-confirmed first-party artwork",
+      "creator": "SquareStar maintainer",
+      "creationTool": "Affinity software"
+    }
+  ]
+}
