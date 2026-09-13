@@ -12,10 +12,6 @@ compile_commands.json
 *.user
 *.suo
 
-# Legacy executable-local runtime state
-/config.json
-/imgui.ini
-
 # OS metadata
 .DS_Store
 Thumbs.db
@@ -44,3 +40,5 @@ Thumbs.db
 *.orig
 *.rej
 *~
+/scripts/refresh-sbom.py
+/CHANGELOG.md
