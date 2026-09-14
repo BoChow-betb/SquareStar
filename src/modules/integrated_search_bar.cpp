@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -498,6 +499,7 @@ void PumpSearchResults(AppState& state, SearchState& searchState) {
 bool UpdateDropdownState(AppState& state,
                          SearchState& searchState,
                          const SearchInputResult& input) {
+    const bool wasOpen = searchState.isDropdownOpen;
     const bool hasInput = searchState.inputBuffer[0] != '\0';
     const ImVec2 pointer = ImGui::GetMousePos();
     const bool overPrevious =
@@ -515,6 +517,11 @@ bool UpdateDropdownState(AppState& state,
         (hasInput || !state.config.searchHistory.empty() ||
          state.navigation.liteGuiActive);
     searchState.isDropdownOpen = show;
+    // LiteGUI can resize its native host around this popup. Always schedule a
+    // follow-up frame when the open state flips, even in zero-graphics mode
+    // where the animation branch below is intentionally disabled.
+    if (wasOpen != show)
+        RequestGuiRedraw();
     if (state.UiAnimationsEnabled()) {
         if (show && searchState.dropdownShowsRecommendations != hasInput) {
             searchState.dropdownShowsRecommendations = hasInput;
@@ -571,29 +578,128 @@ std::string ResolveEnterTarget(const AppState& state,
     return {};
 }
 
+std::string RenderSearchDropdownContents(AppState& state,
+                                         SearchState& searchState,
+                                         const SearchInputResult& input) {
+    std::string selection;
+    searchState.isHoveringDropdown = ImGui::IsWindowHovered(
+        ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+        ImGuiHoveredFlags_ChildWindows);
+    searchState.dropdownMin = ImGui::GetWindowPos();
+    searchState.dropdownMax =
+        ImVec2(searchState.dropdownMin.x + ImGui::GetWindowWidth(),
+               searchState.dropdownMin.y + ImGui::GetWindowHeight());
+    searchState.dropdownBoundsValid = true;
+
+    const bool recommendations = searchState.dropdownShowsRecommendations;
+    ImGui::TextDisabled(recommendations ? "Recommended" : "History");
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    ImGui::Dummy(ImVec2(0, 2));
+    ImGui::Separator();
+    ImGui::Dummy(ImVec2(0, 2));
+    ImGui::PopStyleVar();
+    if (recommendations && searchState.isSearching) {
+        ImGui::TextDisabled("Searching...");
+    } else if (recommendations && searchState.results.empty()) {
+        ImGui::TextDisabled("No results found.");
+    } else if (!recommendations && state.config.searchHistory.empty()) {
+        ImGui::TextDisabled("No recent searches yet.");
+    } else {
+        const int count = recommendations
+                              ? static_cast<int>(searchState.results.size())
+                              : static_cast<int>(state.config.searchHistory.size());
+        for (int index = 0; index < count; ++index) {
+            std::string ticker;
+            std::string company;
+            if (recommendations) {
+                ticker = searchState.results[index].first;
+                company = searchState.results[index].second;
+            } else {
+                ticker = state.config.searchHistory[index];
+                const auto name = state.config.searchHistoryNames.find(ticker);
+                if (name != state.config.searchHistoryNames.end())
+                    company = name->second;
+                if (company.empty() || company == "Fetching...") {
+                    for (const auto& context : state.marketData.activeContexts) {
+                        if (context && context->navigation.ticker == ticker &&
+                            context->RawData().success &&
+                            context->RawData().companyName != "Fetching...") {
+                            company = context->RawData().companyName;
+                            state.config.searchHistoryNames[ticker] = company;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (ticker.empty())
+                continue;
+            std::string label = ticker;
+            if (!company.empty() && company != "Fetching...")
+                label += "  -  " + company;
+            const bool selected = index == searchState.selectedIndex;
+            if (ImGui::Selectable(label.c_str(), selected)) {
+                selection = ticker;
+                break;
+            }
+            if (selected)
+                ImGui::SetScrollHereY(0.5f);
+            if (ImGui::IsItemHovered())
+                searchState.selectedIndex = index;
+        }
+    }
+
+    const ImVec2 dropdownMin = ImGui::GetWindowPos();
+    const ImVec2 dropdownMax(dropdownMin.x + ImGui::GetWindowWidth(),
+                             dropdownMin.y + ImGui::GetWindowHeight());
+    DrawObjectFocusOutline(state, input.focusMin, input.focusMax, true, 2);
+    DrawObjectFocusOutline(state, dropdownMin, dropdownMax, true, 2);
+    return selection;
+}
+
 std::string RenderSearchDropdown(AppState& state,
                                  SearchState& searchState,
                                  const char* idSuffix,
                                  const SearchGeometry& geometry,
                                  const SearchInputResult& input,
-                                 bool unclampedDropdown,
+                                 bool fixedDropdownHeight,
+                                 bool detachedDropdown,
                                  bool showDropdown) {
     ImVec2 position(geometry.searchMin.x, geometry.searchMax.y + 4.0f);
     position.y += (1.0f - searchState.dropdownAnim) * 8.0f;
     ImGuiViewport* viewport = ImGui::GetWindowViewport();
     if (!viewport)
         viewport = ImGui::GetMainViewport();
+
+    bool useDetachedViewport = false;
+#ifdef IMGUI_HAS_VIEWPORT
+    useDetachedViewport =
+        detachedDropdown &&
+        (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0;
+#endif
     const float maxHeight =
-        unclampedDropdown
+        useDetachedViewport
+            ? FLT_MAX
+            : fixedDropdownHeight
             ? 300.0f
-            : std::max(120.0f,
+            : std::max(64.0f,
                        viewport->WorkPos.y + viewport->WorkSize.y - position.y - 12.0f);
-    if (!unclampedDropdown)
+    if (!fixedDropdownHeight && !useDetachedViewport)
         position = ClampPopupPosition(
             viewport, position, ImVec2(geometry.boxWidth, maxHeight));
     ImGui::SetNextWindowPos(position, ImGuiCond_Always);
     ImGui::SetNextWindowSizeConstraints(ImVec2(geometry.boxWidth, 0.0f),
                                         ImVec2(geometry.boxWidth, maxHeight));
+#ifdef IMGUI_HAS_VIEWPORT
+    ImGuiWindowClass detachedClass;
+    if (useDetachedViewport) {
+        detachedClass.ParentViewportId = ImGui::GetMainViewport()->ID;
+        detachedClass.ViewportFlagsOverrideSet =
+            ImGuiViewportFlags_NoAutoMerge |
+            ImGuiViewportFlags_NoDecoration |
+            ImGuiViewportFlags_NoTaskBarIcon;
+        ImGui::SetNextWindowClass(&detachedClass);
+    }
+#endif
     const ImVec4 background = ThemeVec(state.config.theme.floatingBg);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, background);
     ImGui::PushStyleColor(ImGuiCol_PopupBg, background);
@@ -606,85 +712,69 @@ std::string RenderSearchDropdown(AppState& state,
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing;
+    if (useDetachedViewport)
+        flags |= ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     if (!showDropdown)
         flags |= ImGuiWindowFlags_NoInputs;
 
     std::string selection;
     const std::string windowId = "##Dropdown_" + std::string(idSuffix);
-    if (ImGui::Begin(windowId.c_str(), nullptr, flags)) {
-        searchState.isHoveringDropdown = ImGui::IsWindowHovered(
-            ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-            ImGuiHoveredFlags_ChildWindows);
-        searchState.dropdownMin = ImGui::GetWindowPos();
-        searchState.dropdownMax =
-            ImVec2(searchState.dropdownMin.x + ImGui::GetWindowWidth(),
-                   searchState.dropdownMin.y + ImGui::GetWindowHeight());
-        searchState.dropdownBoundsValid = true;
-        const bool recommendations = searchState.dropdownShowsRecommendations;
-        ImGui::TextDisabled(recommendations ? "Recommended" : "History");
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-        ImGui::Dummy(ImVec2(0, 2));
-        ImGui::Separator();
-        ImGui::Dummy(ImVec2(0, 2));
-        ImGui::PopStyleVar();
-        if (recommendations && searchState.isSearching) {
-            ImGui::TextDisabled("Searching...");
-        } else if (recommendations && searchState.results.empty()) {
-            ImGui::TextDisabled("No results found.");
-        } else if (!recommendations && state.config.searchHistory.empty()) {
-            ImGui::TextDisabled("No recent searches yet.");
-        } else {
-            const int count = recommendations
-                                  ? static_cast<int>(searchState.results.size())
-                                  : static_cast<int>(state.config.searchHistory.size());
-            for (int index = 0; index < count; ++index) {
-                std::string ticker;
-                std::string company;
-                if (recommendations) {
-                    ticker = searchState.results[index].first;
-                    company = searchState.results[index].second;
-                } else {
-                    ticker = state.config.searchHistory[index];
-                    const auto name = state.config.searchHistoryNames.find(ticker);
-                    if (name != state.config.searchHistoryNames.end())
-                        company = name->second;
-                    if (company.empty() || company == "Fetching...") {
-                        for (const auto& context : state.marketData.activeContexts) {
-                            if (context && context->navigation.ticker == ticker &&
-                                context->RawData().success &&
-                                context->RawData().companyName != "Fetching...") {
-                                company = context->RawData().companyName;
-                                state.config.searchHistoryNames[ticker] = company;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (ticker.empty())
-                    continue;
-                std::string label = ticker;
-                if (!company.empty() && company != "Fetching...")
-                    label += "  -  " + company;
-                const bool selected = index == searchState.selectedIndex;
-                if (ImGui::Selectable(label.c_str(), selected)) {
-                    selection = ticker;
-                    break;
-                }
-                if (selected)
-                    ImGui::SetScrollHereY(0.5f);
-                if (ImGui::IsItemHovered())
-                    searchState.selectedIndex = index;
-            }
-        }
-        const ImVec2 dropdownMin = ImGui::GetWindowPos();
-        const ImVec2 dropdownMax(dropdownMin.x + ImGui::GetWindowWidth(),
-                                 dropdownMin.y + ImGui::GetWindowHeight());
-        DrawObjectFocusOutline(state, input.focusMin, input.focusMax, true, 2);
-        DrawObjectFocusOutline(state, dropdownMin, dropdownMax, true, 2);
-    }
+    if (ImGui::Begin(windowId.c_str(), nullptr, flags))
+        selection = RenderSearchDropdownContents(state, searchState, input);
     ImGui::End();
     ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(3);
+    return selection;
+}
+
+std::string RenderContainedSearchDropdown(AppState& state,
+                                          SearchState& searchState,
+                                          const char* idSuffix,
+                                          const SearchGeometry& geometry,
+                                          const SearchInputResult& input,
+                                          bool showDropdown) {
+    ImVec2 position(geometry.searchMin.x, geometry.searchMax.y + 4.0f);
+    position.y += (1.0f - searchState.dropdownAnim) * 8.0f;
+
+    // This path is for compact LiteGUI. A child window is clipped by its owner,
+    // so derive the height from the actual owner rectangle rather than the main
+    // viewport. That keeps the list visible and clickable even on the frame
+    // immediately after the native Lite host changes height.
+    const float ownerBottom =
+        ImGui::GetWindowPos().y + ImGui::GetWindowHeight() -
+        ImGui::GetStyle().WindowPadding.y;
+    const float dropdownHeight = std::max(0.0f, ownerBottom - position.y);
+    if (dropdownHeight < 48.0f) {
+        searchState.isHoveringDropdown = false;
+        searchState.dropdownBoundsValid = false;
+        return {};
+    }
+
+    ImGui::SetCursorScreenPos(position);
+    const ImVec4 background = ThemeVec(state.config.theme.floatingBg);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, background);
+    ImGui::PushStyleColor(
+        ImGuiCol_Border, ThemeVec(state.config.theme.floatingBorder));
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, UiRounding(state, 8.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, searchState.dropdownAnim);
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoSavedSettings;
+    if (!showDropdown)
+        flags |= ImGuiWindowFlags_NoInputs;
+
+    std::string selection;
+    const std::string childId = "##ContainedDropdown_" + std::string(idSuffix);
+    if (ImGui::BeginChild(childId.c_str(),
+                          ImVec2(geometry.boxWidth, dropdownHeight),
+                          ImGuiChildFlags_Borders |
+                              ImGuiChildFlags_AlwaysUseWindowPadding,
+                          flags)) {
+        selection = RenderSearchDropdownContents(state, searchState, input);
+    }
+    ImGui::EndChild();
+    ImGui::PopStyleVar(4);
+    ImGui::PopStyleColor(2);
     return selection;
 }
 
@@ -744,14 +834,23 @@ void RenderIntegratedSearchBar(
     }
 
     if (renderDropdown) {
-        const std::string selection = RenderSearchDropdown(
-            state,
-            searchState,
-            idSuffix,
-            geometry,
-            input,
-            options.unclampedDropdown,
-            searchState.isDropdownOpen);
+        const std::string selection = options.containDropdownInParent
+                                          ? RenderContainedSearchDropdown(
+                                                state,
+                                                searchState,
+                                                idSuffix,
+                                                geometry,
+                                                input,
+                                                searchState.isDropdownOpen)
+                                          : RenderSearchDropdown(
+                                                state,
+                                                searchState,
+                                                idSuffix,
+                                                geometry,
+                                                input,
+                                                options.fixedDropdownHeight,
+                                                options.detachedDropdown,
+                                                searchState.isDropdownOpen);
         if (!selection.empty()) {
             onExecute(selection);
             ResetAfterExecute(searchState);

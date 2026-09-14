@@ -7,7 +7,6 @@
 #include "modules/market_data.hpp"
 #include "modules/views.hpp"
 #include "modules/settings_view.hpp"
-#include "modules/terminal_stock_windows.hpp"
 #include "modules/stock_surface_feedback.hpp"
 #include "modules/window_chrome.hpp"
 
@@ -26,8 +25,19 @@
 #include <vector>
 namespace squarestar::shell {
 
+using squarestar::application::ApplicationRuntime;
+using squarestar::application::RequestGuiRedraw;
 using squarestar::application::UiRounding;
 using squarestar::application::AppState;
+using squarestar::application::FindStockModeNoticeTarget;
+using squarestar::application::CountMonitorStockTiles;
+using squarestar::application::StockContext;
+using squarestar::application::TerminalAction;
+using squarestar::application::IsLightGuiTheme;
+using squarestar::application::UserFeedbackType;
+using squarestar::market::TIME_RANGES;
+using squarestar::presentation::ChartExportMethod;
+using squarestar::presentation::ChartVisualType;
 
 
 void RenderStockTerminal(AppState& state, GLFWwindow* window) {
@@ -49,7 +59,6 @@ void RenderStockTerminal(AppState& state, GLFWwindow* window) {
         ThemeVec(state.navigation.pureMonitorMode ? state.config.theme.monitorBg : state.config.theme.bg));
     bgDrawList->AddRectFilled(
         workPos, ImVec2(workPos.x + workSize.x, workPos.y + workSize.y), appBg);
-    PruneClosedTerminalStocks(state);
     const size_t openStockTabs = squarestar::application::CountOpenStockTabs(state);
     SynchronizeTerminalNavigationState(state, openStockTabs);
 
@@ -64,6 +73,9 @@ void RenderStockTerminal(AppState& state, GLFWwindow* window) {
 
     ImGui::SetNextWindowPos(workPos);
     ImGui::SetNextWindowSize(workSize);
+#ifdef IMGUI_HAS_VIEWPORT
+    ImGui::SetNextWindowViewport(viewport->ID);
+#endif
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -87,7 +99,6 @@ void RenderStockTerminal(AppState& state, GLFWwindow* window) {
     ImGui::PopStyleColor(2);
 
     HandleTerminalKeyboardShortcuts(state, window);
-    RenderMonitorStockWindows(state, workPos, workSize);
     RenderMonitorExitButton(state, viewport, workPos, workSize);
     RenderMonitorStockPicker(state, viewport, workPos, workSize);
     RenderObjectFocusOverlay(state,

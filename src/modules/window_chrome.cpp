@@ -160,8 +160,10 @@ void RenderCustomTitleBar(GLFWwindow* window, AppState& state) {
         ImGuiCol_ButtonHovered, ThemeVec(state.config.theme.dangerHover));
     ImGui::PushStyleColor(
         ImGuiCol_ButtonActive, ThemeVec(state.config.theme.dangerActive));
-    if (ImGui::Button("##Close", ImVec2(buttonWidth, APP_TITLE_BAR_HEIGHT)))
+    if (ImGui::Button("##Close", ImVec2(buttonWidth, APP_TITLE_BAR_HEIGHT))) {
         state.navigation.showExitModal = true;
+        RequestGuiRedraw();
+    }
     const ImVec2 closeCenter(ImGui::GetItemRectMin().x + buttonWidth * 0.5f,
                              ImGui::GetItemRectMin().y + APP_TITLE_BAR_HEIGHT * 0.5f);
     const ImU32 closeColor =

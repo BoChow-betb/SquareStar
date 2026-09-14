@@ -9,7 +9,6 @@
 #include "services/config_save_queue.hpp"
 #include "application/alert_service.hpp"
 #include "application/debug_diagnostics.hpp"
-#include "application/gui_layout_persistence.hpp"
 #include "application/screener_executor.hpp"
 #include "domain/stock_data.hpp"
 #include "platform/audio_runtime.hpp"
@@ -32,7 +31,6 @@ using squarestar::application::UserFeedback;
 using squarestar::application::UserFeedbackDestination;
 using squarestar::application::UserFeedbackSound;
 using squarestar::application::UserFeedbackType;
-using squarestar::application::SetGuiLayoutPersistenceEnabled;
 using squarestar::application::PersistedStateOf;
 using squarestar::config::ConfigLoadStatus;
 using squarestar::config::LoadConfig;
@@ -62,7 +60,6 @@ static int ShutdownApplicationRuntime(GLFWwindow* window,
             ImGui::GetIO().IniFilename = nullptr;
             ImGui::GetIO().WantSaveIniSettings = false;
         }
-        SetGuiLayoutPersistenceEnabled(false);
         factoryResetSucceeded = DeletePersistentApplicationState();
         SetFinnhubApiKey("");
     } else if (!squarestar::benchmark::GuiProbeActive()) {
@@ -74,7 +71,7 @@ static int ShutdownApplicationRuntime(GLFWwindow* window,
         configSaveSucceeded = squarestar::config::FlushPendingConfigSave(
             PersistedStateOf(state), true);
     }
-    ShutdownGuiRuntime(window, state, hadPersistedConfig);
+    ShutdownGuiRuntime(window, state);
     if (!factoryResetRequested && !squarestar::benchmark::GuiProbeActive())
         configSaveSucceeded =
             squarestar::config::FlushConfigWrites() && configSaveSucceeded;
@@ -179,7 +176,7 @@ int RunSquareStar() {
 
     GLFWwindow* window = nullptr;
     std::string guiFailure;
-    if (!InitializeGuiRuntime(window, state, true, !benchmarkProbe, guiFailure)) {
+    if (!InitializeGuiRuntime(window, state, true, guiFailure)) {
         MessageBoxA(nullptr,
                     guiFailure.c_str(),
                     "SquareStar initialization error",

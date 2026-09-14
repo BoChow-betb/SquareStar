@@ -85,7 +85,7 @@ Windows process creation -> first visible host-window present
 main() entry             -> first visible host-window present
 ```
 
-The probe uses in-memory defaults and skips provider warmup, audio, config load/save, and layout persistence so repeated runs are comparable.
+The probe uses in-memory defaults and skips provider warmup, audio, config load/save, so repeated runs are comparable.
 
 For a useful startup distribution, run separate processes rather than repeating the timer inside one process.
 
@@ -102,7 +102,7 @@ The controlled idle probe starts after the first visible frame and records:
 - private bytes
 - presented frame count
 
-Provider work, audio, animations, config I/O, layout persistence, and normal network warmup are disabled during the probe. Results are appended to `idle.csv`.
+Provider work, audio, animations, config I/O, and normal network warmup are disabled during the probe. Results are appended to `idle.csv`.
 
 Do not interact with the window during the sample.
 

@@ -11,7 +11,9 @@ struct SearchState;
 namespace squarestar::shell {
 
 struct SearchBarOptions {
-    bool unclampedDropdown = false;
+    bool fixedDropdownHeight = false;
+    bool containDropdownInParent = false;
+    bool detachedDropdown = false;
     bool showNotificationCenter = true;
     int notificationCenterVisibleCardLimit = 2;
 };

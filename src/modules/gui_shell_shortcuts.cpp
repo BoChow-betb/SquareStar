@@ -7,10 +7,10 @@
 #include "modules/market_data.hpp"
 #include "modules/views.hpp"
 #include "modules/settings_view.hpp"
-#include "modules/terminal_stock_windows.hpp"
 #include "modules/stock_surface_feedback.hpp"
 #include "modules/window_chrome.hpp"
 
+#include "application/app_state.hpp"
 #include "services/config_save_queue.hpp"
 #include "application/app_limits.hpp"
 #include "application/contextual_keybind_policy.hpp"
@@ -19,6 +19,8 @@
 #include "application/navigation_state.hpp"
 #include "application/screener_controller.hpp"
 #include "application/stock_request_state.hpp"
+#include "application/stock_tab_policy.hpp"
+#include "application/user_feedback.hpp"
 #include "domain/market_symbol.hpp"
 #include "domain/chart_ranges.hpp"
 
@@ -52,12 +54,6 @@ void ExitPureMonitorMode(AppState& state) {
         state.navigation.activeSidebarTab = squarestar::application::SidebarTab::Home;
     } else {
         state.navigation.activeSidebarTab = squarestar::application::SidebarTab::Stock;
-        for (auto& context : state.marketData.activeContexts) {
-            if (context && context->navigation.ticker == state.navigation.lastActiveTab) {
-                context->navigation.justOpened = true;
-                break;
-            }
-        }
     }
     CloseAllAnimatedFloatingMenus();
     RequestGuiRedraw();
@@ -84,9 +80,8 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
             PlayUISound("click.wav", state);
         }
         auto normalMode = [&] {
-            if (state.navigation.pureMonitorMode) {
+            if (state.navigation.pureMonitorMode)
                 state.navigation.pureMonitorMode = false;
-            }
         };
         auto navPage = [&](TerminalAction a, squarestar::application::SidebarTab page) {
             if (!IsActionPressed(state.config, a))
@@ -111,7 +106,6 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
             StockContext* context = active->get();
             state.navigation.activeSidebarTab = squarestar::application::SidebarTab::Stock;
             state.navigation.lastActiveTab = context->navigation.ticker;
-            context->navigation.justOpened = true;
             context->navigation.headerSearch.focusRequested = true;
             return true;
         };
@@ -142,7 +136,6 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
                     active = contexts.begin();
             }
             state.navigation.lastActiveTab = (*active)->navigation.ticker;
-            (*active)->navigation.justOpened = true;
             PlayUISound("transition.wav", state);
         };
         navPage(TerminalAction::OpenHome, squarestar::application::SidebarTab::Home);
@@ -156,19 +149,12 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
                 state.navigation.activeSidebarTab = squarestar::application::SidebarTab::Stock;
                 if (state.navigation.lastActiveTab.empty())
                     state.navigation.lastActiveTab = (*firstContext)->navigation.ticker;
-                for (auto& context : state.marketData.activeContexts) {
-                    if (context && context->navigation.ticker == state.navigation.lastActiveTab) {
-                        context->navigation.justOpened = true;
-                        break;
-                    }
-                }
                 PlayUISound("transition.wav", state);
             }
         }
         if (IsActionPressed(state.config, TerminalAction::FocusSearch)) {
-            // Settings owns keyboard focus for controls and keybind editing. Do
-            // not let the global search shortcut surface a hidden stock search
-            // window on top of it.
+            // Settings owns keyboard focus for controls and keybind editing.
+            // Keep the global search shortcut from moving focus away from it.
             if (state.navigation.activeSidebarTab != squarestar::application::SidebarTab::Settings) {
                 normalMode();
                 if (state.navigation.activeSidebarTab != squarestar::application::SidebarTab::Stock ||
@@ -242,7 +228,7 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
         if (IsActionPressed(state.config, TerminalAction::CloseTab)) {
             if (!state.navigation.lastActiveTab.empty()) {
                 for (auto& ctx : state.marketData.activeContexts) {
-                    if (ctx->navigation.ticker == state.navigation.lastActiveTab) {
+                    if (ctx && ctx->navigation.ticker == state.navigation.lastActiveTab) {
                         ctx->navigation.open = false;
                         PlayUISound("click.wav", state);
                         break;
@@ -253,7 +239,7 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
         if (IsActionPressed(state.config, TerminalAction::RefreshData)) {
             if (!state.navigation.lastActiveTab.empty()) {
                 for (auto& ctx : state.marketData.activeContexts) {
-                    if (ctx->navigation.ticker == state.navigation.lastActiveTab) {
+                    if (ctx && ctx->navigation.ticker == state.navigation.lastActiveTab) {
                         RequestManualStockRefresh(state, *ctx);
                         break;
                     }

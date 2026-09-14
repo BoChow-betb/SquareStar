@@ -24,5 +24,6 @@ bool UpsertPriceAlertToast(AppState& state,
                            const StockContext& context,
                            double threshold);
 bool RemoveConfiguredPriceAlert(AppState& state, std::string_view ticker);
+bool ResumeConfiguredPriceAlert(AppState& state, std::string_view ticker);
 
 } // namespace squarestar::application

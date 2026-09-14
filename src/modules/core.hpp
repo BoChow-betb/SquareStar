@@ -29,7 +29,6 @@ inline constexpr int APP_TITLE_BAR_CONTROL_COUNT = 3;
 inline constexpr int LITE_TITLE_BAR_CONTROL_COUNT = 3;
 inline constexpr int LITE_GUI_WIDTH = 900;
 inline constexpr int LITE_GUI_SEARCH_HEIGHT = 108;
-inline constexpr int LITE_GUI_SEARCH_RESULTS_HEIGHT = 222;
 // Search-only LiteGUI temporarily grows to this height while foreground
 // notification cards are present, leaving enough room for a two-card tower.
 inline constexpr int LITE_GUI_NOTIFICATION_HEIGHT = 420;
@@ -69,7 +68,6 @@ bool BeginClampedContextMenu(const squarestar::application::AppState& state,
                              bool animEnabled = true,
                              ImVec2 activationMin = ImVec2(0.0f, 0.0f),
                              ImVec2 activationMax = ImVec2(0.0f, 0.0f),
-                             bool unclampedPosition = false,
                              ImVec2 maximumSize = ImVec2(
                                  std::numeric_limits<float>::max(),
                                  std::numeric_limits<float>::max()));
@@ -154,6 +152,16 @@ bool ShouldPublishMarketMoveNotification(squarestar::application::AppState& stat
                                          const squarestar::application::StockContext& ctx,
                                          double before,
                                          double after);
+void ShowInteractionNotice(
+    squarestar::application::AppState& state,
+    std::string title,
+    std::string body,
+    std::chrono::seconds duration = std::chrono::seconds(4),
+    squarestar::application::UserFeedbackDestination destination =
+        squarestar::application::UserFeedbackDestination::Automatic,
+    std::string actionLabel = {},
+    std::string actionUrl = {},
+    std::string actionPath = {});
 void ShutdownGlfwRuntime();
 void SilencePriceAlertForClosedTab(squarestar::application::AppState& state,
                                    squarestar::application::StockContext& ctx);

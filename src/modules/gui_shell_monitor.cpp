@@ -7,7 +7,6 @@
 #include "modules/market_data.hpp"
 #include "modules/views.hpp"
 #include "modules/settings_view.hpp"
-#include "modules/terminal_stock_windows.hpp"
 #include "modules/stock_surface_feedback.hpp"
 #include "modules/window_chrome.hpp"
 
@@ -25,10 +24,15 @@
 #include <vector>
 namespace squarestar::shell {
 
+using squarestar::application::ApplicationRuntime;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::UiRounding;
 using squarestar::application::AppState;
+using squarestar::application::FindStockModeNoticeTarget;
 using squarestar::application::CountMonitorStockTiles;
+using squarestar::application::StockContext;
+using squarestar::application::TerminalAction;
+using squarestar::application::IsLightGuiTheme;
 using squarestar::application::UserFeedbackType;
 using squarestar::market::TIME_RANGES;
 using squarestar::presentation::ChartExportMethod;
@@ -105,18 +109,18 @@ void RenderMonitorStockPicker(AppState& state,
         return;
 
     const ImVec2 workMax(workPos.x + workSize.x, workPos.y + workSize.y);
-    const float menuWidth = std::min(320.0f, std::max(240.0f, workSize.x - 28.0f));
+    const float menuWidth = std::min(280.0f, std::max(226.0f, workSize.x - 28.0f));
     const std::size_t openCount = static_cast<std::size_t>(std::count_if(
         state.marketData.activeContexts.begin(),
         state.marketData.activeContexts.end(),
         [](const auto& context) { return context && context->navigation.open; }));
-    const int columnCount = menuWidth >= 300.0f && openCount > 6 ? 2 : 1;
-    const float menuHeight = 126.0f +
+    const int columnCount = openCount > 6 ? 2 : 1;
+    const float menuHeight = 108.0f +
         static_cast<float>((openCount + static_cast<std::size_t>(columnCount) - 1) /
-                           static_cast<std::size_t>(columnCount)) * 28.0f;
+                           static_cast<std::size_t>(columnCount)) * 24.0f;
     const ImVec4 menuLine = ThemeVec(state.config.theme.floatingBorder, 0.58f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 9.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 7.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, menuLine);
     ImGui::PushStyleColor(ImGuiCol_Separator, menuLine);
     const bool mouseToggle =
@@ -133,7 +137,6 @@ void RenderMonitorStockPicker(AppState& state,
             state.UiAnimationsEnabled(),
             workPos,
             workMax,
-            false,
             ImVec2(menuWidth, std::max(160.0f, workSize.y - 28.0f)))) {
         ImGui::PopStyleColor(2);
         ImGui::PopStyleVar(2);
@@ -151,7 +154,7 @@ void RenderMonitorStockPicker(AppState& state,
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_CheckboxSelectedBg, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_CheckMark, ThemeVec(state.config.theme.text, 0.88f));
-    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(2.0f, 3.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(2.0f, 2.0f));
     std::size_t selectedCount = CountMonitorStockTiles(state.marketData);
     if (ImGui::BeginTable("##MonitorStockChoices",
                           columnCount,
@@ -199,11 +202,11 @@ void RenderMonitorStockPicker(AppState& state,
     ImGui::PopStyleColor(5);
     ImGui::Separator();
     ImGui::TextDisabled("Export monitor");
-    if (ImGui::MenuItem("Image (PNG/JPEG/PDF)...")) {
+    if (ImGui::MenuItem("GUI image (PNG/JPEG/PDF)")) {
         ExportFullMonitor(state, viewport, workPos, workMax, ChartExportMethod::GuiCapture);
         CloseAnimatedFloatingMenu(false);
     }
-    if (ImGui::MenuItem("Data (CSV/TXT/JSON)...")) {
+    if (ImGui::MenuItem("Source data (CSV/TXT/JSON)")) {
         ExportFullMonitor(state, viewport, workPos, workMax, ChartExportMethod::SourceData);
         CloseAnimatedFloatingMenu(false);
     }
@@ -213,10 +216,9 @@ void RenderMonitorStockPicker(AppState& state,
 }
 
 void RenderMonitorExitButton(AppState& state,
-                             ImGuiViewport* viewport,
-                             const ImVec2& workPos,
-                             const ImVec2& workSize) {
-    (void)viewport;
+                                    ImGuiViewport* viewport,
+                                    const ImVec2& workPos,
+                                    const ImVec2& workSize) {
     if (!state.navigation.pureMonitorMode || IsCleanGuiCaptureFrame())
         return;
     constexpr ImVec2 buttonSize(38.0f, 34.0f);
@@ -225,6 +227,9 @@ void RenderMonitorExitButton(AppState& state,
         workPos.y + 10.0f);
     ImGui::SetNextWindowPos(buttonPos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(buttonSize, ImGuiCond_Always);
+#ifdef IMGUI_HAS_VIEWPORT
+    ImGui::SetNextWindowViewport(viewport->ID);
+#endif
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
                              ImGuiWindowFlags_NoSavedSettings |
                              ImGuiWindowFlags_NoMove |

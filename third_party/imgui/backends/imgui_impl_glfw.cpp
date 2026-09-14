@@ -14,7 +14,8 @@
 // Missing features or Issues:
 //  [ ] Platform: Touch events are only correctly identified as Touch on Windows. This create issues with some interactions. GLFW doesn't provide a way to identify touch inputs from mouse inputs, we cannot call io.AddMouseSourceEvent() to identify the source. We provide a Windows-specific workaround.
 //  [ ] Platform: Missing ImGuiMouseCursor_Wait and ImGuiMouseCursor_Progress cursors.
-//  [ ] Platform: Multi-viewport: Missing ImGuiBackendFlags_HasParentViewport support. The viewport->ParentViewportID field is ignored, and therefore io.ConfigViewportsNoDefaultParent has no effect either.
+//  [X] Platform: Multi-viewport: Parent viewport ownership on Windows (ImGuiBackendFlags_HasParentViewport).
+//  [ ] Platform: Multi-viewport: Parent viewport ownership is still unavailable on non-Windows GLFW backends.
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
 // Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
@@ -746,6 +747,10 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
 #endif
     if (has_viewports)
         io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;  // We can create multi-viewports on the Platform side (optional)
+#ifdef _WIN32
+    if (has_viewports)
+        io.BackendFlags |= ImGuiBackendFlags_HasParentViewport;     // Win32 owner relationship for detached tool windows
+#endif
 #endif
 #if GLFW_HAS_MOUSE_PASSTHROUGH || GLFW_HAS_WINDOW_HOVERED
     io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
@@ -913,7 +918,7 @@ void ImGui_ImplGlfw_Shutdown()
 
     io.BackendPlatformName = nullptr;
     io.BackendPlatformUserData = nullptr;
-    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
+    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport | ImGuiBackendFlags_HasParentViewport);
     platform_io.ClearPlatformHandlers();
     ImGui_ImplGlfw_ContextMap_Remove(bd->Window);
     IM_DELETE(bd);
@@ -1392,6 +1397,12 @@ static void ImGui_ImplGlfw_CreateWindow(ImGuiViewport* viewport)
 #if GLFW_HAS_WINDOW_TOPMOST
     glfwWindowHint(GLFW_FLOATING, (viewport->Flags & ImGuiViewportFlags_TopMost) ? true : false);
 #endif
+    // InitForOther() is used by SquareStar's Direct3D 11 renderer. GLFW window
+    // hints are sticky and may have been reset by application code after the
+    // main window was created, so explicitly keep non-OpenGL platform windows
+    // free of a client API. The renderer backend owns their native HWND swapchains.
+    if (bd->ClientApi != GlfwClientApi_OpenGL)
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* share_window = (bd->ClientApi == GlfwClientApi_OpenGL) ? bd->Window : nullptr;
     vd->Window = glfwCreateWindow((int)viewport->Size.x, (int)viewport->Size.y, "No Title Yet", nullptr, share_window);
     vd->WindowOwned = true;
@@ -1460,6 +1471,16 @@ static void ImGui_ImplGlfw_ShowWindow(ImGuiViewport* viewport)
 #if defined(_WIN32)
     // GLFW hack: Hide icon from task bar
     HWND hwnd = (HWND)viewport->PlatformHandleRaw;
+
+    // Honor Dear ImGui's parent-viewport hint on Win32. GLFW doesn't expose
+    // this owner relationship directly, but setting GWLP_HWNDPARENT for a
+    // top-level popup keeps detached tool windows above their host without
+    // making them globally top-most.
+    HWND parent_hwnd = nullptr;
+    if (viewport->ParentViewport && viewport->ParentViewport->PlatformHandleRaw)
+        parent_hwnd = (HWND)viewport->ParentViewport->PlatformHandleRaw;
+    ::SetWindowLongPtrW(hwnd, GWLP_HWNDPARENT, (LONG_PTR)parent_hwnd);
+
     if (viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon)
     {
         LONG ex_style = ::GetWindowLong(hwnd, GWL_EXSTYLE);

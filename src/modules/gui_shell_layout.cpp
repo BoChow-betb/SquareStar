@@ -7,10 +7,11 @@
 #include "modules/market_data.hpp"
 #include "modules/views.hpp"
 #include "modules/settings_view.hpp"
-#include "modules/terminal_stock_windows.hpp"
+#include "modules/terminal_stock_surface.hpp"
 #include "modules/stock_surface_feedback.hpp"
 #include "modules/window_chrome.hpp"
 
+#include "application/app_state.hpp"
 #include "services/config_save_queue.hpp"
 #include "application/app_limits.hpp"
 #include "application/contextual_keybind_policy.hpp"
@@ -19,10 +20,16 @@
 #include "application/navigation_state.hpp"
 #include "application/screener_controller.hpp"
 #include "application/stock_request_state.hpp"
+#include "application/theme_profiles.hpp"
+#include "application/ui_animation.hpp"
 #include "domain/market_symbol.hpp"
 #include "domain/chart_ranges.hpp"
 
-#include <vector>
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+
 namespace squarestar::shell {
 
 using squarestar::application::RequestGuiRedraw;
@@ -143,15 +150,6 @@ float RenderTerminalSidebar(AppState& state, size_t openStockTabs) {
         if (state.navigation.activeSidebarTab != value)
             PlayUISound("transition.wav", state);
         state.navigation.activeSidebarTab = value;
-        if (value == squarestar::application::SidebarTab::Stock &&
-            !state.navigation.lastActiveTab.empty()) {
-            for (auto& context : state.marketData.activeContexts) {
-                if (context && context->navigation.ticker == state.navigation.lastActiveTab) {
-                    context->navigation.justOpened = true;
-                    break;
-                }
-            }
-        }
     };
     float currentSidebarWidth = 0.0f;
     if (!state.navigation.pureMonitorMode) {
@@ -293,61 +291,54 @@ void RenderTerminalMainContent(AppState& state,
                                ImU32 appBg) {
     ImGui::SetCursorPos(ImVec2(currentSidebarWidth, 0.0f));
     const ImVec2 mainContentSize = ImGui::GetContentRegionAvail();
-    const bool stockMainContent =
-        !state.navigation.pureMonitorMode &&
-        state.navigation.activeSidebarTab == squarestar::application::SidebarTab::Stock;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::BeginChild("MainContent",
+                      mainContentSize,
+                      false,
+                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::PopStyleVar();
 
-    // WindowPadding is consumed when the child window begins. Pushing it after
-    // BeginChild() does not change that child's WorkRect/ContentRegionRect, and
-    // borderless children need AlwaysUseWindowPadding as well. Without the inset
-    // here, edge-aligned stock controls run into the child clip rect.
-    if (stockMainContent) {
+    if (state.navigation.pureMonitorMode) {
+        RenderTerminalStockSurface(state);
+    } else if (squarestar::application::IsSidebarPage(state.navigation.activeSidebarTab)) {
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleVar(
             ImGuiStyleVar_WindowPadding,
             ImVec2(state.config.theme.contentPadding, state.config.theme.contentPadding));
-    }
-    ImGui::BeginChild(
-        "MainContent",
-        mainContentSize,
-        stockMainContent ? ImGuiChildFlags_AlwaysUseWindowPadding : ImGuiChildFlags_None,
-        ImGuiWindowFlags_NoScrollbar);
-
-    if (!state.navigation.pureMonitorMode) {
-        if (stockMainContent) {
-            RenderTerminalStockTabs(state);
-        } else if (squarestar::application::IsSidebarPage(
-                       state.navigation.activeSidebarTab)) {
-            ImGui::SetCursorPos(ImVec2(0, 0));
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleVar(
-                ImGuiStyleVar_WindowPadding,
-                ImVec2(state.config.theme.contentPadding, state.config.theme.contentPadding));
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 15.0f));
-            const ImGuiWindowFlags overlayFlags =
-                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-            ImGui::BeginChild(
-                "SidebarOverlay", ImVec2(0, 0), ImGuiChildFlags_AlwaysUseWindowPadding, overlayFlags);
-            const ImVec2 pMin = ImGui::GetWindowPos();
-            const ImVec2 pMax =
-                ImVec2(pMin.x + ImGui::GetWindowSize().x, pMin.y + ImGui::GetWindowSize().y);
-            ImGui::GetWindowDrawList()->AddRectFilled(pMin, pMax, appBg);
-            static constexpr std::array<void (*)(AppState&), 3> sidebarPages = {
-                RenderHomePage, RenderOverviewFirstPage, RenderSettingsContent};
-            const int sidebarIndex =
-                squarestar::application::SidebarTabIndex(state.navigation.activeSidebarTab);
-            if (sidebarIndex >= 0 && sidebarIndex < static_cast<int>(sidebarPages.size()))
-                sidebarPages[static_cast<size_t>(sidebarIndex)](state);
-            ImGui::EndChild();
-            ImGui::PopStyleVar(2);
-            ImGui::PopStyleColor();
-        }
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 15.0f));
+        ImGui::BeginChild("SidebarOverlay",
+                          ImVec2(0, 0),
+                          ImGuiChildFlags_AlwaysUseWindowPadding,
+                          ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse);
+        const ImVec2 pMin = ImGui::GetWindowPos();
+        const ImVec2 pMax(pMin.x + ImGui::GetWindowSize().x,
+                          pMin.y + ImGui::GetWindowSize().y);
+        ImGui::GetWindowDrawList()->AddRectFilled(pMin, pMax, appBg);
+        static constexpr std::array<void (*)(AppState&), 3> sidebarPages = {
+            RenderHomePage, RenderOverviewFirstPage, RenderSettingsContent};
+        const int sidebarIndex =
+            squarestar::application::SidebarTabIndex(state.navigation.activeSidebarTab);
+        if (sidebarIndex >= 0 && sidebarIndex < static_cast<int>(sidebarPages.size()))
+            sidebarPages[static_cast<std::size_t>(sidebarIndex)](state);
+        ImGui::EndChild();
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor();
+    } else {
+        const float horizontalPadding = std::max(12.0f, state.config.theme.contentPadding * 0.55f);
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_WindowPadding,
+            ImVec2(horizontalPadding, state.config.theme.contentPadding * 0.35f));
+        ImGui::BeginChild("StockSurface",
+                          ImVec2(0, 0),
+                          ImGuiChildFlags_AlwaysUseWindowPadding,
+                          ImGuiWindowFlags_NoScrollbar);
+        RenderTerminalStockSurface(state);
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
     }
 
     ImGui::EndChild();
-    if (stockMainContent)
-        ImGui::PopStyleVar();
 }
-
-
 
 } // namespace squarestar::shell

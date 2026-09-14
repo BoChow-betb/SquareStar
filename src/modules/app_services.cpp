@@ -4,7 +4,6 @@
 #include "modules/core.hpp"
 #include "modules/platform.hpp"
 #include "modules/market_data.hpp"
-#include "modules/terminal_stock_windows.hpp"
 #include "modules/views.hpp"
 #include "modules/window_chrome.hpp"
 
@@ -16,7 +15,6 @@
 #include "application/app_config.hpp"
 #include "application/contextual_keybind_policy.hpp"
 #include "application/debug_diagnostics.hpp"
-#include "application/gui_layout_persistence.hpp"
 #include "application/lite_context_lifecycle.hpp"
 #include "application/screener_controller.hpp"
 #include "application/stock_refresh_policy.hpp"
@@ -44,14 +42,7 @@ using squarestar::application::RequestGuiRedraw;
 using squarestar::presentation::RebuildApplicationFonts;
 using squarestar::application::ConfiguredPriceAlert;
 using squarestar::application::AppState;
-using squarestar::application::ConfigureGuiLayoutPersistence;
-using squarestar::application::GuiLayoutPersistenceEnabled;
-using squarestar::application::GuiLayoutInitialBaselinePending;
-using squarestar::application::PrimeGuiLayoutInitialBaseline;
-using squarestar::application::GuiLayoutSnapshotNeedsPersist;
-using squarestar::application::GuiLayoutSnapshotForConfig;
-using squarestar::application::StageGuiLayoutSnapshot;
-using squarestar::application::ResetGuiLayoutPersistence;
+using squarestar::application::UserFeedbackType;
 using squarestar::application::HiddenStockSurfaceInputs;
 using squarestar::application::ShouldWatchHiddenStockSurface;
 using squarestar::application::StockAutoRefreshAction;
@@ -76,6 +67,7 @@ using squarestar::presentation::SetGuiRendererBackendData;
 using squarestar::presentation::ClearGuiRendererContextRegistry;
 using squarestar::presentation::MainGuiImGuiContext;
 using squarestar::presentation::MainGuiImPlotContext;
+using squarestar::presentation::SetGuiRendererPrimed;
 using squarestar::presentation::EnsureGuiRendererContext;
 using squarestar::presentation::PrimeGuiRendererForStartup;
 using squarestar::presentation::ClearApplicationFontPointers;
@@ -86,6 +78,7 @@ using squarestar::presentation::ShutdownGuiD3D11;
 using squarestar::presentation::GuiD3D11Device;
 using squarestar::presentation::GuiD3D11DeviceContext;
 using squarestar::platform::ApplyFixedGlfwWindowLayout;
+using squarestar::platform::ApplyResizableGlfwWindowLayout;
 using squarestar::platform::ShutdownAppAudio;
 
 // Release vector capacity that is not useful across GUI/LiteGUI transitions.
@@ -94,46 +87,8 @@ static void ReleaseVectorStorage(std::vector<T>& values) {
     std::vector<T>().swap(values);
 }
 
-void PersistImGuiLayoutIfNeeded(AppState& state, bool force) {
-    if (!GuiLayoutPersistenceEnabled() || !ImGui::GetCurrentContext())
-        return;
-    ImGuiIO& io = ImGui::GetIO();
-
-    // A clean first launch has no persisted layout. The first rendered frame
-    // necessarily creates ImGui window state, which is application-owned
-    // initialization rather than a user change. Prime that rendered state as
-    // the baseline so simply opening and closing SquareStar stays zero-write.
-    if (GuiLayoutInitialBaselinePending()) {
-        size_t baselineSize = 0;
-        const char* baseline = ImGui::SaveIniSettingsToMemory(&baselineSize);
-        (void)PrimeGuiLayoutInitialBaseline(
-            std::string(baseline ? baseline : "", baselineSize));
-        io.WantSaveIniSettings = false;
-        return;
-    }
-
-    if (!force &&
-        !squarestar::application::GuiLayoutPersistenceSaveRequested(
-            io.WantSaveIniSettings))
-        return;
-    io.WantSaveIniSettings = false;
-    size_t payloadSize = 0;
-    const char* payload = ImGui::SaveIniSettingsToMemory(&payloadSize);
-    const std::string snapshot(payload ? payload : "", payloadSize);
-    if (!GuiLayoutSnapshotNeedsPersist(snapshot))
-        return;
-
-    // Layout is part of the unified portable data/config.json payload. Stage it
-    // before the central save queue writes the whole application
-    // snapshot; ImGui never needs a separate layout sidecar.
-    StageGuiLayoutSnapshot(snapshot);
-    (void)squarestar::config::PersistConfigSnapshot(PersistedStateOf(state), [snapshot](bool succeeded) {
-        squarestar::application::CompleteGuiLayoutPersistAttempt(snapshot, succeeded);
-    });
-}
 void ShutdownGuiRuntime(GLFWwindow*& window,
-                        AppState& state,
-                        bool forceLayoutPersist) {
+                        AppState& state) {
     if (!window)
         return;
 
@@ -146,17 +101,16 @@ void ShutdownGuiRuntime(GLFWwindow*& window,
         ImGui::SetCurrentContext(imguiContext);
     if (implotContext)
         ImPlot::SetCurrentContext(implotContext);
-    PersistImGuiLayoutIfNeeded(state, forceLayoutPersist);
     if (imguiContext && ImGui::GetIO().BackendRendererUserData)
         ImGui_ImplDX11_Shutdown();
-    if (imguiContext && ImGui::GetIO().BackendPlatformUserData)
+    if (imguiContext && ImGui::GetIO().BackendPlatformUserData) {
         ImGui_ImplGlfw_Shutdown();
+    }
     if (implotContext)
         ImPlot::DestroyContext(implotContext);
     if (imguiContext)
         ImGui::DestroyContext(imguiContext);
     ClearGuiRendererContextRegistry();
-    ResetGuiLayoutPersistence();
     ClearApplicationFontPointers(state.render);
 
     if (Win32AppRuntime().MainWindow() && Win32AppRuntime().OriginalWindowProc())
@@ -171,7 +125,6 @@ void ShutdownGuiRuntime(GLFWwindow*& window,
 bool InitializeGuiRuntime(GLFWwindow*& window,
                                  AppState& state,
                                  bool buildFonts,
-                                 bool persistLayout,
                                  std::string& failureReason) {
     failureReason.clear();
     if (!EnsureGlfwRuntimeInitialized()) {
@@ -209,6 +162,12 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     window = glfwCreateWindow(
         initialWindowWidth, initialWindowHeight, "SquareStar", nullptr, nullptr);
     glfwDefaultWindowHints();
+    // Dear ImGui creates secondary platform windows later in the process.
+    // They are rendered by Direct3D 11 through native HWNDs, so keep GLFW's
+    // process-global client-API policy at NO_API after clearing the host-only
+    // hints above. Otherwise secondary viewports fall back to an OpenGL client
+    // API and can present as black owned windows.
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     if (!window)
         return fail("The GLFW host window could not be created.");
 
@@ -244,8 +203,7 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     }
     squarestar::benchmark::RecordMemoryLayer("C", "+ D3D11 device/swap-chain/RTV");
     LONG_PTR nativeStyle = GetWindowLongPtr(Win32AppRuntime().MainWindow(), GWL_STYLE);
-    // Keep the primary SquareStar window fixed-size. Do not add WS_THICKFRAME
-    // or WS_MAXIMIZEBOX.
+    // Keep the primary SquareStar window fixed-size.
     nativeStyle = (nativeStyle | WS_MINIMIZEBOX) &
                   ~(WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX);
     SetWindowLongPtr(Win32AppRuntime().MainWindow(), GWL_STYLE, nativeStyle);
@@ -287,11 +245,8 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     ImGuiContext* imguiContext = ImGui::CreateContext();
     if (!imguiContext)
         return fail("The ImGui context could not be allocated.");
-    // SquareStar owns Ctrl+Tab / Ctrl+Shift+Tab for stock-tab cycling. Dear
-    // ImGui uses the same chords for its internal window switcher even when
-    // keyboard navigation is disabled, which caused both actions to run and
-    // briefly surfaced internal windows. Disable only that built-in
-    // route; ordinary widget keyboard behavior remains unchanged.
+    // SquareStar owns Ctrl+Tab / Ctrl+Shift+Tab for stock-tab cycling, so the
+    // built-in ImGui window switcher must not consume the same shortcuts.
     imguiContext->ConfigNavWindowingKeyNext = ImGuiKey_None;
     imguiContext->ConfigNavWindowingKeyPrev = ImGuiKey_None;
     SetGuiRendererContexts(imguiContext, nullptr);
@@ -305,6 +260,16 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
         ImPlot::SetCurrentContext(implotContext);
     }
     ImGuiIO& io = ImGui::GetIO();
+#ifdef IMGUI_HAS_VIEWPORT
+    // LiteGUI's search suggestions can live in a small, owned platform
+    // viewport so the compact host window never has to grow just to show the
+    // History/Recommended list. Keep multi-viewport support available for
+    // that detached surface; ordinary SquareStar windows still stay merged
+    // into the main viewport unless they explicitly opt out.
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    io.ConfigViewportsNoTaskBarIcon = true;
+    io.ConfigViewportsNoDecoration = true;
+#endif
     io.ConfigMemoryCompactTimer = 5.0f;
     // Text glyphs are coverage masks, not RGBA images. SquareStar's compact
     // Direct3D 11 backend maps Alpha8 atlases to DXGI_FORMAT_R8_UNORM, keeping
@@ -314,16 +279,8 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     // sampler, so the default one-pixel glyph padding is sufficient.
     io.Fonts->TexGlyphPadding = 1;
     io.Fonts->Flags |= ImFontAtlasFlags_NoMouseCursors;
-    // Manual, content-deduplicated layout persistence prevents identical
-    // layout snapshots from producing recurring disk writes while idle.
+    // Window placement is owned by SquareStar, so ImGui does not write an .ini file.
     io.IniFilename = nullptr;
-    const std::string persistedLayout = GuiLayoutSnapshotForConfig();
-    if (!persistedLayout.empty())
-        ImGui::LoadIniSettingsFromMemory(persistedLayout.data(), persistedLayout.size());
-    size_t initialIniSize = 0;
-    const char* initialIni = ImGui::SaveIniSettingsToMemory(&initialIniSize);
-    ConfigureGuiLayoutPersistence(
-        persistLayout, std::string(initialIni ? initialIni : "", initialIniSize));
     io.WantSaveIniSettings = false;
     const bool platformReady = ImGui_ImplGlfw_InitForOther(window, true);
     const bool rendererReady =
@@ -360,6 +317,7 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     state.render.appliedZeroGraphics = state.ZeroGraphicsEnabled();
     glfwPollEvents();
     const bool primed = buildFonts && PrimeGuiRendererForStartup(window, &failureReason);
+    SetGuiRendererPrimed(primed);
     if (buildFonts && !primed) {
         if (failureReason.empty())
             failureReason = "The first GUI renderer frame could not be created.";
@@ -491,7 +449,7 @@ void EnterLiteGuiWorkspace(GLFWwindow* window, AppState& state) {
     state.render.appliedZeroGraphics = false;
     CloseAllAnimatedFloatingMenus();
     SnapAllUiAnimations(state);
-    // Release transient full-workspace render state before sizing the Lite surface.
+    ReleaseGuiStateRenderMemory(state);
     ApplyLiteGuiWindowStyle(window, state);
 }
 static void LeaveLiteGuiWorkspace(GLFWwindow* window,
@@ -535,8 +493,7 @@ static bool PumpDeferredInterfaceSwitch(AppState& state) {
             static_cast<UiModeRequest>(state.navigation.deferredInterfaceSwitchTarget));
         state.navigation.deferredInterfaceSwitchTarget = -1;
         // Render one normal frame with the modal closed before changing the
-        // workspace/backend state. This keeps popup lifetimes on a separate
-        // frame from the actual mode transition.
+        // workspace state. The popup must finish its frame before the mode switch.
         RequestGuiRedraw();
         return true;
     } else if (state.navigation.deferredInterfaceSwitchTarget != -1 &&

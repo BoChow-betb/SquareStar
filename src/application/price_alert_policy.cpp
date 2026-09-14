@@ -104,4 +104,23 @@ bool RemoveConfiguredPriceAlert(AppState& state, std::string_view ticker) {
     return true;
 }
 
+bool ResumeConfiguredPriceAlert(AppState& state, std::string_view ticker) {
+    if (!state.alerts.HasThreshold(ticker) || !state.alerts.IsSilenced(ticker))
+        return false;
+
+    state.alerts.ClearSilence(ticker);
+    const auto rearmMatchingContext = [&](auto& contexts) {
+        for (auto& candidate : contexts) {
+            if (!candidate || candidate->navigation.ticker != ticker)
+                continue;
+            candidate->alerts.priceAlertTriggered = false;
+            candidate->alerts.priceAlertSoundPlaysRemaining = 0;
+        }
+    };
+    rearmMatchingContext(state.marketData.activeContexts);
+    rearmMatchingContext(state.alerts.Monitors());
+    rearmMatchingContext(state.marketData.retiredLiteContexts);
+    return true;
+}
+
 } // namespace squarestar::application

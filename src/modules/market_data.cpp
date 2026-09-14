@@ -12,6 +12,7 @@
 #include "application/stock_request_tracker.hpp"
 #include "application/stock_request_intent.hpp"
 #include "application/stock_request_state.hpp"
+#include "application/stock_tab_policy.hpp"
 #include "domain/chart_ranges.hpp"
 #include "domain/market_symbol.hpp"
 #include "domain/screener_routes.hpp"
@@ -21,6 +22,7 @@
 #include "services/stock_data_service.hpp"
 namespace squarestar::shell {
 
+using squarestar::application::ApplicationRuntime;
 using squarestar::market::MarketSymbol;
 using squarestar::market::TIME_RANGES;
 using squarestar::market::kScreenerRoutes;
@@ -38,6 +40,7 @@ using squarestar::application::StockFetchProfile;
 using squarestar::application::StockFetchNews;
 using squarestar::application::StockFetchAll;
 using squarestar::application::HasAnyMarketMetricData;
+using squarestar::application::MergeStockFetchPatch;
 using squarestar::secrets::HasFinnhubApiKey;
 using squarestar::market::FetchKind;
 using squarestar::market::StockData;
@@ -332,9 +335,15 @@ void SelectChartRange(AppState& state, StockContext& ctx, int rangeIndex) {
     RequestGuiRedraw();
 }
 void SelectStockViewRange(AppState& state, StockContext& ctx, int rangeIndex) {
-    SelectChartRange(state, ctx, rangeIndex);
-    if (ctx.navigation.upperTabIndex != 3)
+    if (ctx.navigation.upperTabIndex != 3) {
+        SelectChartRange(state, ctx, rangeIndex);
         return;
+    }
+
+    const int comparisonRange =
+        squarestar::application::ResolveComparisonSyncRangeIndex(
+            state, ctx, rangeIndex);
+    SelectChartRange(state, ctx, comparisonRange);
     for (auto& candidate : state.marketData.activeContexts) {
         if (!candidate || candidate.get() == &ctx || !candidate->RawData().success)
             continue;
@@ -344,7 +353,7 @@ void SelectStockViewRange(AppState& state, StockContext& ctx, int rangeIndex) {
                              return symbol == candidate->navigation.ticker;
                          }) == ctx.navigation.comparisonSymbols.end())
             continue;
-        SelectChartRange(state, *candidate, rangeIndex);
+        SelectChartRange(state, *candidate, comparisonRange);
     }
 }
 void RenderStockRangeButtons(AppState& state, StockContext& ctx) {

@@ -107,11 +107,9 @@ bool IsGuiWindowMaximized(HWND hwnd) {
     return hwnd && (ApplicationRuntime().GuiFullscreenSizeOverride() || IsZoomed(hwnd) ||
                     (GetWindowLongPtr(hwnd, GWL_STYLE) & WS_MAXIMIZE) != 0);
 }
-static bool IsAppPlatformWindow(HWND hwnd) {
-    return hwnd && hwnd == Win32AppRuntime().MainWindow();
-}
 bool IsAppWindowForeground() {
-    return IsAppPlatformWindow(GetForegroundWindow());
+    const HWND mainWindow = Win32AppRuntime().MainWindow();
+    return mainWindow && GetForegroundWindow() == mainWindow;
 }
 void ApplyRoundedWindowCorners(HWND hwnd) {
     if (!hwnd)
@@ -192,11 +190,7 @@ LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
     }
     if (msg == WM_ACTIVATE) {
         if (LOWORD(wParam) == WA_INACTIVE) {
-            const HWND activatingWindow = reinterpret_cast<HWND>(lParam);
-            // Clear stale mouse-button state when focus leaves SquareStar so a
-            // later activation cannot inherit a pressed button.
-            if (!IsAppPlatformWindow(activatingWindow))
-                ReleaseGuiMouseButtons();
+            ReleaseGuiMouseButtons();
         } else {
             ApplicationRuntime().RequestGuiFrameDeltaReset();
             RequestGuiRedraw();
@@ -301,6 +295,30 @@ void ShowForegroundInteractionNotice(AppState& state,
 
 } // namespace
 
+void ShowInteractionNotice(AppState& state,
+                           std::string title,
+                           std::string body,
+                           std::chrono::seconds duration,
+                           UserFeedbackDestination destination,
+                           std::string actionLabel,
+                           std::string actionUrl,
+                           std::string actionPath) {
+    if (FeedbackUsesBackgroundDestination(destination)) {
+        TriggerTrayNotification(title.c_str(), body.c_str(), std::move(actionPath));
+        return;
+    }
+    if (!ShouldRenderForegroundNotification(
+            ApplicationRuntime().CurrentUiMode(),
+            ForegroundNotificationKind::InteractionFeedback))
+        return;
+    ShowForegroundInteractionNotice(state,
+                                    std::move(title),
+                                    std::move(body),
+                                    duration,
+                                    std::move(actionLabel),
+                                    std::move(actionUrl),
+                                    std::move(actionPath));
+}
 void PublishUserFeedback(AppState& state,
                          UserFeedback feedback) {
     const auto route = ResolveUserFeedbackRoute(feedback);

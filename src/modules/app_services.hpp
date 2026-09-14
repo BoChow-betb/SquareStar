@@ -16,10 +16,7 @@ void EnterLiteGuiWorkspace(GLFWwindow* window,
 bool InitializeGuiRuntime(GLFWwindow*& window,
                           squarestar::application::AppState& state,
                           bool buildFonts,
-                          bool persistLayout,
                           std::string& failureReason);
-void PersistImGuiLayoutIfNeeded(squarestar::application::AppState& state,
-                                bool force = false);
 void PumpInterfaceTransitionsOnMainThread(GLFWwindow*& window,
                                           squarestar::application::AppState& state);
 void PumpPriceAlertMonitorRequests(squarestar::application::AppState& state);
@@ -33,8 +30,7 @@ double SecondsUntilNextStockAutoRefresh(squarestar::application::AppState& state
 bool ShouldWatchHiddenStockContext(const squarestar::application::AppState& state,
                                    const squarestar::application::StockContext& ctx);
 void ShutdownGuiRuntime(GLFWwindow*& window,
-                        squarestar::application::AppState& state,
-                        bool forceLayoutPersist = true);
+                        squarestar::application::AppState& state);
 void WaitForStockStateRequests(squarestar::application::AppState& state);
 
 } // namespace squarestar::shell

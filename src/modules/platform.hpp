@@ -39,7 +39,7 @@ bool ChooseChartExportPathForMethod(
     std::string& path);
 void DrawChartExportMenuItems(
     const std::function<void(squarestar::presentation::ChartExportMethod)>& exportChart,
-    const char* dataLabel = "Source data (CSV/TXT/JSON)...");
+    const char* dataLabel = "Source data (CSV/TXT/JSON)");
 bool ExportGuiDrawDataImage(const std::string& filename,
                             ImGuiViewport* viewport,
                             ImVec2 screenMin,

@@ -132,6 +132,69 @@ int main() {
               movedWhileLoadingState.navigation.lastActiveTab == "AAPL",
           "a late failed request closes quietly without stealing newer navigation");
 
+    AppState comparisonState;
+    auto comparisonPrimary = std::make_unique<StockContext>("NVDA");
+    comparisonPrimary->navigation.open = true;
+    comparisonPrimary->navigation.selectedTimeRangeIndex = 0;
+    comparisonPrimary->navigation.displayedTimeRangeIndex = 0;
+    comparisonPrimary->navigation.comparisonSymbols = {"NVDA", "EA"};
+    squarestar::market::StockData activePrimaryData;
+    activePrimaryData.success = true;
+    comparisonPrimary->PublishRawData(std::move(activePrimaryData));
+    StockContext* comparisonPrimaryPtr = comparisonPrimary.get();
+    comparisonState.marketData.activeContexts.push_back(std::move(comparisonPrimary));
+
+    auto stoppedComparison = std::make_unique<StockContext>("EA");
+    stoppedComparison->navigation.open = true;
+    stoppedComparison->navigation.selectedTimeRangeIndex = 6;
+    stoppedComparison->navigation.displayedTimeRangeIndex = 6;
+    squarestar::market::StockData stoppedData;
+    stoppedData.success = true;
+    stoppedData.tradingStatus.chartAvailability =
+        squarestar::market::ChartAvailability::TradingStoppedWithHistory;
+    stoppedData.tradingStatus.corporateAction =
+        squarestar::market::CorporateActionStatus::Acquired;
+    stoppedComparison->PublishRawData(std::move(stoppedData));
+    StockContext* stoppedComparisonPtr = stoppedComparison.get();
+    comparisonState.marketData.activeContexts.push_back(std::move(stoppedComparison));
+
+    Check(ResolveComparisonSyncRangeIndex(comparisonState, *comparisonPrimaryPtr) == 6 &&
+              ResolveComparisonSyncRangeIndex(comparisonState, *comparisonPrimaryPtr, 0) == 6,
+          "comparison uses a stopped stock's known historical range as a floor");
+
+    int primarySyncedRange = -1;
+    int stoppedSyncedRange = -1;
+    PrepareComparisonSelection(
+        comparisonState,
+        *comparisonPrimaryPtr,
+        false,
+        [&](StockContext& context, int rangeIndex) {
+            if (&context == comparisonPrimaryPtr)
+                primarySyncedRange = rangeIndex;
+            if (&context == stoppedComparisonPtr)
+                stoppedSyncedRange = rangeIndex;
+        });
+    Check(primarySyncedRange == 6 && stoppedSyncedRange == 6,
+          "comparison synchronizes active and stopped stocks to one viable historical range");
+
+    squarestar::market::StockData noIntradayData;
+    noIntradayData.success = true;
+    noIntradayData.tradingStatus.chartAvailability =
+        squarestar::market::ChartAvailability::NoTradingToday;
+    stoppedComparisonPtr->navigation.displayedTimeRangeIndex = 1;
+    stoppedComparisonPtr->navigation.selectedTimeRangeIndex = 1;
+    stoppedComparisonPtr->PublishRawData(std::move(noIntradayData));
+    Check(ResolveComparisonSyncRangeIndex(comparisonState, *comparisonPrimaryPtr, 0) == 1,
+          "comparison also respects a stock whose intraday range is unavailable");
+
+    squarestar::market::StockData resumedData;
+    resumedData.success = true;
+    stoppedComparisonPtr->navigation.displayedTimeRangeIndex = 0;
+    stoppedComparisonPtr->navigation.selectedTimeRangeIndex = 0;
+    stoppedComparisonPtr->PublishRawData(std::move(resumedData));
+    Check(ResolveComparisonSyncRangeIndex(comparisonState, *comparisonPrimaryPtr, 0) == 0,
+          "active comparison stocks do not force an unnecessarily wide historical range");
+
     if (failures != 0) {
         std::cerr << failures << " test(s) failed\n";
         return EXIT_FAILURE;

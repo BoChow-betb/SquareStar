@@ -87,6 +87,9 @@ int main() {
           "missing and inconsistent OHLC values are normalized");
     Check(Near(chart.volumes[1], 0.0) && Near(chart.regularMarketVolume, 1234.0),
           "invalid sample volume is sanitized while provider aggregate is retained");
+    Check(YahooChartPayloadHasUsableSeries(std::string(kYahooChartPayload)),
+          "Yahoo availability check uses the standalone parser");
+
     StockData intraday;
     Check(ApplyYahooChartPayload(std::string(kYahooVolumePayload), true, intraday),
           "chart without volume metadata remains usable");
@@ -159,6 +162,9 @@ int main() {
           "a one-sample Yahoo series is rejected");
     Check(Near(unchanged.currentPrice, 77.0) && unchanged.closes.empty(),
           "failed chart parse leaves the destination unchanged");
+    Check(!YahooChartPayloadHasUsableSeries("not json"),
+          "malformed Yahoo JSON is rejected");
+
     const auto batchQuotes = ParseYahooQuoteBatchPayload(
         R"json({"quoteResponse":{"result":[
           {"symbol":"AAPL","regularMarketPrice":201.5,"regularMarketPreviousClose":199,"regularMarketOpen":200,"regularMarketDayHigh":203,"regularMarketDayLow":198,"regularMarketTime":1700000100},
@@ -207,9 +213,23 @@ int main() {
               Near(quote->dayHigh, 103.0) && Near(quote->dayLow, 98.0) &&
               Near(quote->openPrice, 100.0),
           "Finnhub quote fields are decoded without application state");
-    Check(!ParseFinnhubQuotePayload("not json").has_value() &&
-              !ParseFinnhubQuotePayload("[]").has_value(),
-          "non-object and malformed Finnhub quotes are rejected");
+    Check(FinnhubQuotePayloadHasPrice(R"json({"c":101.5})json"),
+          "positive Finnhub quote is recognized");
+    Check(!FinnhubQuotePayloadHasPrice(R"json({"c":0})json") &&
+              !FinnhubQuotePayloadHasPrice("[]") &&
+              !ParseFinnhubQuotePayload("not json").has_value(),
+          "empty, non-object, and malformed Finnhub prices are rejected");
+
+    const auto marketCap = ParseFinnhubMetricMarketCap(
+        R"json({"metric":{"marketCapitalization":2431.5}})json");
+    Check(marketCap && Near(*marketCap, 2431500000.0),
+          "Finnhub market capitalization is normalized from millions");
+    Check(!ParseFinnhubMetricMarketCap(
+               R"json({"metric":{"marketCapitalization":0}})json")
+               .has_value() &&
+              !ParseFinnhubMetricMarketCap(R"json({"metric":{}})json").has_value() &&
+              !ParseFinnhubMetricMarketCap("not json").has_value(),
+          "missing, non-positive, and malformed market capitalizations are rejected");
 
     if (failures != 0) {
         std::cerr << failures << " test(s) failed\n";

@@ -1,0 +1,59 @@
+# Changelog
+
+## 1.0.1 — Unreleased
+- Simplified FullGUI stock navigation to one inline stock surface with compact ticker tabs, keeping only the active tab's close control.
+- Tightened the price-alert editor, chart/comparison/monitor context menus, LiteGUI menus, and world-clock picker to use less space without changing their core actions.
+- Removed obsolete per-stock window state and other pre-release UI paths that were no longer needed by the current interface.
+- Added two-lane default HTTP/background execution, worker-local Yahoo cookie/crumb sessions, and normal-priority alert batching to reduce foreground head-of-line blocking without mixing authenticated state across threads.
+- Made alert quote scheduling restartable after network-pool shutdown, hardened CSV/TXT exports against spreadsheet formula injection and control-character column breaks, and added regression coverage.
+- Cleaned Clang strict-warning signed/unsigned conversions and removed the pre-release system-temp compatibility cleanup path.
+- Made MSVC contributor builds version-aware and instance-safe: active Visual Studio 17.x+ Developer PowerShell sessions use their exact `cl.exe` through Ninja/NMake, while normal-shell builds detect Visual Studio with `vswhere`, select a matching CMake generator, and pin `CMAKE_GENERATOR_INSTANCE` to the detected installation. This also avoids the VS 18/2026 case where the generator is recognized but CMake binds to no usable C/C++ compiler.
+- Fixed Visual Studio instance argument quoting when `VSINSTALLDIR` ends in a backslash, and made Developer PowerShell discover Visual Studio-bundled Ninja or `nmake.exe` beside `cl.exe` before falling back to a Visual Studio solution generator.
+- Added a real MinGW `-BalancedSize` mode: it forces `-Os` for the build graph and links with `--discard-all` so local COFF symbols are removed while global symbols remain; build output now reports the remaining COFF symbol/string-table size.
+
+- MinGW Release builds use full `-s` stripping by default; `-StripBinary` explicitly selects that same mode, while `-BalancedSize` and `-StripDebug` replace the default strip behavior when selected.
+- Added a balanced MinGW `-StripDebug` mode (`--strip-debug`) so size-focused builds can remove debug information without applying full `-s` stripping.
+- Restored the SquareStar custom application icon and recorded its exact SHA-256 plus maintainer-confirmed first-party provenance.
+- Cleaned the open-source source package, synchronized asset/legal records, tightened source-distribution checks, and clarified contribution licensing.
+- Removed disconnected legacy build/test probes, redundant root command aliases, and screenshots that were no longer referenced by any documentation.
+- Compacted the LiteGUI chart clock picker so it is closer in scale to the chart-range popup, with tighter picker padding, shorter LiteGUI-only labels, and smaller radio/checkbox rows while leaving FullGUI unchanged.
+- Restored the LiteGUI clock-block hover tooltip for current selected world-clock times; LiteGUI now intentionally allows only the stock-code company tooltip and the clock-time tooltip.
+- Tightened LiteGUI chart-range popup placement, removed the chart hover readout tooltip, and made export success cards easier to catch in LiteGUI while preserving the shared FullGUI/LiteGUI notification block appearance.
+- Fixed the Windows state integration test so validation can run while SquareStar is already open; the test still verifies the production global/version-independent mutex identity, but exercises mutex contention and release with an isolated per-run name.
+- Fixed `Ctrl+K` so it focuses the active stock search field instead of falling back to Home when a stock tab is already open.
+- Kept LiteGUI export/interaction feedback on the same full notification-card presentation as FullGUI and standardized successful export actions to `Open in folder`.
+
+- Fixed the Windows FullGUI build after the first-fetch notification text was passed as if a string literal were a `std::string`.
+- Fixed Overview performance colors so the displayed CHANGE sign controls both percentage text and sparkline color, with 5-day direction used only when CHANGE is unavailable.
+- Updated the pinned curl source dependency from 8.21.0 to 8.22.0 using curl's official 8.22.0 archive URL and published SHA-256.
+- Audited open-source documentation against the current source/build paths, narrowed unverifiable marketing/legal wording, and added an explicit factual-audit boundary.
+- Disclosed Yahoo's `fc.yahoo.com` cookie bootstrap, Finnhub quote fallback, exact export formats, diagnostic-log sanitization, and the current search-without-key limitation.
+- Replaced user-facing `Live price/live quote` wording with neutral quote/price-refresh language and made the foreground market-open notice use the actual 1:00 PM or 4:00 PM ET session close label.
+- Documented and re-hashed SquareStar's local Dear ImGui GLFW cursor-backend modification; synchronized vendored hashes in the third-party manifest and both SBOM formats.
+- Added SHA-256 identity for bundled runtime assets (fonts, audio cues, and icon) through `ASSET_MANIFEST.json`.
+- Fixed cross-GUI native cursor synchronization in the shared render path.
+- Fixed LiteGUI world-clock hover to use the visible clock selection and tightened the time-range popup anchor gap.
+- Removed numeric quote interpolation so a fixed provider quote is displayed exactly rather than animating through invented intermediate prices.
+- Focused the empty Home search field once at startup in both Full GUI and LiteGUI without repeatedly stealing focus.
+- Centered the developer build-menu banner in the console and simplified the root README for a cleaner open-source landing page.
+- Added Windows version/copyright metadata for `SquareStar.exe` and made the developer build banners show `Copyright (c) 2026 Bo Blitz Chow`.
+- Embedded the market-data provider notice in Credits & Licenses and present the provider disclosure directly in Credits & Licenses for Yahoo Finance and Finnhub data.
+- Added a small explicit table for documented one-off U.S. equity-market closures instead of complicating the recurring-holiday algorithm.
+- Kept release packaging on the linker-produced executable with no UPX/executable-packer step, and added a direct clean-profile release journey to the release checklist.
+- Made shared foreground notification cards viewport-aware so an active toast cannot overflow into the LiteGUI title bar when switching into the 108 px compact search surface.
+- Unified Full GUI and LiteGUI foreground notifications behind one shell-level overlay renderer so export feedback and notification actions cannot drift between modes.
+- Made `build.cmd` the single contributor-facing build entry point, with interactive menu plus `fast`, `validate`, `release`, `clean`, and `help` commands.
+- Expanded contributor/architecture documentation with a change map, runtime invariants, build troubleshooting, and explicit source-graph guidance.
+- Added GitHub pull-request/issue templates and `.editorconfig` to make external contributions easier to review and reproduce.
+- Removed unused quote-quality display metadata paths and tightened `As of` freshness so timestamps advance only with the displayed price snapshot.
+- Made the Full GUI Settings body strictly non-scrolling and pinned its internal scroll origin so the sidebar overlay never exposes a nested vertical scrollbar.
+- Aligned provider documentation with the neutral `As of` UI, documented the Yahoo Finance endpoints used by the client, and removed the stale Realtime/delayed label description.
+- Removed verified-unused legacy helpers, write-only render state, stale aliases, an unused quote-purpose enum value, and the obsolete screener CLI-name route column.
+- Added Windows DPAPI protection for the Finnhub API key and privacy-sensitive local state.
+- Added a versioned current-only configuration schema; unsupported, incomplete, or undecryptable saved state is rejected.
+- Added Privacy settings for saving and clearing recent stock-code search history.
+- Added `PRIVACY.md`, embedded it in the portable executable, and documented the data sent to Finnhub and Yahoo Finance.
+- Kept public screener/trending caches separate from private watchlist and search activity.
+- Standardized all bundled UI audio on embedded mono 22.05 kHz/16-bit PCM WAV resources using the WinMM `waveOut` path; there is no Media Foundation/MP3 runtime path.
+- Removed unused keybinding/action placeholders and stale command-line handling before the first public release.
+- Retained bounded parsing, HTTPS provider allowlists, atomic local-state writes, single-instance writer ownership, strict-warning builds, and the existing portable test suite.

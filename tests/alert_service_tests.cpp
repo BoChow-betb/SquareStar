@@ -142,6 +142,25 @@ int main() {
         state.alerts.AddMonitor(
             std::make_unique<squarestar::application::StockContext>("AAPL"));
 
+        state.alerts.SilenceUntil("AAPL", 9999999999LL);
+        Require(squarestar::application::ResumeConfiguredPriceAlert(state, "AAPL"),
+                "central alert manager resumes a muted threshold");
+        Require(!state.alerts.IsSilenced("AAPL"),
+                "central alert resume clears silence state");
+        Require(!activePtr->alerts.priceAlertTriggered &&
+                    activePtr->alerts.priceAlertSoundPlaysRemaining == 0,
+                "central alert resume rearms active context state");
+        Require(!retiredPtr->alerts.priceAlertTriggered &&
+                    retiredPtr->alerts.priceAlertSoundPlaysRemaining == 0,
+                "central alert resume rearms retired context state");
+        Require(!squarestar::application::ResumeConfiguredPriceAlert(state, "AAPL"),
+                "central alert resume reports an already-active threshold");
+
+        activePtr->alerts.priceAlertTriggered = true;
+        activePtr->alerts.priceAlertSoundPlaysRemaining = 2;
+        retiredPtr->alerts.priceAlertTriggered = true;
+        retiredPtr->alerts.priceAlertSoundPlaysRemaining = 1;
+
         Require(squarestar::application::RemoveConfiguredPriceAlert(state, "AAPL"),
                 "central alert removal reports existing threshold");
         Require(!state.alerts.HasThreshold("AAPL"),

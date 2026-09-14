@@ -17,6 +17,9 @@
 namespace squarestar::shell {
 
 using squarestar::platform::Win32AppRuntime;
+using squarestar::market::CurrentNewYorkTime;
+using squarestar::market::MarketCloseMinutesForDate;
+using squarestar::market::NextMarketOpenAt;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::presentation::GuiShellRuntime;
 using squarestar::application::AppState;
@@ -490,6 +493,13 @@ void PumpGuiCapture(GLFWwindow* window,
         captureViewport->FramebufferScale = exportFramebufferScale;
     renderCaptureSurface(window, state);
     ImGui::Render();
+#ifdef IMGUI_HAS_VIEWPORT
+    // PumpGuiCapture owns a complete extra ImGui frame. Multi-viewport mode
+    // requires every rendered frame to finish the platform-window update even
+    // though this clean capture pass itself is rendered off-screen.
+    if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0)
+        ImGui::UpdatePlatformWindows();
+#endif
 
     bool saved = false;
     int exportedWidth = 0;
@@ -814,7 +824,7 @@ void PollChartFileExport(AppState& state) {
 void DrawChartExportMenuItems(
                                      const std::function<void(ChartExportMethod)>& exportChart,
                                      const char* dataLabel) {
-    if (ImGui::MenuItem("GUI export (PNG/JPEG/PDF)..."))
+    if (ImGui::MenuItem("GUI image (PNG/JPEG/PDF)"))
         exportChart(ChartExportMethod::GuiCapture);
     if (ImGui::MenuItem(dataLabel))
         exportChart(ChartExportMethod::SourceData);

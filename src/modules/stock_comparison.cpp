@@ -193,7 +193,7 @@ static float RenderComparisonStockPicker(AppState& state,
                 if (selected) {
                     if (!IsComparisonSymbolSelected(primary, candidate->navigation.ticker))
                         primary.navigation.comparisonSymbols.push_back(symbol);
-                    SelectChartRange(state, *candidate, primary.navigation.selectedTimeRangeIndex);
+                    PrepareStockComparisonMode(state, primary, false);
                 } else {
                     std::erase(primary.navigation.comparisonSymbols, symbol);
                 }
@@ -342,9 +342,8 @@ static void RenderComparisonContextMenu(AppState& state,
     bool liteMenuStylePushed = false;
 
     if (nativePopupMenu) {
-        // LiteGUI opens the compact popup in the current surface.
-        const ImVec2 menuEstimate(252.0f, 266.0f);
-        const char* popupName = "##LiteComparisonContextMenu";
+        const ImVec2 menuEstimate(240.0f, 240.0f);
+        constexpr const char* popupName = "##LiteComparisonContextMenu";
         const bool menuTrigger =
             showComparisonControls &&
             ImGui::IsMouseHoveringRect(comparisonPlotMin, comparisonPlotMax, false) &&
@@ -368,29 +367,26 @@ static void RenderComparisonContextMenu(AppState& state,
             *popupY = popupPosition.y;
         }
         ImGui::SetNextWindowPos(ImVec2(*popupX, *popupY), ImGuiCond_Appearing);
-        const float maxPopupHeight = menuEstimate.y;
         ImGui::SetNextWindowSizeConstraints(ImVec2(menuEstimate.x, 0.0f),
-                                            ImVec2(menuEstimate.x, maxPopupHeight));
+                                            menuEstimate);
 
-        if (compactLiteMenu) {
-            const bool lightMenu = IsLightGuiTheme(state.config.themeModeIndex);
-            const ImVec4 popupBg = lightMenu ? ImVec4(0.97f, 0.97f, 0.97f, 1.0f)
-                                             : ImVec4(0.07f, 0.07f, 0.07f, 1.0f);
-            const ImVec4 popupBorder = lightMenu ? ImVec4(0.22f, 0.22f, 0.22f, 1.0f)
-                                                 : ImVec4(0.56f, 0.56f, 0.56f, 1.0f);
-            const ImVec4 popupText = lightMenu ? ImVec4(0.05f, 0.05f, 0.05f, 1.0f)
-                                               : ImVec4(0.96f, 0.96f, 0.96f, 1.0f);
-            const ImVec4 popupDim = lightMenu ? ImVec4(0.38f, 0.38f, 0.38f, 1.0f)
-                                              : ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
-            ImGui::PushStyleColor(ImGuiCol_PopupBg, popupBg);
-            ImGui::PushStyleColor(ImGuiCol_Border, popupBorder);
-            ImGui::PushStyleColor(ImGuiCol_Separator, popupBorder);
-            ImGui::PushStyleColor(ImGuiCol_Text, popupText);
-            ImGui::PushStyleColor(ImGuiCol_TextDisabled, popupDim);
-            ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 9.0f));
-            liteMenuStylePushed = true;
-        }
+        const bool lightMenu = IsLightGuiTheme(state.config.themeModeIndex);
+        const ImVec4 popupBg = lightMenu ? ImVec4(0.97f, 0.97f, 0.97f, 1.0f)
+                                         : ImVec4(0.07f, 0.07f, 0.07f, 1.0f);
+        const ImVec4 popupBorder = lightMenu ? ImVec4(0.22f, 0.22f, 0.22f, 1.0f)
+                                             : ImVec4(0.56f, 0.56f, 0.56f, 1.0f);
+        const ImVec4 popupText = lightMenu ? ImVec4(0.05f, 0.05f, 0.05f, 1.0f)
+                                           : ImVec4(0.96f, 0.96f, 0.96f, 1.0f);
+        const ImVec4 popupDim = lightMenu ? ImVec4(0.38f, 0.38f, 0.38f, 1.0f)
+                                          : ImVec4(0.64f, 0.64f, 0.64f, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, popupBg);
+        ImGui::PushStyleColor(ImGuiCol_Border, popupBorder);
+        ImGui::PushStyleColor(ImGuiCol_Separator, popupBorder);
+        ImGui::PushStyleColor(ImGuiCol_Text, popupText);
+        ImGui::PushStyleColor(ImGuiCol_TextDisabled, popupDim);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 7.0f));
+        liteMenuStylePushed = true;
         menuOpen = ImGui::BeginPopup(
             popupName,
             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
@@ -405,11 +401,12 @@ static void RenderComparisonContextMenu(AppState& state,
         menuOpen = BeginClampedContextMenu(state,
                                            "ComparisonPlotMenu",
                                            comparisonViewport,
-                                           ImVec2(300.0f, 390.0f),
+                                           ImVec2(260.0f, 270.0f),
                                            showComparisonControls,
                                            state.UiAnimationsEnabled(),
                                            comparisonPlotMin,
-                                           comparisonPlotMax);
+                                           comparisonPlotMax,
+                                           ImVec2(260.0f, 330.0f));
     }
 
     if (menuOpen) {
@@ -438,8 +435,9 @@ static void RenderComparisonContextMenu(AppState& state,
                 CommitUiSetting(state, "click.wav");
             ImGui::Separator();
         } else {
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 4.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 3.0f));
             DrawCrosshairPositionMenuItems(state);
-            ImGui::Separator();
             DrawTimeAxisLabelMenuItems(state);
             ImGui::Separator();
         }
@@ -486,13 +484,14 @@ static void RenderComparisonContextMenu(AppState& state,
                 CloseAnimatedFloatingMenu(false);
         };
         if (compactLiteMenu) {
-            if (ImGui::MenuItem("Image (PNG/JPEG/PDF)..."))
+            if (ImGui::MenuItem("GUI image (PNG/JPEG/PDF)"))
                 exportComparison(ChartExportMethod::GuiCapture);
-            if (ImGui::MenuItem("Data (CSV/TXT/JSON)..."))
+            if (ImGui::MenuItem("Source data (CSV/TXT/JSON)"))
                 exportComparison(ChartExportMethod::SourceData);
             ImGui::PopStyleVar(2);
         } else {
-            DrawChartExportMenuItems(exportComparison, "Comparison data (CSV/TXT/JSON)...");
+            DrawChartExportMenuItems(exportComparison, "Comparison data (CSV/TXT/JSON)");
+            ImGui::PopStyleVar(2);
         }
         DrawCurrentWindowFocusOutline(state, 4);
         if (nativePopupMenu)

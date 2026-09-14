@@ -11,7 +11,7 @@ SquareStar is a native C++20 market viewer for Windows. It has ticker search, ch
 - Direct3D 11 + GLFW + Dear ImGui + ImPlot.
 - Ticker search, market overview, watchlists, comparisons, screeners, news, and company metrics.
 - Interactive charts and PNG/JPEG/PDF/CSV/TXT/JSON export.
-- Price alerts, desktop notifications, monitor mode, tabbed stock views, and LiteGUI.
+- Price alerts, desktop notifications, multi-stock monitor mode, and LiteGUI.
 - No SquareStar account, installer, ads, telemetry SDK, or crash uploader.
 - Settings and caches live beside the executable and are created only when needed.
 - Yahoo-backed data works without a key. Finnhub is optional.
@@ -30,6 +30,8 @@ SquareStar is a native C++20 market viewer for Windows. It has ticker search, ch
   <img src="docs/images/squarestar-alert-current.png" alt="SquareStar price alert notification" width="520">
   <br><sub>Price alerts surface the current price, configured threshold, and a market-close mute action.</sub>
 </p>
+
+FullGUI keeps stock views on one surface with a compact ticker-tab strip. The active tab carries the close control; inactive tabs stay visually quiet so the chart remains the focus.
 
 ## Download
 
@@ -121,7 +123,7 @@ These are measurements from one reference machine, not guarantees. The repositor
 
 ## Data and privacy
 
-SquareStar is an independent client, not an official Yahoo or Finnhub product. A Finnhub key can be entered under **Settings -> Finnhub API**; no key ships with the program. Sensitive persisted state, including ticker-bearing window layout data, is protected with Windows DPAPI.
+SquareStar is an independent client, not an official Yahoo or Finnhub product. A Finnhub key can be entered under **Settings -> Finnhub API**; no key ships with the program. Sensitive persisted state is protected with Windows DPAPI.
 
 Market data can be delayed, incomplete, rate-limited, corrected, or changed upstream. SquareStar is a viewer, not investment advice or a trading client.
 

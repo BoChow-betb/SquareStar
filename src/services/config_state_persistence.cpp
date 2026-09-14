@@ -3,7 +3,6 @@
 
 #include "application/app_limits.hpp"
 #include "application/frame_rate.hpp"
-#include "application/gui_layout_persistence.hpp"
 #include "application/key_bindings.hpp"
 #include "application/persisted_state.hpp"
 #include "application/theme_profiles.hpp"
@@ -48,8 +47,19 @@ using squarestar::application::AppConfig;
 using squarestar::application::AppNavigation;
 using squarestar::application::InitializeDefaultKeybinds;
 using squarestar::application::InitializeThemeProfiles;
-using squarestar::application::CommitGuiLayoutSnapshot;
-using squarestar::application::GuiLayoutSnapshotForConfig;
+using squarestar::application::KeyBind;
+using squarestar::application::NormalizeGuiFrameRateMode;
+using squarestar::application::SavedGuiStockTab;
+using squarestar::application::SetThemePreset;
+using squarestar::application::TerminalAction;
+using squarestar::json::JsonBool;
+using squarestar::json::JsonInt;
+using squarestar::json::JsonNumber;
+using squarestar::json::JsonString;
+using squarestar::json::ParseJsonInSitu;
+using squarestar::market::MarketSymbol;
+using squarestar::market::TIME_RANGES;
+using squarestar::market::WORLD_ZONES;
 using squarestar::secrets::GetFinnhubApiKeySnapshot;
 using squarestar::secrets::IsApiKeyRevisionCurrent;
 using squarestar::secrets::ProtectApiKey;
@@ -58,6 +68,9 @@ using squarestar::secrets::SecureClear;
 using squarestar::secrets::SetFinnhubApiKey;
 using squarestar::secrets::UnprotectApiKey;
 using squarestar::secrets::UnprotectLocalState;
+using squarestar::text::EscapeJsonStringValue;
+using squarestar::text::ParseIntOr;
+using squarestar::text::UppercaseInPlace;
 using YyjsonDoc = squarestar::json::Document;
 
 namespace {
@@ -312,7 +325,6 @@ bool DeletePersistentApplicationState() {
         DeletePersistentFileIfPresent(diagnosticLogPath + ".2");
     const bool portableRuntimeDeleted =
         DeletePortableRuntimeDataExceptExports();
-    CommitGuiLayoutSnapshot({});
     return configDeleted && configTemporary.failed == 0 &&
            screenerCacheDeleted && temporaryScreenerCacheDeleted &&
            diagnosticLogDeleted && diagnosticLogFirstRotationDeleted &&
@@ -386,8 +398,7 @@ bool SaveConfig(
         return false;
     }
     const std::int64_t nowEpoch = static_cast<std::int64_t>(std::time(nullptr));
-    std::string privateState = EncodePrivateConfigState(
-        persisted, nowEpoch, GuiLayoutSnapshotForConfig());
+    std::string privateState = EncodePrivateConfigState(persisted, nowEpoch);
     std::optional<std::string> protectedPrivateState = ProtectLocalState(privateState);
     SecureClear(privateState);
     if (!protectedPrivateState) {
@@ -456,13 +467,11 @@ ConfigLoadStatus LoadConfig(
         return ConfigLoadStatus::Rejected;
 
     auto privateState = UnprotectLocalState(decoded.protectedPrivateState);
-    std::string imguiLayout;
     if (!privateState ||
         !DecodePrivateConfigState(
             std::move(*privateState),
             staged,
-            static_cast<std::int64_t>(std::time(nullptr)),
-            imguiLayout)) {
+            static_cast<std::int64_t>(std::time(nullptr)))) {
         return ConfigLoadStatus::Rejected;
     }
 
@@ -476,7 +485,6 @@ ConfigLoadStatus LoadConfig(
         SecureClear(apiKey);
 
     commitStagedState();
-    CommitGuiLayoutSnapshot(std::move(imguiLayout));
     RememberProtectedApiKeyForConfig(
         std::move(decoded.protectedApiKey),
         true,

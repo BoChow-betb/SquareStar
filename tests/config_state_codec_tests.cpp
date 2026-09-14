@@ -41,13 +41,10 @@ int main() {
     sourceAlerts.SilenceUntil("AAPL", nowEpoch + 600);
 
     const std::string privateState = squarestar::config::EncodePrivateConfigState(
-        {sourceConfig, sourceNavigation, sourceAlerts},
-        nowEpoch,
-        "[Window][AAPL]");
+        {sourceConfig, sourceNavigation, sourceAlerts}, nowEpoch);
     Require(privateState.find("AAPL") != std::string::npos &&
-                privateState.find("MSFT") != std::string::npos &&
-                privateState.find("[Window][AAPL]") != std::string::npos,
-            "private codec contains privacy-sensitive symbols and layout before DPAPI wrapping");
+                privateState.find("MSFT") != std::string::npos,
+            "private codec contains privacy-sensitive symbols before DPAPI wrapping");
 
     const std::string encoded = squarestar::config::EncodeConfigState(
         {sourceConfig, sourceNavigation, sourceAlerts},
@@ -64,10 +61,8 @@ int main() {
     Require(encoded.find("\"watchlist\"") == std::string::npos &&
                 encoded.find("\"searchHistory\"") == std::string::npos &&
                 encoded.find("AAPL") == std::string::npos &&
-                encoded.find("MSFT") == std::string::npos &&
-                encoded.find("imguiLayout") == std::string::npos &&
-                encoded.find("[Window]") == std::string::npos,
-            "main state document does not expose private stock activity or GUI layout in plaintext");
+                encoded.find("MSFT") == std::string::npos,
+            "main state document does not expose private stock activity in plaintext");
 
     AppConfig decodedConfig;
     AppNavigation decodedNavigation;
@@ -84,15 +79,11 @@ int main() {
             "decoder exposes the protected private-state blob to persistence");
     Require(decodedConfig.watchlist.empty() && decodedConfig.searchHistory.empty(),
             "private collections are not populated before the DPAPI payload is decoded");
-    std::string decodedLayout;
     Require(squarestar::config::DecodePrivateConfigState(
                 privateState,
                 {decodedConfig, decodedNavigation, decodedAlerts},
-                nowEpoch,
-                decodedLayout),
+                nowEpoch),
             "private state payload decodes after DPAPI unwrapping");
-    Require(decodedLayout == "[Window][AAPL]",
-            "GUI layout round-trips only through the protected private-state codec");
     Require(decodedConfig.watchlist == sourceConfig.watchlist &&
                 decodedConfig.searchHistory == sourceConfig.searchHistory &&
                 decodedConfig.activeWorldClocks == sourceConfig.activeWorldClocks,
@@ -108,7 +99,7 @@ int main() {
     sourceConfig.saveSearchHistory = false;
     const std::string historyDisabledPrivate =
         squarestar::config::EncodePrivateConfigState(
-            {sourceConfig, sourceNavigation, sourceAlerts}, nowEpoch, {});
+            {sourceConfig, sourceNavigation, sourceAlerts}, nowEpoch);
     Require(historyDisabledPrivate.find("\"searchHistory\": []") != std::string::npos &&
                 historyDisabledPrivate.find("MSFT") == std::string::npos,
             "disabled search-history persistence does not serialize prior recent searches");
@@ -147,20 +138,17 @@ int main() {
     Require(!unsupportedVersion.parsed,
             "unsupported configuration versions are rejected");
 
-    std::string rejectedLayout;
     Require(!squarestar::config::DecodePrivateConfigState(
                 R"json({"watchlist":["AAPL"]})json",
                 {currentOnlyConfig, currentOnlyNavigation, currentOnlyAlerts},
-                nowEpoch,
-                rejectedLayout),
+                nowEpoch),
             "private state without the current schema version is rejected");
 
-    Require(!squarestar::config::DecodePrivateConfigState(
+    Require(squarestar::config::DecodePrivateConfigState(
                 R"json({"version":1,"watchlist":["AAPL"]})json",
                 {currentOnlyConfig, currentOnlyNavigation, currentOnlyAlerts},
-                nowEpoch,
-                rejectedLayout),
-            "the current private-state schema requires protected GUI layout");
+                nowEpoch),
+            "private state does not depend on a GUI layout snapshot");
 
     const auto malformed = squarestar::config::DecodeConfigState(
         "not json",

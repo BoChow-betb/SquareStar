@@ -53,8 +53,8 @@ using squarestar::platform::StopAllAppAudio;
 using squarestar::platform::PlayAppSoundRuntime;
 
 // 36 px title bar + 16 px top margin + 40 px search bar + 16 px bottom margin.
-// Extra height is reserved only for the exit modal. Compact search suggestions
-// stay inside the single-line search surface.
+// Search suggestions and LiteGUI confirmation dialogs use owned platform
+// overlays, so the compact native host does not grow merely to contain them.
 // Market ranges, world-clock zones, and cached market status compile independently.
 ImVec4 ThemeVec(const float (&c)[4], float alpha) {
     return ImVec4(c[0], c[1], c[2], alpha >= 0.0f ? alpha : c[3]);
@@ -504,6 +504,10 @@ ImVec2 ClampTooltipPositionToOwningWindow(ImVec2 position,
         {owner->Pos.x, owner->Pos.y, owner->Size.x, owner->Size.y},
         margin);
     position = ImVec2(clamped.x, clamped.y);
+#ifdef IMGUI_HAS_VIEWPORT
+    if (owner->Viewport)
+        ImGui::SetNextWindowViewport(owner->Viewport->ID);
+#endif
     return position;
 }
 void DrawContainedTooltip(const char* text, float preferredWrapWidth) {
@@ -539,7 +543,6 @@ bool BeginClampedContextMenu(const AppState& state,
                              bool animEnabled,
                              ImVec2 activationMin,
                              ImVec2 activationMax,
-                             bool unclampedPosition,
                              ImVec2 maximumSize) {
     if (!enabled)
         return false;
@@ -569,17 +572,20 @@ bool BeginClampedContextMenu(const AppState& state,
         clampSize.y = std::max(clampSize.y, existingMenu->SizeFull.y);
     }
     if (toggleTrigger) {
-        const ImVec2 target = unclampedPosition
-                                  ? ImGui::GetIO().MousePos
-                                  : ClampPopupPosition(viewport, ImGui::GetIO().MousePos, clampSize);
+        const ImVec2 target =
+            ClampPopupPosition(viewport, ImGui::GetIO().MousePos, clampSize);
         *storedX = target.x;
         *storedY = target.y;
-    } else if (!unclampedPosition) {
+    } else {
         const ImVec2 target =
             ClampPopupPosition(viewport, ImVec2(*storedX, *storedY), clampSize);
         *storedX = target.x;
         *storedY = target.y;
     }
+#ifdef IMGUI_HAS_VIEWPORT
+    if (viewport)
+        ImGui::SetNextWindowViewport(viewport->ID);
+#endif
     if (!BeginAnimatedFloatingMenu(state,
                                    id,
                                    toggleTrigger,

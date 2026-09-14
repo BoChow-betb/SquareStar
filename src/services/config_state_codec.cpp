@@ -209,8 +209,7 @@ bool DecodePrivateFields(yyjson_val* obj,
 
 std::string EncodePrivateConfigState(
     squarestar::application::PersistedStateConstView persisted,
-    std::int64_t nowEpoch,
-    std::string_view imguiLayout) {
+    std::int64_t nowEpoch) {
     const AppConfig& state = persisted.config;
     const AppNavigation& navigation = persisted.navigation;
     const AlertService& alerts = persisted.alerts;
@@ -228,7 +227,6 @@ std::string EncodePrivateConfigState(
     file << "{\n";
     file << "  \"version\": 1,\n";
     stringField("exportDirectory", state.exportDirectory);
-    stringField("imguiLayout", imguiLayout);
 
     const auto& thresholds = alerts.Thresholds();
     const size_t validAlertCount = (size_t)std::count_if(
@@ -317,8 +315,7 @@ std::string EncodePrivateConfigState(
 bool DecodePrivateConfigState(
     std::string json,
     squarestar::application::PersistedStateView persisted,
-    std::int64_t nowEpoch,
-    std::string& imguiLayout) {
+    std::int64_t nowEpoch) {
     ScopedSecureClear clearJson(json);
     YyjsonDoc document = ParseJsonInSitu(json);
     yyjson_val* obj = document ? yyjson_doc_get_root(document.get()) : nullptr;
@@ -326,8 +323,6 @@ bool DecodePrivateConfigState(
         return false;
     int64_t version = 0;
     if (!JsonInt(obj, "version", version) || version != 1)
-        return false;
-    if (!JsonString(obj, "imguiLayout", imguiLayout))
         return false;
     return DecodePrivateFields(obj, persisted, nowEpoch);
 }

@@ -56,8 +56,11 @@ using squarestar::market::ChartAvailability;
 using squarestar::market::CorporateActionStatus;
 using squarestar::market::ResolveProgressiveChartRange;
 using squarestar::providers::ApplyYahooChartPayload;
+using squarestar::secrets::ApiKeyRevision;
 using squarestar::secrets::IsApiKeyRevisionCurrent;
+using squarestar::secrets::GetFinnhubApiKey;
 using squarestar::secrets::GetFinnhubApiKeySnapshot;
+using squarestar::secrets::HasFinnhubApiKey;
 using squarestar::secrets::SecureClear;
 
 struct HttpFailureSummary {
@@ -525,6 +528,56 @@ bool RecoverInitialChartRange(const std::string& yahooTicker,
     return false;
 }
 
+
+constexpr std::time_t kHistoricalTradingStatusProbeAgeSeconds =
+    static_cast<std::time_t>(7 * 24 * 60 * 60);
+
+bool HasRecentYahooQuoteSnapshot(const std::string& yahooQuoteRaw,
+                                 std::time_t now) {
+    if (yahooQuoteRaw.empty())
+        return false;
+    const auto quotes =
+        squarestar::providers::ParseYahooQuoteBatchPayload(yahooQuoteRaw);
+    for (const auto& quote : quotes) {
+        if (quote.currentPrice <= 0.0 || quote.timestamp <= 0)
+            continue;
+        const std::time_t age = now - quote.timestamp;
+        if (age >= -24 * 60 * 60 && age <= kHistoricalTradingStatusProbeAgeSeconds)
+            return true;
+    }
+    return false;
+}
+
+void ProbeHistoricalTradingStatus(const std::string& yahooTicker,
+                                  HttpFailureSummary& httpFailures,
+                                  StockData& result) {
+    bool oneDayAnswered = false;
+    bool fiveDayAnswered = false;
+    StockData probe;
+    if (FetchAndApplyYahooChartRangeFromEitherHost(
+            yahooTicker, 0, httpFailures, probe, oneDayAnswered)) {
+        result.tradingStatus.chartAvailability =
+            ChartAvailability::ActiveSelectedRange;
+        return;
+    }
+
+    probe = StockData{};
+    if (FetchAndApplyYahooChartRangeFromEitherHost(
+            yahooTicker, 1, httpFailures, probe, fiveDayAnswered)) {
+        result.tradingStatus.chartAvailability = ChartAvailability::NoTradingToday;
+        return;
+    }
+
+    // Only classify a stopped symbol when both recent-range requests produced
+    // authoritative answers. A transport outage must never look like a delist.
+    if (oneDayAnswered && fiveDayAnswered) {
+        result.tradingStatus.chartAvailability =
+            ChartAvailability::TradingStoppedWithHistory;
+        result.tradingStatus.corporateAction =
+            CorporateActionStatus::SuspectedStopped;
+    }
+}
+
 void SetFullLoadFailureMessage(StockData& result,
                                const StockProviderMergeResult& providerMerge,
                                const HttpFailureSummary& httpFailures) {
@@ -717,6 +770,16 @@ StockFetchResult FetchStockData(
         } else if (chartApplied) {
             result.tradingStatus.chartAvailability =
                 ChartAvailability::ActiveSelectedRange;
+            // A saved 1M/1Y/5Y/All tab can still render historical data after
+            // the company stops trading. If Yahoo's quote is missing or stale,
+            // probe 1D and 5D without replacing the user's selected chart. This
+            // keeps corporate-action detection alive after restarts and range
+            // changes instead of only detecting delists from an initial 1D load.
+            if (fullLoad && timeRangeIndex >= 2 && !yahooOnlyInstrument &&
+                !HasRecentYahooQuoteSnapshot(yQuoteRaw, std::time(nullptr))) {
+                ProbeHistoricalTradingStatus(
+                    yahooTicker, httpFailures, result);
+            }
         }
         if (chartApplied && !yahooOnlyInstrument)
             result.instrumentNature = InstrumentNature::PublicMarketSecurity;

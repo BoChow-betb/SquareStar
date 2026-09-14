@@ -30,11 +30,13 @@
 namespace squarestar::shell {
 
 
+using squarestar::application::ApplicationRuntime;
 using squarestar::platform::Win32AppRuntime;
 using squarestar::format::FormatLargeNumber;
 using squarestar::format::FormatDouble;
 using squarestar::market::kScreenerRoutes;
 using squarestar::market::MarketSettlementTimeLabel;
+using squarestar::application::UiModeRequest;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::RequestGuiWakeAt;
 using squarestar::application::UiRounding;
@@ -42,7 +44,9 @@ using squarestar::presentation::kControlHeight;
 using squarestar::presentation::GuiShellRuntime;
 using squarestar::presentation::BuildSparklineUnitGeometry;
 using squarestar::presentation::EllipsizeTextBinary;
+using squarestar::search::LookupSymbols;
 using squarestar::application::AppState;
+using squarestar::application::SearchState;
 using squarestar::application::ScreenerItem;
 using squarestar::application::TerminalAction;
 using squarestar::application::IsLightGuiTheme;
@@ -52,6 +56,7 @@ using squarestar::alerts::PriceAlertToastElapsedSeconds;
 using squarestar::alerts::PriceAlertToastNeedsContinuousRedraw;
 using squarestar::presentation::NotificationBlockStack;
 using squarestar::presentation::NotificationCardWidth;
+using squarestar::text::UppercaseInPlace;
 bool OpenNotificationStock(AppState& state, const std::string& ticker) {
     const StockOpenResult result = OpenStock(state, ticker);
     if (result != StockOpenResult::SelectedExisting &&
@@ -93,14 +98,16 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
     const float width = NotificationCardWidth(viewport->WorkSize.x);
     const float alertTitleFontSize =
         state.render.fontData ? state.config.theme.fontData : ImGui::GetFontSize();
+    constexpr float alertPaddingX = 16.0f;
+    constexpr float alertPaddingY = 12.0f;
     const float titleRowHeight = std::max(26.0f, alertTitleFontSize);
     const float bodyLineHeight = ImGui::GetTextLineHeight();
     const float priceRowsHeight =
         bodyLineHeight * 2.0f + ImGui::GetStyle().ItemSpacing.y;
-    const float priceRowsY = 14.0f + titleRowHeight + 10.0f;
-    const float lookupY = priceRowsY + priceRowsHeight + 8.0f;
-    const float checkboxY = lookupY + bodyLineHeight + 10.0f;
-    const float height = checkboxY + ImGui::GetFrameHeight() + 14.0f;
+    const float priceRowsY = alertPaddingY + titleRowHeight + 8.0f;
+    const float lookupY = priceRowsY + priceRowsHeight + 7.0f;
+    const float checkboxY = lookupY + bodyLineHeight + 8.0f;
+    const float height = checkboxY + ImGui::GetFrameHeight() + alertPaddingY;
     const float liteVerticalCapacity =
         squarestar::presentation::NotificationVerticalCapacity(
             viewport->WorkSize.y, APP_TITLE_BAR_HEIGHT);
@@ -186,6 +193,9 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
             viewport->WorkPos.y + viewport->WorkSize.y - height - bottomOffset);
         ImGui::SetNextWindowPos(position, ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
+#ifdef IMGUI_HAS_VIEWPORT
+        ImGui::SetNextWindowViewport(viewport->ID);
+#endif
         const bool lightAlert = IsLightGuiTheme(state.config.themeModeIndex);
         const ImVec4 alertBg = lightAlert ? ImVec4(0.975f, 0.975f, 0.98f, 0.995f)
                                           : ImVec4(0.055f, 0.055f, 0.06f, 0.985f);
@@ -201,7 +211,8 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
                                                    : ImVec4(0.24f, 0.24f, 0.26f, 1.0f);
         const ImVec4 alertButtonActive = lightAlert ? ImVec4(0.74f, 0.74f, 0.78f, 1.0f)
                                                     : ImVec4(0.31f, 0.31f, 0.33f, 1.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(18.0f, 14.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
+                            ImVec2(alertPaddingX, alertPaddingY));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, UiRounding(state, 10.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, visible);
@@ -232,7 +243,7 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
         bool muteUntilSettlement = false;
         std::string requestedTicker;
         ImGui::PushFont(state.render.fontData ? state.render.fontData : ImGui::GetFont());
-        ImGui::TextUnformatted("[Alert]");
+        ImGui::TextUnformatted("Alert");
         ImGui::SameLine();
         ImGui::TextColored(lightAlert ? ImVec4(0.76f, 0.10f, 0.12f, 1.0f)
                                       : ImVec4(0.92f, 0.22f, 0.24f, 1.0f),
@@ -241,13 +252,14 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
         ImGui::PopFont();
 
         ImGui::SetCursorPosY(priceRowsY);
-        ImGui::Text("Current price  %s USD", FormatDouble(toast.price).c_str());
-        ImGui::TextDisabled("Alert level  %s USD or below",
+        ImGui::Text("Current  %s USD", FormatDouble(toast.price).c_str());
+        ImGui::TextDisabled("Alert level  <= %s USD",
                             FormatDouble(toast.threshold).c_str());
 
         ImGui::SetCursorPosY(lookupY);
-        const std::string lookupLabel = "Open in Terminal  " + toast.ticker;
-        const float lookupWidth = std::max(40.0f, width - 36.0f);
+        const std::string lookupLabel = "Open " + toast.ticker + " in Terminal";
+        const float lookupWidth =
+            std::max(40.0f, width - alertPaddingX * 2.0f);
         const bool lookupClicked = RenderUnifiedLink(
             state, lookupLabel.c_str(), "##PriceAlertOpenTicker", lookupWidth, 1.0f);
         const ImVec2 lookupMin = ImGui::GetItemRectMin();
@@ -265,7 +277,7 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
 
         ImGui::SetCursorPosY(checkboxY);
         const std::string muteLabel =
-            "Mute until market close (" +
+            "Mute until close (" +
             MarketSettlementTimeLabel(std::time(nullptr)) + ")";
         if (ImGui::Checkbox(muteLabel.c_str(), &muteUntilSettlement))
             dismiss = muteUntilSettlement;

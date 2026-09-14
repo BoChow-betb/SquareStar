@@ -186,8 +186,11 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
         if (squarestar::benchmark::PollGuiProbe())
             continue;
 
-        // Inspect the queue after either event-pump path so queued input is
-        // rendered before another idle wait can combine a press and release.
+        // Inspect the queue after both polling paths. Secondary ImGui viewport
+        // windows use backend-owned callbacks, so their activation click may
+        // not update the host window's activity timestamps even though the
+        // input event is ready. Rendering it immediately avoids combining the
+        // press and release after another idle wait.
         const bool guiInputQueuedAfterEventPump =
             GImGui && GImGui->InputEventsQueue.Size > 0;
         if (guiInputQueuedAfterEventPump)

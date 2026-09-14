@@ -151,16 +151,9 @@ static void RenderChartClockMenu(AppState& state,
     const ImVec4 clockMenuLine = ThemeVec(state.config.theme.floatingBorder, 0.58f);
     const bool compactLiteClockMenu = state.navigation.liteGuiActive;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-    ImGui::PushStyleVar(
-        ImGuiStyleVar_WindowPadding,
-        compactLiteClockMenu ? ImVec2(10.0f, 8.0f) : ImVec2(14.0f, 12.0f));
-    if (compactLiteClockMenu) {
-        // The LiteGUI footer uses generous button padding. Do not let that
-        // padding leak into the clock picker, where it makes every radio
-        // button and checkbox row much taller than the adjacent range menu.
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 3.0f));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 4.0f));
-    }
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 8.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 3.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 4.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, clockMenuLine);
     ImGui::PushStyleColor(ImGuiCol_Separator, clockMenuLine);
     ImGuiViewport* clockViewport = ImGui::GetWindowViewport();
@@ -170,16 +163,16 @@ static void RenderChartClockMenu(AppState& state,
     const float clockPopupMaxWidth =
         std::max(1.0f,
                  effectiveClockViewport->WorkSize.x - clockPopupMargin * 2.0f);
-    const float clockPopupDesiredWidth = compactLiteClockMenu ? 304.0f : 400.0f;
+    const float clockPopupDesiredWidth = compactLiteClockMenu ? 292.0f : 500.0f;
     const float clockPopupWidth =
         std::min(clockPopupDesiredWidth, clockPopupMaxWidth);
-    const float clockPopupDesiredMinWidth = compactLiteClockMenu ? 288.0f : 360.0f;
+    const float clockPopupDesiredMinWidth = compactLiteClockMenu ? 276.0f : 440.0f;
     const float clockPopupMinWidth =
         std::min(clockPopupDesiredMinWidth, clockPopupWidth);
     const float clockPopupGap = compactLiteClockMenu ? 2.0f : 6.0f;
     const float clockPopupMaxHeight =
         std::max(1.0f,
-                 std::min(520.0f,
+                 std::min(390.0f,
                           clockMenuPosition.y - effectiveClockViewport->WorkPos.y -
                               clockPopupMargin - clockPopupGap));
     const ImVec2 clockPopupMaximum(clockPopupWidth, clockPopupMaxHeight);
@@ -259,10 +252,11 @@ static void RenderChartClockMenu(AppState& state,
             ImGuiCol_CheckMark,
             lightClockMenu ? ImVec4(0.03f, 0.03f, 0.03f, 1.0f)
                            : ImVec4(0.97f, 0.97f, 0.97f, 1.0f));
-        constexpr int clockColumns = 1;
+        const int clockColumns =
+            !compactLiteClockMenu && clockPopupWidth >= 460.0f ? 2 : 1;
         ImGui::PushStyleVar(
             ImGuiStyleVar_CellPadding,
-            compactLiteClockMenu ? ImVec2(2.0f, 1.0f) : ImVec2(2.0f, 3.0f));
+            compactLiteClockMenu ? ImVec2(2.0f, 1.0f) : ImVec2(3.0f, 2.0f));
         static constexpr const char* liteClockNames[] = {
             "UTC",
             "New York (ET)",
@@ -286,18 +280,11 @@ static void RenderChartClockMenu(AppState& state,
                 bool active = std::find(visibleClocks.begin(),
                                         visibleClocks.end(),
                                         zoneIndex) != visibleClocks.end();
-                std::string optionLabel;
-                if (compactLiteClockMenu) {
-                    const squarestar::platform::WorldClockReading reading =
-                        squarestar::platform::ReadWorldClock(zoneIndex, currentTime);
-                    optionLabel = std::string(liteClockNames[zoneIndex]) +
-                                  "  \xC2\xB7  " +
-                                  squarestar::platform::FormatUtcOffset(
-                                      reading.utcOffsetMinutes);
-                } else {
-                    optionLabel =
-                        squarestar::platform::WorldClockOptionLabel(zoneIndex, currentTime);
-                }
+                const squarestar::platform::WorldClockReading reading =
+                    squarestar::platform::ReadWorldClock(zoneIndex, currentTime);
+                const std::string optionLabel =
+                    std::string(liteClockNames[zoneIndex]) + "  \xC2\xB7  " +
+                    squarestar::platform::FormatUtcOffset(reading.utcOffsetMinutes);
                 const bool clockLimitReached =
                     !active && visibleClocks.size() >= clockLimit;
                 if (clockLimitReached)
@@ -321,8 +308,7 @@ static void RenderChartClockMenu(AppState& state,
         else
             EndAnimatedFloatingMenu();
     }
-    if (compactLiteClockMenu)
-        ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(2);
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar(2);
 }

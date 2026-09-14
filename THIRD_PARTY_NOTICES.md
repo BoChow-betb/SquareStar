@@ -6,7 +6,7 @@ SquareStar includes or builds against third-party software and bundles third-par
 
 | Component | Version / snapshot | Inclusion | License |
 | --- | --- | --- | --- |
-| Dear ImGui | 1.93.0 WIP snapshot | Vendored source | MIT |
+| Dear ImGui | 1.93.0 WIP docking snapshot | Vendored source | MIT |
 | ImPlot | 1.1 WIP snapshot | Vendored source | MIT |
 | yyjson | 0.12.0 | Vendored source | MIT |
 | GLFW | 3.5.1 | Pinned CMake dependency | zlib/libpng |

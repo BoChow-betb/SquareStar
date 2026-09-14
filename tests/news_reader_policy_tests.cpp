@@ -66,6 +66,12 @@ int main() {
                 CorporateActionStatus::Acquired &&
                 evidence == acquiredNews.front().headline,
             "explicit completed-acquisition news upgrades the local diagnosis");
+    std::vector<NewsItem> completionNews = {{
+        "Electronic Arts announces completion of acquisition", "Fixture",
+        "https://example.com", "The transaction has closed.", 0}};
+    Require(ClassifyCorporateActionNews(completionNews) ==
+                CorporateActionStatus::Acquired,
+            "completion-of-acquisition wording is recognized after a take-private close");
     std::vector<NewsItem> ordinaryNews = {{
         "Webster comments on regional lending", "Wire", "https://example.com", "", 0}};
     Require(ClassifyCorporateActionNews(ordinaryNews) == CorporateActionStatus::None,

@@ -26,7 +26,7 @@ ConsumeConfigSaveFailureNotice() noexcept;
     bool force = false);
 
 // Immediate snapshots are reserved for operations with transactional semantics
-// such as secret replacement and layout persistence callbacks.
+// such as secret replacement callbacks.
 [[nodiscard]] bool PersistConfigSnapshot(
     squarestar::application::PersistedStateConstView state,
     ConfigWriteCompletion completion = {});

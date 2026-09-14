@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -347,6 +348,11 @@ bool ApplyYahooChartPayload(std::string payload,
     return true;
 }
 
+bool YahooChartPayloadHasUsableSeries(std::string payload) {
+    squarestar::market::StockData parsed;
+    return ApplyYahooChartPayload(std::move(payload), false, parsed);
+}
+
 std::vector<YahooQuoteSnapshot> ParseYahooQuoteBatchPayload(std::string payload) {
     std::vector<YahooQuoteSnapshot> quotes;
     if (payload.empty() || payload.size() > kMaxProviderPayloadBytes)
@@ -404,6 +410,26 @@ std::optional<FinnhubQuote> ParseFinnhubQuotePayload(std::string_view payload) {
         quote.timestamp = static_cast<std::time_t>(timestamp);
     }
     return quote;
+}
+
+bool FinnhubQuotePayloadHasPrice(std::string_view payload) {
+    const std::optional<FinnhubQuote> quote = ParseFinnhubQuotePayload(payload);
+    return quote && quote->currentPrice > 0.0;
+}
+
+std::optional<double> ParseFinnhubMetricMarketCap(std::string_view payload) {
+    if (payload.size() > kMaxProviderPayloadBytes)
+        return std::nullopt;
+    JsonDocument document = ParseJson(payload);
+    yyjson_val* root = document ? yyjson_doc_get_root(document.get()) : nullptr;
+    yyjson_val* metric = ObjectMember(root, "metric");
+    double marketCapMillions = 0.0;
+    if (!ReadNumber(metric, "marketCapitalization", marketCapMillions) ||
+        marketCapMillions <= 0.0 ||
+        marketCapMillions > std::numeric_limits<double>::max() / 1e6) {
+        return std::nullopt;
+    }
+    return marketCapMillions * 1e6;
 }
 
 } // namespace squarestar::providers

@@ -26,9 +26,26 @@ using squarestar::application::AppState;
 // ============================================================================
 void RenderClosingModal(AppState& state, GLFWwindow* window) {
     constexpr const char* popupId = "CloseTerminalPopup";
+    const bool liteGui = state.navigation.liteGuiActive;
     if (state.navigation.showExitModal) {
         if (!ImGui::IsPopupOpen(popupId)) {
+            if (liteGui) {
+                // Do not leave a detached search-results viewport competing with
+                // the modal. Preserve the typed query, but collapse its transient
+                // UI while the exit decision owns focus.
+                auto& search = state.navigation.liteSearch;
+                search.isDropdownOpen = false;
+                search.isHoveringDropdown = false;
+                search.dropdownBoundsValid = false;
+                search.dropdownAnim = 0.0f;
+                search.isFocused = false;
+                search.focusRequested = false;
+            }
             ImGui::OpenPopup(popupId);
+            // A detached platform viewport is created after ImGui::Render().
+            // Queue one more frame so an event-driven LiteGUI cannot go idle on
+            // the viewport-creation frame before its draw data is presented.
+            RequestGuiRedraw();
             PlayUISound("transition.wav", state);
         }
     }
@@ -36,6 +53,24 @@ void RenderClosingModal(AppState& state, GLFWwindow* window) {
     const ImVec2 center = viewport->GetCenter();
     const float modalWidth =
         std::min(430.0f, std::max(380.0f, viewport->WorkSize.x - 32.0f));
+#ifdef IMGUI_HAS_VIEWPORT
+    const bool detachedLiteModal =
+        liteGui && (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0;
+    ImGuiWindowClass modalWindowClass;
+    if (detachedLiteModal) {
+        // The compact LiteGUI client area is intentionally shorter than this
+        // dialog. Give the modal its own owned, borderless platform viewport so
+        // it can overlap/extend past LiteGUI without resizing the host border.
+        modalWindowClass.ParentViewportId = viewport->ID;
+        modalWindowClass.ViewportFlagsOverrideSet =
+            ImGuiViewportFlags_NoAutoMerge |
+            ImGuiViewportFlags_NoDecoration |
+            ImGuiViewportFlags_NoTaskBarIcon;
+    }
+    // Always apply the class so a popup previously opened in LiteGUI does not
+    // retain the detached viewport policy if it is later opened in FullGUI.
+    ImGui::SetNextWindowClass(&modalWindowClass);
+#endif
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(modalWidth, 0.0f), ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, UiRounding(state, 6.0f));
@@ -51,6 +86,10 @@ void RenderClosingModal(AppState& state, GLFWwindow* window) {
         auto dismiss = [&] {
             state.navigation.showExitModal = false;
             ImGui::CloseCurrentPopup();
+            // Ensure a follow-up frame destroys the detached platform viewport
+            // immediately after Cancel/background/Exit instead of leaving a
+            // one-frame native ghost in an event-driven render loop.
+            RequestGuiRedraw();
         };
         if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
             PlayUISound("click.wav", state);
@@ -168,7 +207,7 @@ void RenderInterfaceSavePrompt(AppState& state) {
             state.navigation.interfaceSwitchSaveCurrentData = saveData;
             state.navigation.interfaceSwitchDecisionReady = true;
             // Defer until ImGui has unwound this popup; switching immediately
-            // can invalidate popup state.
+            // can invalidate the popup state.
             state.navigation.deferredInterfaceSwitchTarget = (int)target;
             state.navigation.showInterfaceSavePrompt = false;
             state.navigation.pendingInterfaceSwitchTarget = -1;

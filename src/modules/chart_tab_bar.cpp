@@ -12,14 +12,13 @@
 #include "modules/ui_focus.hpp"
 #include "presentation/gui_shell_runtime_state.hpp"
 
-#include "imgui_internal.h"
-
 #include <algorithm>
 #include <limits>
 
 namespace squarestar::shell {
 
 using squarestar::application::AppState;
+using squarestar::application::ApplicationRuntime;
 using squarestar::application::CanEnterStockComparison;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::StockContext;
@@ -99,7 +98,7 @@ void RenderStockTabBar(AppState& state,
     if (drawTabButton("##MetricsBtn", 2, ctx.navigation.upperTabIndex == 2))
         ctx.navigation.nextUpperTab = 2;
 
-    if (!state.navigation.liteGuiActive && !state.navigation.pureMonitorMode) {
+    if (squarestar::application::CountOpenStockTabs(state) >= 2) {
         ImGui::SameLine();
         ImVec2 position = ImGui::GetCursorScreenPos();
         const float gap = ImGui::GetStyle().ItemSpacing.x;

@@ -108,8 +108,6 @@ squarestar_add_component_test(
 squarestar_add_component_test(
     squarestar_application_paths_tests application_paths_tests.cpp)
 squarestar_add_component_test(
-    squarestar_gui_layout_persistence_tests gui_layout_persistence_tests.cpp)
-squarestar_add_component_test(
     squarestar_native_notification_timing_tests native_notification_timing_tests.cpp)
 squarestar_add_component_test(
     squarestar_main_loop_signal_tests main_loop_signal_tests.cpp)

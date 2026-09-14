@@ -49,11 +49,14 @@ CorporateActionStatus ClassifyCorporateActionNews(
         const std::string text = LowerAscii(item.headline + " " + item.summary);
         CorporateActionStatus candidate = CorporateActionStatus::None;
         if (ContainsAny(text, {"completes acquisition", "completed acquisition",
-                               "acquisition completed", "acquired by", "merger completed",
-                               "merger closes", "merger closed"})) {
+                               "completion of acquisition", "acquisition completed",
+                               "acquisition closes", "acquisition closed", "acquired by",
+                               "completion of merger", "merger completed",
+                               "merger completion", "merger closes", "merger closed"})) {
             candidate = CorporateActionStatus::Acquired;
         } else if (ContainsAny(text, {"form 25", "delisted", "delisting",
-                                      "removed from listing"})) {
+                                      "removed from listing", "no longer listed",
+                                      "ceased trading", "ceases trading"})) {
             candidate = CorporateActionStatus::Delisted;
         } else if (ContainsAny(text, {"trading suspended", "suspends trading",
                                       "halted indefinitely"})) {

@@ -51,6 +51,11 @@ int main() {
     Check(Near(secondaryPopup.x, -374.0f) && Near(secondaryPopup.y, 706.0f),
           "popup bounds support negative-coordinate secondary monitors");
 
+    const UiSize dpiPopup = FitWindowToBounds(
+        UiSize{360.0f * 2.5f, 360.0f * 2.5f}, UiRect{0, 0, 800, 600}, 14.0f);
+    Check(Near(dpiPopup.width, 772.0f) && Near(dpiPopup.height, 572.0f),
+          "high-DPI popup size is capped to the monitor work area");
+
     GuiShellRuntimeState menuRuntime;
     constexpr ImGuiID menuId = 0x51A7u;
     const auto firstOpen = menuRuntime.UpdateAnimatedFloatingMenu(
@@ -65,6 +70,15 @@ int main() {
     Check(reopened.visible && reopened.open && Near(reopened.animation, 1.0f),
           "floating menu responds when activated again after an instant close");
     menuRuntime.EndAnimatedFloatingMenu();
+
+    const UiRect workAreas[] = {
+        UiRect{0, 0, 1920, 1040},
+        UiRect{-2560, -120, 2560, 1400},
+        UiRect{1920, 0, 1280, 720}};
+    Check(SelectOwningWorkArea(workAreas, UiRect{-1800, 50, 900, 700}) == 1,
+          "owner overlap selects the correct monitor in a mixed monitor grid");
+    Check(SelectOwningWorkArea(workAreas, UiRect{3400, 100, 200, 200}) == 2,
+          "off-screen owner falls back to the nearest work-area center");
 
     Check(Near(LinkedNotificationCardHeight(96.0f),
                kLinkedNotificationCardMinimumHeight) &&

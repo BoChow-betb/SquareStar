@@ -245,7 +245,7 @@ static void RenderLiteMonitorContextMenu(AppState& state,
     if (IsCleanGuiCaptureFrame())
         return;
 
-    constexpr ImVec2 menuEstimate(252.0f, 150.0f);
+    constexpr ImVec2 menuEstimate(232.0f, 128.0f);
     constexpr const char* menuId = "##LiteMonitorContextMenu";
     const bool menuTrigger =
         ImGui::IsMouseHoveringRect(gridMin, gridMax, false) &&
@@ -286,18 +286,18 @@ static void RenderLiteMonitorContextMenu(AppState& state,
     ImGui::PushStyleColor(ImGuiCol_Text, popupText);
     ImGui::PushStyleColor(ImGuiCol_TextDisabled, popupDim);
     ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 9.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 7.0f));
     if (ImGui::BeginPopup(menuId,
                           ImGuiWindowFlags_AlwaysAutoResize |
                               ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 5.0f));
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 4.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 4.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 3.0f));
         ImGui::TextDisabled("Export monitor");
-        if (ImGui::MenuItem("Image (PNG/JPEG/PDF)...")) {
+        if (ImGui::MenuItem("GUI image (PNG/JPEG/PDF)")) {
             ExportLiteMonitor(state, viewport, gridMin, gridMax, ChartExportMethod::GuiCapture);
             ImGui::CloseCurrentPopup();
         }
-        if (ImGui::MenuItem("Data (CSV/TXT/JSON)...")) {
+        if (ImGui::MenuItem("Source data (CSV/TXT/JSON)")) {
             ExportLiteMonitor(state, viewport, gridMin, gridMax, ChartExportMethod::SourceData);
             ImGui::CloseCurrentPopup();
         }
@@ -429,8 +429,11 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
     const bool hasLiteStock = activeLiteStock != nullptr;
     const bool priceAlertVisible = state.alerts.ToastCount() != 0;
     const bool marketMoveVisible = !state.render.notifications.marketMoves.notices.empty();
-    const int compactLiteHeight =
-        state.navigation.showExitModal ? LITE_GUI_SEARCH_RESULTS_HEIGHT : LITE_GUI_SEARCH_HEIGHT;
+    // The search-only Lite host stays compact even while the exit confirmation
+    // is open. That modal is an owned platform overlay, just like the detached
+    // History/Recommended search surface, instead of being contained by a taller
+    // native LiteGUI border.
+    constexpr int compactLiteHeight = LITE_GUI_SEARCH_HEIGHT;
     // LiteGUI only reserves notification room for the two visual classes it
     // supports: price alerts and market moves. Ordinary feedback is audio-only.
     const bool foregroundCardNeedsRoom = priceAlertVisible || marketMoveVisible;
@@ -485,6 +488,9 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
 
     ImGui::SetNextWindowPos(workPos);
     ImGui::SetNextWindowSize(workSize);
+#ifdef IMGUI_HAS_VIEWPORT
+    ImGui::SetNextWindowViewport(viewport->ID);
+#endif
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
                         liteMonitorActive ? ImVec2(0.0f, 0.0f)
                                           : ImVec2(18.0f, 16.0f));
@@ -540,7 +546,12 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
                                       : 0.0f;
         ImGui::BeginGroup();
         SearchBarOptions searchBarOptions;
-        searchBarOptions.unclampedDropdown = true;
+        // Keep the search-only native Lite host at its compact height. The
+        // History/Recommended surface becomes an owned platform viewport that
+        // hangs below the search box, so the outer LiteGUI border never grows
+        // and the result list does not need an internal scrollbar.
+        searchBarOptions.fixedDropdownHeight = hasStock;
+        searchBarOptions.detachedDropdown = !hasStock;
         searchBarOptions.showNotificationCenter = hasStock;
         searchBarOptions.notificationCenterVisibleCardLimit = 2;
         RenderIntegratedSearchBar(

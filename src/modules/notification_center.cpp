@@ -700,6 +700,9 @@ void RenderNotificationCenterMenu(
     ImGui::SetNextWindowPos(ImVec2(menuPosition.x, menuPosition.y + panelYOffset),
                             ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
+#ifdef IMGUI_HAS_VIEWPORT
+    ImGui::SetNextWindowViewport(viewport->ID);
+#endif
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, std::max(0.01f, panelEase));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, UiRounding(state, 12.0f));

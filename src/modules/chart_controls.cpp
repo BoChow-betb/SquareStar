@@ -1,4 +1,6 @@
 #include "modules/chart_controls.hpp"
+
+#include "application/app_state.hpp"
 #include "modules/core.hpp"
 
 namespace squarestar::shell {
@@ -19,13 +21,17 @@ void DrawTimeAxisLabelMenuItems(AppState& state) {
     }
 }
 void DrawCrosshairPositionMenuItems(AppState& state) {
-    ImGui::TextDisabled("Crosshair Text Position");
-    bool changed = false;
-    changed |= ImGui::RadioButton("Static", &state.config.crosshairMode, 0);
-    changed |= ImGui::RadioButton("Dynamic (Follow)", &state.config.crosshairMode, 1);
-    changed |= ImGui::RadioButton("Dynamic (Top)", &state.config.crosshairMode, 2);
-    if (changed)
-        PlayUISound("click.wav", state);
+    static const char* crosshairModes[] = {
+        "Static", "Dynamic (Follow)", "Dynamic (Top)"};
+    ImGui::TextDisabled("Crosshair");
+    ImGui::SetNextItemWidth(-1.0f);
+    if (UiCombo(state,
+                "##ChartCrosshairMode",
+                &state.config.crosshairMode,
+                crosshairModes,
+                IM_ARRAYSIZE(crosshairModes))) {
+        CommitUiSetting(state, "click.wav");
+    }
 }
 
 void SetupLockedFinancialPlotAxes() {

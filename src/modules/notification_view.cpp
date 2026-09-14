@@ -32,8 +32,25 @@
 
 namespace squarestar::shell {
 
+using squarestar::application::ApplicationRuntime;
+using squarestar::application::AppUiMode;
+using squarestar::application::RequestGuiRedraw;
+using squarestar::application::RequestGuiWakeAt;
+using squarestar::application::UiRounding;
 using squarestar::application::AppState;
+using squarestar::application::CountMonitorStockTiles;
+using squarestar::application::ShouldHoldMonitorModeHint;
+using squarestar::application::ResolveContextualKeybindSurface;
+using squarestar::application::HasContextualKeybindHint;
+using squarestar::application::ContextualKeybindSurface;
+using squarestar::application::FormatKeyBind;
+using squarestar::application::StockContext;
+using squarestar::application::TerminalAction;
+using squarestar::application::IsLightGuiTheme;
 using squarestar::presentation::NotificationBlockStack;
+using squarestar::presentation::NotificationCardWidth;
+using squarestar::presentation::LinkedNotificationCardHeight;
+using squarestar::presentation::ShouldStackNotificationRowValues;
 
 static void RenderLiteGuiForegroundNotifications(AppState& state,
                                                   ImGuiViewport* viewport) {

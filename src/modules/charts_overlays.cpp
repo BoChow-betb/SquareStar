@@ -31,13 +31,41 @@
 namespace squarestar::shell {
 
 
+using squarestar::platform::Win32AppRuntime;
+using squarestar::format::FormatDouble;
+using squarestar::market::TIME_RANGES;
+using squarestar::market::CachedMarketOpen;
+using squarestar::market::TradingStatusExchangeLabel;
+using squarestar::market::IsMarketOpeningWindow;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::RequestGuiWakeAt;
 using squarestar::application::UiRounding;
+using squarestar::presentation::GuiShellRuntime;
+using squarestar::application::EaseOutCubic;
 using squarestar::application::AppState;
+using squarestar::application::UserFeedbackType;
+using squarestar::application::CanEnterStockComparison;
 using squarestar::application::StockContext;
+using squarestar::application::TerminalAction;
 using squarestar::application::IsLightGuiTheme;
+using squarestar::application::StockFetchMetrics;
+using squarestar::application::StockFetchProfile;
+using squarestar::application::StockFetchNews;
 using squarestar::presentation::NotificationCardWidth;
+using squarestar::presentation::DrawStablePrevCloseLine;
+using squarestar::presentation::EllipsizeTextBinary;
+using squarestar::presentation::ChartVisualType;
+using squarestar::presentation::ChartExportMethod;
+using squarestar::presentation::EnsureConfiguredTimeAxisTicks;
+using squarestar::presentation::UpdateStableChartAxisLock;
+using squarestar::presentation::ResetChartRenderLod;
+using squarestar::presentation::BuildChartRenderLod;
+using squarestar::presentation::NearestSortedIndex;
+using squarestar::presentation::EnsureVisiblePriceTicks;
+using squarestar::presentation::ResolveVisibleReferenceLineY;
+using squarestar::presentation::CleanExchangeLabel;
+using squarestar::presentation::CleanCompanyDisplayName;
+using squarestar::presentation::CrosshairDotColor;
 
 void RenderStockWipeOverlay(AppState& state, StockContext& ctx) {
     float displayWipeAnim = ctx.render.loadingBlockAnim;

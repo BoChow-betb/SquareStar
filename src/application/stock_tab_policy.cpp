@@ -1,5 +1,7 @@
 #include "stock_tab_policy.hpp"
 
+#include "domain/trading_status.hpp"
+
 #include <algorithm>
 #include <array>
 #include <string_view>
@@ -102,6 +104,40 @@ bool IsComparisonSymbolSelected(const StockContext& primary,
                      symbol) != primary.navigation.comparisonSymbols.end();
 }
 
+int ResolveComparisonSyncRangeIndex(const AppState& state,
+                                    const StockContext& primary,
+                                    int preferredRangeIndex) noexcept {
+    int targetRange = preferredRangeIndex >= 0
+                          ? preferredRangeIndex
+                          : primary.navigation.selectedTimeRangeIndex;
+    const auto requiresHistoricalFloor = [](const StockContext& context) {
+        const auto& status = context.RawData().tradingStatus;
+        return status.chartAvailability ==
+                   squarestar::market::ChartAvailability::NoTradingToday ||
+               status.chartAvailability ==
+                   squarestar::market::ChartAvailability::TradingStoppedWithHistory ||
+               squarestar::market::HasInactiveTradingStatus(status);
+    };
+
+    if (requiresHistoricalFloor(primary))
+        targetRange = std::max(targetRange, primary.navigation.displayedTimeRangeIndex);
+
+    for (const auto& candidate : state.marketData.activeContexts) {
+        if (!candidate || !candidate->navigation.open || !candidate->RawData().success ||
+            !IsComparisonSymbolSelected(primary, candidate->navigation.ticker) ||
+            !requiresHistoricalFloor(*candidate)) {
+            continue;
+        }
+        // A stopped/delisted tab may only have a wider historical range. Do not
+        // keep hammering an unavailable intraday range every frame; instead
+        // lift the whole comparison to the narrowest range already known to
+        // contain that symbol's history.
+        targetRange = std::max(targetRange,
+                               candidate->navigation.displayedTimeRangeIndex);
+    }
+    return targetRange;
+}
+
 void PrepareComparisonSelection(AppState& state,
                                 StockContext& primary,
                                 bool requestPicker,
@@ -153,12 +189,16 @@ void PrepareComparisonSelection(AppState& state,
 
     if (!syncRange)
         return;
+
+    const int targetRange = ResolveComparisonSyncRangeIndex(state, primary);
+    if (primary.navigation.selectedTimeRangeIndex != targetRange)
+        syncRange(primary, targetRange);
     for (auto& candidate : state.marketData.activeContexts) {
         if (!candidate || candidate.get() == &primary ||
             !IsComparisonSymbolSelected(primary, candidate->navigation.ticker)) {
             continue;
         }
-        syncRange(*candidate, primary.navigation.selectedTimeRangeIndex);
+        syncRange(*candidate, targetRange);
     }
 }
 

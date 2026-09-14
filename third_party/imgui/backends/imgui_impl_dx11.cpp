@@ -202,16 +202,14 @@ bool CreateViewportSwapChain(HWND hwnd, UINT width, UINT height, IDXGISwapChain*
     desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    desc.BufferCount = 2;
+    // Secondary ImGui windows are short-lived dropdowns/modals. The classic
+    // discard model is the most broadly compatible path for these HWND-owned
+    // swap chains and matches Dear ImGui's compatibility-first DX11 backend.
+    desc.BufferCount = 1;
     desc.OutputWindow = hwnd;
     desc.Windowed = TRUE;
-    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     HRESULT hr = bd->factory->CreateSwapChain(bd->device, &desc, output);
-    if (FAILED(hr)) {
-        desc.BufferCount = 1;
-        desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-        hr = bd->factory->CreateSwapChain(bd->device, &desc, output);
-    }
     if (SUCCEEDED(hr))
         bd->factory->MakeWindowAssociation(
             hwnd, DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);

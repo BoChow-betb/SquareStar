@@ -18,6 +18,9 @@ void RestoreNavigationAfterFailedStockOpen(AppState& state,
 bool CanEnterStockComparison(const AppState& state) noexcept;
 bool IsComparisonSymbolSelected(const StockContext& primary,
                                 const char* symbol) noexcept;
+int ResolveComparisonSyncRangeIndex(const AppState& state,
+                                    const StockContext& primary,
+                                    int preferredRangeIndex = -1) noexcept;
 void PrepareComparisonSelection(AppState& state,
                                 StockContext& primary,
                                 bool requestPicker,

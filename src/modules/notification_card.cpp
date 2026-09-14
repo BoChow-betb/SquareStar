@@ -32,9 +32,20 @@
 
 namespace squarestar::shell {
 
+using squarestar::application::ApplicationRuntime;
+using squarestar::application::AppUiMode;
 using squarestar::application::RequestGuiRedraw;
+using squarestar::application::RequestGuiWakeAt;
 using squarestar::application::UiRounding;
 using squarestar::application::AppState;
+using squarestar::application::CountMonitorStockTiles;
+using squarestar::application::ShouldHoldMonitorModeHint;
+using squarestar::application::ResolveContextualKeybindSurface;
+using squarestar::application::HasContextualKeybindHint;
+using squarestar::application::ContextualKeybindSurface;
+using squarestar::application::FormatKeyBind;
+using squarestar::application::StockContext;
+using squarestar::application::TerminalAction;
 using squarestar::application::IsLightGuiTheme;
 using squarestar::presentation::NotificationBlockStack;
 using squarestar::presentation::NotificationCardWidth;
@@ -473,6 +484,9 @@ NotificationCardRenderResult RenderNotificationCard(
                viewport->WorkPos.y + viewport->WorkSize.y - layout.height - *bottomReservation),
         ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(layout.width, layout.height), ImGuiCond_Always);
+#ifdef IMGUI_HAS_VIEWPORT
+    ImGui::SetNextWindowViewport(viewport->ID);
+#endif
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, UiRounding(state, 10.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
