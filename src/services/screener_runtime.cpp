@@ -1,4 +1,4 @@
-#include "services/screener_runtime.hpp"
+#include "services/screener_service.hpp"
 
 #include "application/screener_controller.hpp"
 #include "domain/market_runtime.hpp"
@@ -6,6 +6,7 @@
 #include "services/screener_cache_persistence.hpp"
 
 namespace squarestar::providers {
+namespace {
 
 ScreenerFetchDependencies DefaultScreenerFetchDependencies() {
     return {
@@ -17,6 +18,7 @@ ScreenerFetchDependencies DefaultScreenerFetchDependencies() {
     };
 }
 
+} // namespace
 } // namespace squarestar::providers
 
 namespace squarestar::application {

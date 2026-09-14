@@ -67,7 +67,6 @@ using squarestar::presentation::SetGuiRendererBackendData;
 using squarestar::presentation::ClearGuiRendererContextRegistry;
 using squarestar::presentation::MainGuiImGuiContext;
 using squarestar::presentation::MainGuiImPlotContext;
-using squarestar::presentation::SetGuiRendererPrimed;
 using squarestar::presentation::EnsureGuiRendererContext;
 using squarestar::presentation::PrimeGuiRendererForStartup;
 using squarestar::presentation::ClearApplicationFontPointers;
@@ -317,7 +316,6 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     state.render.appliedZeroGraphics = state.ZeroGraphicsEnabled();
     glfwPollEvents();
     const bool primed = buildFonts && PrimeGuiRendererForStartup(window, &failureReason);
-    SetGuiRendererPrimed(primed);
     if (buildFonts && !primed) {
         if (failureReason.empty())
             failureReason = "The first GUI renderer frame could not be created.";

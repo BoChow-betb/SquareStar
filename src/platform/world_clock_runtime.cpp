@@ -126,13 +126,6 @@ std::string FormatClockTime(const std::tm& calendar, bool includeSeconds) {
     return value;
 }
 
-std::string WorldClockOptionLabel(int zoneIndex, std::time_t raw) {
-    zoneIndex = std::clamp(zoneIndex, 0, squarestar::market::WORLD_ZONE_COUNT - 1);
-    const WorldClockReading reading = ReadWorldClock(zoneIndex, raw);
-    return std::string(squarestar::market::WORLD_ZONES[zoneIndex].label) + "  \xC2\xB7  " +
-           FormatUtcOffset(reading.utcOffsetMinutes);
-}
-
 std::string FormatAsOfTime(std::time_t raw, bool marketTime) {
     if (raw <= 0)
         raw = std::time(nullptr);

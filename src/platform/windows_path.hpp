@@ -81,18 +81,6 @@ inline std::wstring ExecutablePathWide() {
     }
 }
 
-inline std::wstring TemporaryDirectoryWide() {
-    std::vector<wchar_t> buffer(512, L'\0');
-    for (;;) {
-        const DWORD length = GetTempPathW(static_cast<DWORD>(buffer.size()), buffer.data());
-        if (length == 0)
-            return {};
-        if (length < buffer.size())
-            return std::wstring(buffer.data(), length);
-        buffer.resize(static_cast<std::size_t>(length) + 1, L'\0');
-    }
-}
-
 inline std::wstring EnvironmentPathWide(const wchar_t* name) {
     if (!name || !*name)
         return {};

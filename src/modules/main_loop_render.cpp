@@ -39,7 +39,6 @@ using squarestar::application::GuiWindowGeometry;
 using squarestar::application::RequestGuiRedraw;
 using squarestar::application::ShouldRenderGuiFrame;
 using squarestar::presentation::RebuildApplicationFonts;
-using squarestar::presentation::SetGuiRendererPrimed;
 using squarestar::application::GuiPageKind;
 
 namespace {
@@ -118,7 +117,6 @@ void RenderMainGuiFrame(GLFWwindow* window,
         squarestar::presentation::BeginGuiD3D11MainFrame(display_w, display_h, clear);
     if (mainTargetReady) {
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-        SetGuiRendererPrimed(true);
         if (squarestar::presentation::PresentGuiD3D11MainFrame(true))
             squarestar::benchmark::OnGuiFramePresented(window);
     }
