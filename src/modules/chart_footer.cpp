@@ -441,7 +441,7 @@ void RenderStockChartFooter(AppState& state,
     const std::time_t currentTime = std::time(nullptr);
     const std::tm localTime = squarestar::platform::SafeTimeTm(currentTime, false);
     const std::string localClockText =
-        "Local: " + squarestar::platform::FormatClockTime(localTime, false);
+        "Local: " + squarestar::platform::FormatClockTime(localTime, true);
     std::string desktopClockText =
         "Local time " + squarestar::platform::FormatClockTime(localTime, true);
     if (!state.navigation.liteGuiActive) {
