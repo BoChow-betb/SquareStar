@@ -30,3 +30,11 @@ The nezuai sounds are redistributed/adapted under CC BY 4.0; the full license te
 ## Application icon
 
 `assets/squarestar.ico` is original first-party artwork created by the SquareStar maintainer using Affinity software and is distributed under the repository's MIT license.
+
+### Design provenance
+
+The screenshot below shows the editable SquareStar logo artwork open in Affinity's Vector workspace during the design process. It is included as project provenance supporting the maintainer's first-party creation claim.
+
+![SquareStar logo open in Affinity Vector workspace](docs/images/squarestar-logo-affinity-provenance.png)
+
+This design-process screenshot is documentation only and is not required to build or run SquareStar.
