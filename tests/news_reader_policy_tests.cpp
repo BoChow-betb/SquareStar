@@ -30,11 +30,11 @@ int main() {
     const std::string invalidUtf8 = std::string("clean") + static_cast<char>(0xFF) + "text";
     Require(squarestar::news::NormalizeNewsText(invalidUtf8) == "clean text",
             "invalid UTF-8 bytes cannot leak replacement-symbol debris into ImGui");
-    const auto oneDay = ResolveProgressiveChartRange(true, true, true, true);
-    const auto fiveDay = ResolveProgressiveChartRange(false, true, true, true);
-    const auto oneMonth = ResolveProgressiveChartRange(false, false, true, true);
-    const auto allHistory = ResolveProgressiveChartRange(false, false, false, true);
-    const auto missing = ResolveProgressiveChartRange(false, false, false, false);
+    const auto oneDay = ResolveChartRange(true, true, true, true);
+    const auto fiveDay = ResolveChartRange(false, true, true, true);
+    const auto oneMonth = ResolveChartRange(false, false, true, true);
+    const auto allHistory = ResolveChartRange(false, false, false, true);
+    const auto missing = ResolveChartRange(false, false, false, false);
     Require(oneDay.rangeIndex == 0 &&
                 oneDay.availability == ChartAvailability::ActiveSelectedRange,
             "usable 1D stays selected");

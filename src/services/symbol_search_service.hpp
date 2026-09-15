@@ -57,6 +57,7 @@ class SymbolSearchService {
     SymbolSearchDependencies dependencies_;
     std::mutex mutex_;
     std::unordered_map<std::string, CacheEntry> cache_;
+    std::size_t cacheBytes_ = 0;
     std::chrono::steady_clock::time_point providerCooldownUntil_{};
 };
 

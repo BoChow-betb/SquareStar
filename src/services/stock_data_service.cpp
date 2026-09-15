@@ -54,7 +54,7 @@ using squarestar::market::StockFetchResult;
 using squarestar::market::TIME_RANGES;
 using squarestar::market::ChartAvailability;
 using squarestar::market::CorporateActionStatus;
-using squarestar::market::ResolveProgressiveChartRange;
+using squarestar::market::ResolveChartRange;
 using squarestar::providers::ApplyYahooChartPayload;
 using squarestar::secrets::ApiKeyRevision;
 using squarestar::secrets::IsApiKeyRevisionCurrent;
@@ -111,10 +111,10 @@ static const char* HttpErrorDiagnosticCategory(HttpError error) noexcept {
     return "http";
 }
 
-static std::string TakeSuccessfulHttpBody(HttpResponse response,
-                                          HttpFailureSummary& failures,
-                                          const char* provider,
-                                          const char* operation) {
+static std::string TakeBody(HttpResponse response,
+                            HttpFailureSummary& failures,
+                            const char* provider,
+                            const char* operation) {
     if (!response.IsSuccess()) {
         RememberHttpFailure(response, failures);
         // 404 is normal negative ticker evidence and cancellation is normal
@@ -226,30 +226,44 @@ StockFetchResult RunAlertQuoteBatch() {
     for (;;) {
         std::vector<std::shared_ptr<AlertQuoteWaiter>> batch;
         std::vector<std::shared_ptr<AlertQuoteWaiter>> expired;
+        std::vector<std::string> symbols;
         {
             std::lock_guard<std::mutex> lock(g_AlertQuoteBatchMutex);
             if (g_AlertQuoteBatchStopping) {
                 g_AlertQuoteBatchScheduled = false;
                 return {};
             }
+
             const auto now = std::chrono::steady_clock::now();
-            for (auto it = g_AlertQuotePending.begin(); it != g_AlertQuotePending.end();) {
-                if (!*it || now >= (*it)->deadline) {
-                    if (*it)
-                        expired.push_back(*it);
-                    it = g_AlertQuotePending.erase(it);
+            std::unordered_set<std::string> selected;
+            const std::size_t symbolLimit = std::min<std::size_t>(
+                kMaximumYahooSymbolsPerQuoteBatch, g_AlertQuotePending.size());
+            selected.reserve(symbolLimit);
+            symbols.reserve(symbolLimit);
+            batch.reserve(g_AlertQuotePending.size());
+
+            std::vector<std::shared_ptr<AlertQuoteWaiter>> pending;
+            pending.reserve(g_AlertQuotePending.size());
+            for (auto& waiter : g_AlertQuotePending) {
+                if (!waiter)
+                    continue;
+                if (now >= waiter->deadline) {
+                    expired.push_back(std::move(waiter));
+                    continue;
+                }
+
+                const bool alreadySelected = selected.contains(waiter->yahooSymbol);
+                if (alreadySelected || selected.size() < kMaximumYahooSymbolsPerQuoteBatch) {
+                    if (!alreadySelected) {
+                        selected.insert(waiter->yahooSymbol);
+                        symbols.push_back(waiter->yahooSymbol);
+                    }
+                    batch.push_back(std::move(waiter));
                 } else {
-                    ++it;
+                    pending.push_back(std::move(waiter));
                 }
             }
-            const std::size_t take = std::min<std::size_t>(
-                kMaximumYahooSymbolsPerQuoteBatch, g_AlertQuotePending.size());
-            batch.reserve(take);
-            for (std::size_t i = 0; i < take; ++i)
-                batch.push_back(std::move(g_AlertQuotePending[i]));
-            g_AlertQuotePending.erase(
-                g_AlertQuotePending.begin(),
-                g_AlertQuotePending.begin() + static_cast<std::ptrdiff_t>(take));
+            g_AlertQuotePending = std::move(pending);
             if (batch.empty() && g_AlertQuotePending.empty())
                 g_AlertQuoteBatchScheduled = false;
         }
@@ -259,15 +273,15 @@ StockFetchResult RunAlertQuoteBatch() {
         if (batch.empty())
             return {};
 
+        std::size_t joinedBytes = symbols.empty() ? 0 : symbols.size() - 1;
+        for (const std::string& symbol : symbols)
+            joinedBytes += symbol.size();
         std::string joinedSymbols;
-        std::unordered_set<std::string> requestedSymbols;
-        requestedSymbols.reserve(batch.size());
-        for (const auto& waiter : batch) {
-            if (!waiter || !requestedSymbols.insert(waiter->yahooSymbol).second)
-                continue;
+        joinedSymbols.reserve(joinedBytes);
+        for (const std::string& symbol : symbols) {
             if (!joinedSymbols.empty())
                 joinedSymbols.push_back(',');
-            joinedSymbols += waiter->yahooSymbol;
+            joinedSymbols += symbol;
         }
         const std::string url =
             "https://query1.finance.yahoo.com/v7/finance/quote?symbols=" +
@@ -414,10 +428,16 @@ void ResetAlertQuoteBatchScheduler() noexcept {
 
 namespace {
 
-bool IsChartRangeResponseAnswered(const HttpResponse& response) noexcept {
+bool ChartAnswered(const HttpResponse& response) noexcept {
     return (response.statusCode >= 200 && response.statusCode < 300) ||
            response.statusCode == 404;
 }
+
+struct ChartTry {
+    bool applied = false;
+    bool answered = false;
+    bool missing = false;
+};
 
 std::string YahooChartUrl(const char* host,
                           const std::string& yahooTicker,
@@ -428,40 +448,45 @@ std::string YahooChartUrl(const char* host,
            "&includePrePost=false&events=div%2Csplits";
 }
 
-bool FetchAndApplyYahooChartRange(const char* host,
-                                  const std::string& yahooTicker,
-                                  int timeRangeIndex,
-                                  HttpFailureSummary& httpFailures,
-                                  const char* operation,
-                                  StockData& result,
-                                  bool& rangeAnswered) {
+ChartTry FetchYahooChart(const char* host,
+                         const std::string& yahooTicker,
+                         int timeRangeIndex,
+                         HttpFailureSummary& httpFailures,
+                         const char* operation,
+                         StockData& result) {
     HttpResponse response =
         QueueRealtimeHttpGet(YahooChartUrl(host, yahooTicker, timeRangeIndex)).get();
-    rangeAnswered = rangeAnswered || IsChartRangeResponseAnswered(response);
-    std::string raw = TakeSuccessfulHttpBody(
+    ChartTry state;
+    state.answered = ChartAnswered(response);
+    state.missing = response.statusCode == 404;
+    std::string raw = TakeBody(
         std::move(response), httpFailures, "yahoo", operation);
-    return ApplyYahooChartPayload(
+    state.applied = ApplyYahooChartPayload(
         std::move(raw), timeRangeIndex <= 1, result);
+    return state;
 }
 
-bool FetchAndApplyYahooChartRangeFromEitherHost(
-    const std::string& yahooTicker,
-    int timeRangeIndex,
-    HttpFailureSummary& httpFailures,
-    StockData& result,
-    bool& rangeAnswered) {
-    for (const char* host : {"query1.finance.yahoo.com", "query2.finance.yahoo.com"}) {
-        if (FetchAndApplyYahooChartRange(host,
-                                        yahooTicker,
-                                        timeRangeIndex,
-                                        httpFailures,
-                                        "stock-chart-fallback",
-                                        result,
-                                        rangeAnswered)) {
-            return true;
-        }
-    }
-    return false;
+ChartTry TryYahooChart(const std::string& yahooTicker,
+                       int timeRangeIndex,
+                       HttpFailureSummary& httpFailures,
+                       StockData& result) {
+    ChartTry state = FetchYahooChart("query1.finance.yahoo.com",
+                                    yahooTicker,
+                                    timeRangeIndex,
+                                    httpFailures,
+                                    "stock-chart-fallback",
+                                    result);
+    if (state.applied || state.missing)
+        return state;
+
+    ChartTry retry = FetchYahooChart("query2.finance.yahoo.com",
+                                     yahooTicker,
+                                     timeRangeIndex,
+                                     httpFailures,
+                                     "stock-chart-fallback",
+                                     result);
+    retry.answered = retry.answered || state.answered;
+    return retry;
 }
 
 bool RecoverInitialChartRange(const std::string& yahooTicker,
@@ -469,14 +494,10 @@ bool RecoverInitialChartRange(const std::string& yahooTicker,
                               HttpFailureSummary& httpFailures,
                               StockFetchResult& fetch) {
     StockData& result = fetch.marketData;
-    bool fiveDayAnswered = false;
-    bool oneMonthAnswered = false;
-    bool allHistoryAnswered = false;
 
-    if (FetchAndApplyYahooChartRangeFromEitherHost(
-            yahooTicker, 1, httpFailures, result, fiveDayAnswered)) {
-        const auto decision =
-            ResolveProgressiveChartRange(false, true, false, false);
+    const ChartTry fiveDay = TryYahooChart(yahooTicker, 1, httpFailures, result);
+    if (fiveDay.applied) {
+        const auto decision = ResolveChartRange(false, true, false, false);
         fetch.resolvedTimeRangeIndex = decision.rangeIndex;
         result.tradingStatus.chartAvailability =
             requestedChartRangeAnswered ? decision.availability
@@ -484,13 +505,12 @@ bool RecoverInitialChartRange(const std::string& yahooTicker,
         return true;
     }
 
-    if (FetchAndApplyYahooChartRangeFromEitherHost(
-            yahooTicker, 2, httpFailures, result, oneMonthAnswered)) {
-        const auto decision =
-            ResolveProgressiveChartRange(false, false, true, false);
+    const ChartTry oneMonth = TryYahooChart(yahooTicker, 2, httpFailures, result);
+    if (oneMonth.applied) {
+        const auto decision = ResolveChartRange(false, false, true, false);
         fetch.resolvedTimeRangeIndex = decision.rangeIndex;
         const bool completeNegativeEvidence =
-            requestedChartRangeAnswered && fiveDayAnswered;
+            requestedChartRangeAnswered && fiveDay.answered;
         result.tradingStatus.chartAvailability =
             completeNegativeEvidence ? decision.availability
                                      : ChartAvailability::ActiveSelectedRange;
@@ -500,17 +520,13 @@ bool RecoverInitialChartRange(const std::string& yahooTicker,
         return true;
     }
 
-    if (FetchAndApplyYahooChartRangeFromEitherHost(
-            yahooTicker,
-            ALL_TIME_RANGE_INDEX,
-            httpFailures,
-            result,
-            allHistoryAnswered)) {
-        const auto decision =
-            ResolveProgressiveChartRange(false, false, false, true);
+    const ChartTry allHistory =
+        TryYahooChart(yahooTicker, ALL_TIME_RANGE_INDEX, httpFailures, result);
+    if (allHistory.applied) {
+        const auto decision = ResolveChartRange(false, false, false, true);
         fetch.resolvedTimeRangeIndex = decision.rangeIndex;
-        const bool completeNegativeEvidence =
-            requestedChartRangeAnswered && fiveDayAnswered && oneMonthAnswered;
+        const bool completeNegativeEvidence = requestedChartRangeAnswered &&
+                                              fiveDay.answered && oneMonth.answered;
         result.tradingStatus.chartAvailability =
             completeNegativeEvidence ? decision.availability
                                      : ChartAvailability::ActiveSelectedRange;
@@ -521,9 +537,9 @@ bool RecoverInitialChartRange(const std::string& yahooTicker,
     }
 
     result.tradingStatus.chartAvailability =
-        requestedChartRangeAnswered && fiveDayAnswered && oneMonthAnswered &&
-                allHistoryAnswered
-            ? ResolveProgressiveChartRange(false, false, false, false).availability
+        requestedChartRangeAnswered && fiveDay.answered && oneMonth.answered &&
+                allHistory.answered
+            ? ResolveChartRange(false, false, false, false).availability
             : ChartAvailability::Unknown;
     return false;
 }
@@ -551,26 +567,24 @@ bool HasRecentYahooQuoteSnapshot(const std::string& yahooQuoteRaw,
 void ProbeHistoricalTradingStatus(const std::string& yahooTicker,
                                   HttpFailureSummary& httpFailures,
                                   StockData& result) {
-    bool oneDayAnswered = false;
-    bool fiveDayAnswered = false;
     StockData probe;
-    if (FetchAndApplyYahooChartRangeFromEitherHost(
-            yahooTicker, 0, httpFailures, probe, oneDayAnswered)) {
+    const ChartTry oneDay = TryYahooChart(yahooTicker, 0, httpFailures, probe);
+    if (oneDay.applied) {
         result.tradingStatus.chartAvailability =
             ChartAvailability::ActiveSelectedRange;
         return;
     }
 
     probe = StockData{};
-    if (FetchAndApplyYahooChartRangeFromEitherHost(
-            yahooTicker, 1, httpFailures, probe, fiveDayAnswered)) {
+    const ChartTry fiveDay = TryYahooChart(yahooTicker, 1, httpFailures, probe);
+    if (fiveDay.applied) {
         result.tradingStatus.chartAvailability = ChartAvailability::NoTradingToday;
         return;
     }
 
     // Only classify a stopped symbol when both recent-range requests produced
     // authoritative answers. A transport outage must never look like a delist.
-    if (oneDayAnswered && fiveDayAnswered) {
+    if (oneDay.answered && fiveDay.answered) {
         result.tradingStatus.chartAvailability =
             ChartAvailability::TradingStoppedWithHistory;
         result.tradingStatus.corporateAction =
@@ -717,27 +731,28 @@ StockFetchResult FetchStockData(
         newsFuture = QueueHttpGet(CompanyNewsUrl(finnhubTicker, apiKey, 7));
     }
     std::string chartRaw, fhQuoteRaw, fhMetricsRaw, fhProfileRaw, yQuoteRaw, newsRaw;
-    bool requestedChartRangeAnswered = false;
+    ChartTry requestedChart;
     if (chartFuture.valid()) {
         HttpResponse response = chartFuture.get();
-        requestedChartRangeAnswered = IsChartRangeResponseAnswered(response);
-        chartRaw = TakeSuccessfulHttpBody(
+        requestedChart.answered = ChartAnswered(response);
+        requestedChart.missing = response.statusCode == 404;
+        chartRaw = TakeBody(
             std::move(response), httpFailures, "yahoo", "stock-chart");
     }
     if (fhQuoteFuture.valid())
-        fhQuoteRaw = TakeSuccessfulHttpBody(
+        fhQuoteRaw = TakeBody(
             fhQuoteFuture.get(), httpFailures, "finnhub", "stock-quote");
     if (fhMetricsFuture.valid())
-        fhMetricsRaw = TakeSuccessfulHttpBody(
+        fhMetricsRaw = TakeBody(
             fhMetricsFuture.get(), httpFailures, "finnhub", "stock-metrics");
     if (fhProfileFuture.valid())
-        fhProfileRaw = TakeSuccessfulHttpBody(
+        fhProfileRaw = TakeBody(
             fhProfileFuture.get(), httpFailures, "finnhub", "stock-profile");
     if (yQuoteFuture.valid())
-        yQuoteRaw = TakeSuccessfulHttpBody(
+        yQuoteRaw = TakeBody(
             yQuoteFuture.get(), httpFailures, "yahoo", "stock-quote");
     if (newsFuture.valid())
-        newsRaw = TakeSuccessfulHttpBody(
+        newsRaw = TakeBody(
             newsFuture.get(), httpFailures, "finnhub", "stock-news");
     // A clear or replacement invalidates responses started with the previous
     // credential. Yahoo data remains usable, but stale Finnhub payloads must
@@ -750,23 +765,26 @@ StockFetchResult FetchStockData(
     }
     bool chartApplied = false;
     if (needChart) {
-        chartApplied =
+        requestedChart.applied =
             ApplyYahooChartPayload(std::move(chartRaw), timeRangeIndex <= 1, result);
-        if (!chartApplied) {
-            chartApplied = FetchAndApplyYahooChartRange(
+        if (!requestedChart.applied && !requestedChart.missing) {
+            ChartTry retry = FetchYahooChart(
                 "query2.finance.yahoo.com",
                 yahooTicker,
                 timeRangeIndex,
                 httpFailures,
                 "stock-chart-retry",
-                result,
-                requestedChartRangeAnswered);
+                result);
+            requestedChart.applied = retry.applied;
+            requestedChart.answered = requestedChart.answered || retry.answered;
+            requestedChart.missing = retry.missing;
         }
+        chartApplied = requestedChart.applied;
         // A missing intraday series is not enough evidence to classify a symbol
         // as unavailable. Full initial loads try progressively wider ranges.
         if (!chartApplied && fullLoad && timeRangeIndex == 0) {
             chartApplied = RecoverInitialChartRange(
-                yahooTicker, requestedChartRangeAnswered, httpFailures, fetch);
+                yahooTicker, requestedChart.answered, httpFailures, fetch);
         } else if (chartApplied) {
             result.tradingStatus.chartAvailability =
                 ChartAvailability::ActiveSelectedRange;
@@ -799,7 +817,7 @@ StockFetchResult FetchStockData(
         // A slightly wider window than the normal news surface catches a
         // completed transaction followed by a holiday/weekend while remaining
         // bounded and cheap. Classification still requires explicit wording.
-        newsRaw = TakeSuccessfulHttpBody(
+        newsRaw = TakeBody(
             QueueHttpGet(CompanyNewsUrl(finnhubTicker, apiKey, 14)).get(),
             httpFailures,
             "finnhub",
@@ -814,7 +832,7 @@ StockFetchResult FetchStockData(
     if (leanCoreLoad && !yahooOnlyInstrument && yQuoteRaw.empty() &&
         (!chartApplied || result.previousClose <= 0.0) && fhQuoteRaw.empty() &&
         hasFinnhubKey && IsApiKeyRevisionCurrent(apiKeyRevision)) {
-        fhQuoteRaw = TakeSuccessfulHttpBody(
+        fhQuoteRaw = TakeBody(
             QueueRealtimeHttpGet("https://finnhub.io/api/v1/quote?symbol=" +
                                  finnhubTicker + "&token=" + apiKey)
                 .get(),

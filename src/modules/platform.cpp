@@ -702,7 +702,18 @@ static bool ExportMonitorData(const std::vector<MonitorExportData>& data,
                        : 0.0;
         };
 
-        if (format == ChartExportFormat::Json) {
+        std::string fixedTicker;
+        std::string fixedCompany;
+        std::string fixedRange;
+        if (format == ChartExportFormat::Csv) {
+            fixedTicker = EscapeSpreadsheetCsvField(item.ticker);
+            fixedCompany = EscapeSpreadsheetCsvField(chart.companyName);
+            fixedRange = EscapeSpreadsheetCsvField(item.range);
+        } else if (format == ChartExportFormat::Txt) {
+            fixedTicker = NormalizeSpreadsheetTextField(item.ticker);
+            fixedCompany = NormalizeSpreadsheetTextField(chart.companyName);
+            fixedRange = NormalizeSpreadsheetTextField(item.range);
+        } else {
             if (!firstJsonStock)
                 out << ",\n";
             firstJsonStock = false;
@@ -724,15 +735,11 @@ static bool ExportMonitorData(const std::vector<MonitorExportData>& data,
 
             wroteAnyPoint = true;
             if (format == ChartExportFormat::Csv) {
-                out << EscapeSpreadsheetCsvField(item.ticker) << ','
-                    << EscapeSpreadsheetCsvField(chart.companyName) << ','
-                    << EscapeSpreadsheetCsvField(item.range) << ','
+                out << fixedTicker << ',' << fixedCompany << ',' << fixedRange << ','
                     << EscapeSpreadsheetCsvField(timestamp) << ','
                     << open << ',' << high << ',' << low << ',' << close << ',' << volume << '\n';
             } else if (format == ChartExportFormat::Txt) {
-                out << NormalizeSpreadsheetTextField(item.ticker) << '\t'
-                    << NormalizeSpreadsheetTextField(chart.companyName) << '\t'
-                    << NormalizeSpreadsheetTextField(item.range) << '\t'
+                out << fixedTicker << '\t' << fixedCompany << '\t' << fixedRange << '\t'
                     << NormalizeSpreadsheetTextField(timestamp) << '\t' << open << '\t'
                     << high << '\t' << low << '\t' << close << '\t' << volume << '\n';
             } else {

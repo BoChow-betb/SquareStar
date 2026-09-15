@@ -134,18 +134,41 @@ void RenderObjectFocusOverlay(AppState& state, ImVec2 viewportMin, ImVec2 viewpo
                             : ImVec4(1.0f, 1.0f, 1.0f, baseAlpha * state.render.objectFocusAnim);
     const ImU32 veilColor = ImGui::ColorConvertFloat4ToU32(veil);
     ImDrawList* draw = ImGui::GetForegroundDrawList();
-    for (size_t yi = 0; yi + 1 < ys.size(); ++yi) {
-        for (size_t xi = 0; xi + 1 < xs.size(); ++xi) {
-            const ImVec2 cellMin(xs[xi], ys[yi]);
-            const ImVec2 cellMax(xs[xi + 1], ys[yi + 1]);
-            const ImVec2 center((cellMin.x + cellMax.x) * 0.5f, (cellMin.y + cellMax.y) * 0.5f);
-            const bool focusedCell =
-                std::any_of(regions.begin(), regions.end(), [&](const ObjectFocusRegion& r) {
-                    return center.x >= r.min.x && center.x <= r.max.x && center.y >= r.min.y &&
-                           center.y <= r.max.y;
-                });
-            if (!focusedCell)
-                draw->AddRectFilled(cellMin, cellMax, veilColor);
+
+    const size_t columns = xs.size() - 1;
+    const size_t rows = ys.size() - 1;
+    const size_t stride = columns + 1;
+    std::vector<int> cover((rows + 1) * stride, 0);
+    for (const ObjectFocusRegion& region : regions) {
+        const size_t x0 = static_cast<size_t>(
+            std::lower_bound(xs.begin(), xs.end(), region.min.x) - xs.begin());
+        const size_t x1 = static_cast<size_t>(
+            std::lower_bound(xs.begin(), xs.end(), region.max.x) - xs.begin());
+        const size_t y0 = static_cast<size_t>(
+            std::lower_bound(ys.begin(), ys.end(), region.min.y) - ys.begin());
+        const size_t y1 = static_cast<size_t>(
+            std::lower_bound(ys.begin(), ys.end(), region.max.y) - ys.begin());
+        ++cover[y0 * stride + x0];
+        --cover[y0 * stride + x1];
+        --cover[y1 * stride + x0];
+        ++cover[y1 * stride + x1];
+    }
+
+    for (size_t yi = 0; yi < rows; ++yi) {
+        for (size_t xi = 0; xi < columns; ++xi) {
+            int coverage = cover[yi * stride + xi];
+            if (xi > 0)
+                coverage += cover[yi * stride + xi - 1];
+            if (yi > 0)
+                coverage += cover[(yi - 1) * stride + xi];
+            if (xi > 0 && yi > 0)
+                coverage -= cover[(yi - 1) * stride + xi - 1];
+            cover[yi * stride + xi] = coverage;
+            if (coverage == 0) {
+                draw->AddRectFilled(ImVec2(xs[xi], ys[yi]),
+                                    ImVec2(xs[xi + 1], ys[yi + 1]),
+                                    veilColor);
+            }
         }
     }
 }

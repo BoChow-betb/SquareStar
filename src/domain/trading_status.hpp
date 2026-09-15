@@ -15,7 +15,7 @@ struct ChartFallbackDecision {
     CorporateActionStatus defaultCorporateAction = CorporateActionStatus::None;
 };
 
-[[nodiscard]] constexpr ChartFallbackDecision ResolveProgressiveChartRange(
+[[nodiscard]] constexpr ChartFallbackDecision ResolveChartRange(
     bool hasOneDay,
     bool hasFiveDay,
     bool hasOneMonth,

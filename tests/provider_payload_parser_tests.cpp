@@ -153,6 +153,29 @@ int main() {
               Near(reverseSplitSeries.volumes.front(), 100.0),
           "reverse-split price and volume normalization uses the same basis");
 
+    StockData multiSplitSeries;
+    Check(ApplyYahooChartPayload(
+              R"json({"chart":{"result":[{
+                "timestamp":[100,200,300,400],
+                "events":{"splits":{
+                  "200":{"date":200,"numerator":2,"denominator":1},
+                  "300":{"date":300,"numerator":5,"denominator":1}
+                }},
+                "indicators":{"quote":[{
+                  "open":[990,495,99,100],"high":[1010,505,101,102],
+                  "low":[980,490,98,99],"close":[1000,500,100,101],
+                  "volume":[10,20,30,40]
+                }]}
+              }]}})json",
+              false,
+              multiSplitSeries),
+          "series spanning multiple splits is accepted");
+    Check(Near(multiSplitSeries.closes[0], 100.0) &&
+              Near(multiSplitSeries.closes[1], 100.0) &&
+              Near(multiSplitSeries.volumes[0], 100.0) &&
+              Near(multiSplitSeries.volumes[1], 100.0),
+          "multiple split boundaries are normalized with one cumulative pass");
+
     StockData unchanged;
     unchanged.currentPrice = 77.0;
     Check(!ApplyYahooChartPayload(

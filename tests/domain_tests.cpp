@@ -366,6 +366,14 @@ int main() {
     Check(squarestar::text::ParseIntOr("999999999999999999999", -1) == -1,
           "reject integer overflow");
 
+    Check(squarestar::search::BoundedEditDistance("AAPL", "AAPL", 1) == 0 &&
+              squarestar::search::BoundedEditDistance("APPL", "AAPL", 1) == 1 &&
+              squarestar::search::BoundedEditDistance("AAPL", "APL", 1) == 1 &&
+              squarestar::search::BoundedEditDistance("APL", "AAPL", 1) == 1 &&
+              squarestar::search::BoundedEditDistance("AAPL", "MSFT", 1) == 2 &&
+              squarestar::search::BoundedEditDistance("ABCD", "ABXY", 2) == 2,
+          "bounded edit distance handles exact, insert, delete, replace, and fallback cases");
+
     Check(squarestar::search::ScoreSymbolSearchResult(
               "AAPL", "AAPL", "Apple Inc", "Common Stock") >
               squarestar::search::ScoreSymbolSearchResult(

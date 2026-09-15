@@ -36,14 +36,14 @@ struct RankedResult {
     int score = 0;
 };
 
-void SeedBuiltinResults(std::string_view query,
+void SeedBuiltinResults(const QueryInfo& query,
                         const SymbolSearchService::Results& builtinResults,
                         std::vector<RankedResult>& ranked,
                         std::unordered_set<std::string>& seen) {
     for (const auto& [symbol, description] : builtinResults) {
         const std::string normalized = Upper(symbol);
         seen.insert(normalized);
-        const int score = RankSymbolSearchResult(query, symbol, description, "Futures", 0);
+        const int score = RankMatch(query, symbol, description, "Futures", 0);
         if (score > 0)
             ranked.push_back({symbol, description, score + 800});
     }
@@ -86,7 +86,7 @@ bool UnsupportedSearchType(std::string_view type) {
 }
 
 std::optional<SymbolSearchService::Results> ParseYahooSearchPayload(
-    std::string_view query,
+    const QueryInfo& query,
     std::string& body,
     const SymbolSearchService::Results& builtinResults) {
     auto document = ParseJsonInSitu(body);
@@ -130,12 +130,12 @@ std::optional<SymbolSearchService::Results> ParseYahooSearchPayload(
             continue;
 
         const int score =
-            RankSymbolSearchResult(query, symbol, description, quoteType, index);
+            RankMatch(query, symbol, description, quoteType, index);
         if (score > 0)
             ranked.push_back({std::move(symbol), std::move(description), score});
     }
 
-    return FinalizeRankedResults(query, std::move(ranked));
+    return FinalizeRankedResults(query.text, std::move(ranked));
 }
 
 } // namespace
@@ -148,7 +148,8 @@ SymbolSearchService::Results SymbolSearchService::Lookup(std::string_view query,
     if (query.empty())
         return {};
 
-    Results builtinResults = squarestar::market::SearchCommonYahooFutures(std::string(query));
+    const QueryInfo parsed = ParseQuery(query);
+    Results builtinResults = squarestar::market::SearchCommonYahooFutures(parsed);
     if (!dependencies_.urlEncode || !dependencies_.fetch)
         return builtinResults;
 
@@ -175,7 +176,7 @@ SymbolSearchService::Results SymbolSearchService::Lookup(std::string_view query,
         if (!response.success || response.body.empty())
             return std::nullopt;
         try {
-            return ParseYahooSearchPayload(query, response.body, builtinResults);
+            return ParseYahooSearchPayload(parsed, response.body, builtinResults);
         } catch (...) {
             squarestar::application::ReportBackgroundFailure("symbol search yahoo payload");
             return std::nullopt;
@@ -237,7 +238,7 @@ SymbolSearchService::Results SymbolSearchService::Lookup(std::string_view query,
 
         std::vector<RankedResult> ranked;
         std::unordered_set<std::string> seen;
-        SeedBuiltinResults(query, builtinResults, ranked, seen);
+        SeedBuiltinResults(parsed, builtinResults, ranked, seen);
 
         size_t index = 0;
         size_t count = 0;
@@ -279,12 +280,12 @@ SymbolSearchService::Results SymbolSearchService::Lookup(std::string_view query,
                 continue;
 
             const int score =
-                RankSymbolSearchResult(query, symbol, description, type, index);
+                RankMatch(parsed, symbol, description, type, index);
             if (score > 0)
                 ranked.push_back({std::move(symbol), std::move(description), score});
         }
 
-        Results results = FinalizeRankedResults(query, std::move(ranked));
+        Results results = FinalizeRankedResults(parsed.text, std::move(ranked));
         StoreCache(normalizedQuery, results, std::chrono::steady_clock::now());
         return results;
     } catch (...) {
@@ -298,6 +299,7 @@ SymbolSearchService::Results SymbolSearchService::Lookup(std::string_view query,
 void SymbolSearchService::ClearCache() {
     std::lock_guard<std::mutex> lock(mutex_);
     cache_.clear();
+    cacheBytes_ = 0;
     providerCooldownUntil_ = {};
 }
 
@@ -324,34 +326,35 @@ void SymbolSearchService::StoreCache(std::string normalizedQuery,
 
     std::lock_guard<std::mutex> lock(mutex_);
     PruneExpired(now);
-    cache_.erase(normalizedQuery);
-
-    std::size_t cachedBytes = 0;
-    for (const auto& [key, cached] : cache_) {
-        (void)key;
-        cachedBytes += cached.heapBytes;
+    if (const auto existing = cache_.find(normalizedQuery); existing != cache_.end()) {
+        cacheBytes_ -= std::min(cacheBytes_, existing->second.heapBytes);
+        cache_.erase(existing);
     }
+
     while (!cache_.empty() &&
            (cache_.size() >= kMaxCacheEntries ||
-            cachedBytes > kMaxCacheHeapBytes - entry.heapBytes)) {
+            cacheBytes_ > kMaxCacheHeapBytes - entry.heapBytes)) {
         const auto oldest = std::min_element(
             cache_.begin(), cache_.end(), [](const auto& left, const auto& right) {
                 return left.second.savedAt < right.second.savedAt;
             });
         if (oldest == cache_.end())
             break;
-        cachedBytes -= std::min(cachedBytes, oldest->second.heapBytes);
+        cacheBytes_ -= std::min(cacheBytes_, oldest->second.heapBytes);
         cache_.erase(oldest);
     }
+    cacheBytes_ += entry.heapBytes;
     cache_.insert_or_assign(std::move(normalizedQuery), std::move(entry));
 }
 
 void SymbolSearchService::PruneExpired(std::chrono::steady_clock::time_point now) {
     for (auto it = cache_.begin(); it != cache_.end();) {
-        if (now - it->second.savedAt >= kCacheTtl)
+        if (now - it->second.savedAt >= kCacheTtl) {
+            cacheBytes_ -= std::min(cacheBytes_, it->second.heapBytes);
             it = cache_.erase(it);
-        else
+        } else {
             ++it;
+        }
     }
 }
 

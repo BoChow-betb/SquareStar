@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <cstdlib>
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -72,6 +74,9 @@ inline int BoundedEditDistance(std::string_view left,
                                int maximumDistance) {
     if (maximumDistance < 0)
         return maximumDistance + 1;
+    if (left == right)
+        return 0;
+
     const int lengthDifference =
         std::abs(static_cast<int>(left.size()) - static_cast<int>(right.size()));
     if (lengthDifference > maximumDistance)
@@ -85,6 +90,34 @@ inline int BoundedEditDistance(std::string_view left,
                    ? static_cast<int>(left.size())
                    : maximumDistance + 1;
 
+    // Search only asks for distance <= 1. That case can be decided with one
+    // linear scan and no heap allocation instead of building a DP table.
+    if (maximumDistance == 1) {
+        if (left.size() > right.size())
+            std::swap(left, right);
+        size_t leftIndex = 0;
+        size_t rightIndex = 0;
+        int edits = 0;
+        while (leftIndex < left.size() && rightIndex < right.size()) {
+            if (left[leftIndex] == right[rightIndex]) {
+                ++leftIndex;
+                ++rightIndex;
+                continue;
+            }
+            if (++edits > 1)
+                return 2;
+            if (left.size() == right.size())
+                ++leftIndex;
+            ++rightIndex;
+        }
+        if (leftIndex < left.size() || rightIndex < right.size())
+            ++edits;
+        return edits <= 1 ? edits : 2;
+    }
+
+    // Keep the shorter string on the DP columns to bound temporary storage.
+    if (right.size() > left.size())
+        std::swap(left, right);
     std::vector<int> previous(right.size() + 1);
     std::vector<int> current(right.size() + 1);
     for (size_t column = 0; column <= right.size(); ++column)
@@ -142,43 +175,53 @@ inline int NameWordMatchQuality(std::string_view queryWord, std::string_view nam
     return 0;
 }
 
-inline int ScoreSymbolSearchResult(std::string_view query,
-                                   std::string_view symbol,
-                                   std::string_view name,
-                                   std::string_view assetType) {
-    const std::string normalizedQuery = NormalizeSearchText(query);
-    const std::string queryKey = NormalizeSymbolSearchKey(query);
+struct QueryInfo {
+    std::string text;
+    std::string key;
+    std::vector<std::string> words;
+};
+
+inline QueryInfo ParseQuery(std::string_view query) {
+    QueryInfo info;
+    info.text = NormalizeSearchText(query);
+    info.key = NormalizeSymbolSearchKey(query);
+    const auto words = SearchWords(info.text);
+    info.words.reserve(words.size());
+    for (const std::string_view word : words) {
+        if (words.size() > 1 && IsCompanyNoiseWord(word))
+            continue;
+        info.words.emplace_back(word);
+    }
+    if (info.words.empty()) {
+        for (const std::string_view word : words)
+            info.words.emplace_back(word);
+    }
+    return info;
+}
+
+inline int ScoreMatch(const QueryInfo& query,
+                      std::string_view symbol,
+                      std::string_view name,
+                      std::string_view assetType) {
     const std::string symbolKey = NormalizeSymbolSearchKey(symbol);
-    if (normalizedQuery.empty() || queryKey.empty() || symbolKey.empty())
+    if (query.text.empty() || query.key.empty() || symbolKey.empty())
         return 0;
 
     const std::string normalizedName = NormalizeSearchText(name);
     const std::string normalizedType = NormalizeSearchText(assetType);
-    const std::vector<std::string_view> allQueryWords = SearchWords(normalizedQuery);
     const std::vector<std::string_view> nameWords = SearchWords(normalizedName);
 
-    std::vector<std::string_view> queryWords;
-    queryWords.reserve(allQueryWords.size());
-    for (const std::string_view word : allQueryWords) {
-        // Corporate suffixes add little search intent when other words are present.
-        if (allQueryWords.size() > 1 && IsCompanyNoiseWord(word))
-            continue;
-        queryWords.push_back(word);
-    }
-    if (queryWords.empty())
-        queryWords = allQueryWords;
-
     int symbolScore = 0;
-    if (symbolKey == queryKey) {
+    if (symbolKey == query.key) {
         symbolScore = 20'000;
-    } else if (symbolKey.starts_with(queryKey)) {
+    } else if (symbolKey.starts_with(query.key)) {
         symbolScore = 14'500 -
-                      std::min<int>(static_cast<int>(symbolKey.size() - queryKey.size()) * 90,
+                      std::min<int>(static_cast<int>(symbolKey.size() - query.key.size()) * 90,
                                     1'200);
-    } else if (queryKey.size() >= 2 && symbolKey.find(queryKey) != std::string::npos) {
+    } else if (query.key.size() >= 2 && symbolKey.find(query.key) != std::string::npos) {
         symbolScore = 5'200;
-    } else if (queryKey.size() >= 3 && queryKey.size() <= 8 && symbolKey.size() <= 8 &&
-               BoundedEditDistance(queryKey, symbolKey, 1) <= 1) {
+    } else if (query.key.size() >= 3 && query.key.size() <= 8 && symbolKey.size() <= 8 &&
+               BoundedEditDistance(query.key, symbolKey, 1) <= 1) {
         // One-character ticker typos such as APPL -> AAPL are useful, but they
         // must never outrank exact/prefix matches.
         symbolScore = 8'200;
@@ -187,19 +230,19 @@ inline int ScoreSymbolSearchResult(std::string_view query,
     int nameScore = 0;
     bool completeNameTokenMatch = false;
     if (!normalizedName.empty()) {
-        if (normalizedName == normalizedQuery) {
+        if (normalizedName == query.text) {
             nameScore = 17'000;
-        } else if (normalizedQuery.size() >= 2 && normalizedName.starts_with(normalizedQuery)) {
+        } else if (query.text.size() >= 2 && normalizedName.starts_with(query.text)) {
             nameScore = 13'500;
-        } else if (normalizedQuery.size() >= 2 &&
-                   PhraseOccursOnWordBoundary(normalizedName, normalizedQuery)) {
+        } else if (query.text.size() >= 2 &&
+                   PhraseOccursOnWordBoundary(normalizedName, query.text)) {
             nameScore = 11'500;
-        } else if (normalizedQuery.size() >= 3 &&
-                   normalizedName.find(normalizedQuery) != std::string::npos) {
+        } else if (query.text.size() >= 3 &&
+                   normalizedName.find(query.text) != std::string::npos) {
             nameScore = 7'500;
         }
 
-        if (!queryWords.empty() && !nameWords.empty()) {
+        if (!query.words.empty() && !nameWords.empty()) {
             std::vector<bool> usedNameWords(nameWords.size(), false);
             size_t previousMatch = 0;
             bool ordered = true;
@@ -208,7 +251,7 @@ inline int ScoreSymbolSearchResult(std::string_view query,
             size_t firstMatchedIndex = nameWords.size();
             size_t lastMatchedIndex = 0;
 
-            for (const std::string_view queryWord : queryWords) {
+            for (const std::string& queryWord : query.words) {
                 int bestQuality = 0;
                 size_t bestIndex = nameWords.size();
                 for (size_t index = 0; index < nameWords.size(); ++index) {
@@ -218,8 +261,8 @@ inline int ScoreSymbolSearchResult(std::string_view query,
                     if (quality > bestQuality) {
                         bestQuality = quality;
                         bestIndex = index;
-                    } else if (quality == bestQuality && quality > 0 && bestIndex != nameWords.size()) {
-                        // Prefer the earlier word so ordered matches win naturally.
+                    } else if (quality == bestQuality && quality > 0 &&
+                               bestIndex != nameWords.size()) {
                         bestIndex = std::min(bestIndex, index);
                     }
                 }
@@ -239,16 +282,17 @@ inline int ScoreSymbolSearchResult(std::string_view query,
                                                  : 420;
             }
 
-            if (matchedWords == static_cast<int>(queryWords.size())) {
+            if (matchedWords == static_cast<int>(query.words.size())) {
                 completeNameTokenMatch = true;
                 tokenScore += 4'400;
-                if (ordered && queryWords.size() > 1)
+                if (ordered && query.words.size() > 1)
                     tokenScore += 750;
                 if (firstMatchedIndex == 0)
                     tokenScore += 550;
-                if (queryWords.size() > 1 && lastMatchedIndex >= firstMatchedIndex) {
+                if (query.words.size() > 1 && lastMatchedIndex >= firstMatchedIndex) {
                     const size_t span = lastMatchedIndex - firstMatchedIndex + 1;
-                    const size_t extraWords = span > queryWords.size() ? span - queryWords.size() : 0;
+                    const size_t extraWords =
+                        span > query.words.size() ? span - query.words.size() : 0;
                     tokenScore -= static_cast<int>(std::min<size_t>(extraWords * 180, 720));
                 }
                 nameScore = std::max(nameScore, tokenScore);
@@ -256,15 +300,10 @@ inline int ScoreSymbolSearchResult(std::string_view query,
         }
     }
 
-    // Recommend only rows with local symbol/name evidence.
     if (symbolScore == 0 && nameScore == 0 && !completeNameTokenMatch)
         return 0;
 
     int score = std::max(symbolScore, nameScore);
-
-    // Type only breaks reasonably close matches. Common stocks and ETFs are
-    // usually what a user means; derivatives and OTC instruments should not
-    // crowd out an otherwise-equivalent primary listing.
     if (normalizedType.find("COMMON STOCK") != std::string::npos) {
         score += 420;
     } else if (normalizedType.find("ETF") != std::string::npos ||
@@ -287,8 +326,27 @@ inline int ScoreSymbolSearchResult(std::string_view query,
 
     if (symbolKey.size() > 5)
         score -= static_cast<int>(std::min<size_t>((symbolKey.size() - 5) * 35, 350));
-
     return std::max(score, 1);
+}
+
+inline int ScoreSymbolSearchResult(std::string_view query,
+                                   std::string_view symbol,
+                                   std::string_view name,
+                                   std::string_view assetType) {
+    return ScoreMatch(ParseQuery(query), symbol, name, assetType);
+}
+
+inline int RankMatch(const QueryInfo& query,
+                     std::string_view symbol,
+                     std::string_view name,
+                     std::string_view assetType,
+                     size_t providerIndex) {
+    const int relevance = ScoreMatch(query, symbol, name, assetType);
+    if (relevance <= 0)
+        return 0;
+    const int providerTieBreak =
+        40 - static_cast<int>(std::min<size_t>(providerIndex, 40));
+    return 100'000 + relevance + providerTieBreak;
 }
 
 inline int RankSymbolSearchResult(std::string_view query,
@@ -296,14 +354,7 @@ inline int RankSymbolSearchResult(std::string_view query,
                                   std::string_view name,
                                   std::string_view assetType,
                                   size_t providerIndex) {
-    const int relevance = ScoreSymbolSearchResult(query, symbol, name, assetType);
-    if (relevance <= 0)
-        return 0;
-
-    // Provider order is only a small tie-breaker after local relevance.
-    const int providerTieBreak =
-        40 - static_cast<int>(std::min<size_t>(providerIndex, 40));
-    return 100'000 + relevance + providerTieBreak;
+    return RankMatch(ParseQuery(query), symbol, name, assetType, providerIndex);
 }
 
 inline void RemoveAmbiguousPlaceholderMatches(
@@ -313,8 +364,11 @@ inline void RemoveAmbiguousPlaceholderMatches(
     if (queryKey.empty())
         return;
     std::erase_if(results, [&](const auto& item) {
-        return NormalizeSymbolSearchKey(item.first) == queryKey &&
-               IsPlaceholderSymbolDescription(item.first, item.second);
+        const std::string symbolKey = NormalizeSymbolSearchKey(item.first);
+        if (symbolKey != queryKey)
+            return false;
+        const std::string descriptionKey = NormalizeSymbolSearchKey(item.second);
+        return descriptionKey.empty() || descriptionKey == symbolKey;
     });
 }
 
@@ -324,47 +378,49 @@ inline void PersonalizeSymbolSearchResults(
     const std::vector<std::string>& recentSymbols,
     const std::map<std::string, std::string>& recentSymbolNames,
     const std::vector<std::string>& watchlistSymbols) {
-    // Precompute normalized keys used by the membership checks below.
-    std::vector<std::string> resultKeys;
+    const QueryInfo parsed = ParseQuery(query);
+
+    std::unordered_set<std::string> resultKeys;
     resultKeys.reserve(results.size() + recentSymbols.size() + watchlistSymbols.size());
     for (const auto& item : results)
-        resultKeys.push_back(NormalizeSymbolSearchKey(item.first));
+        resultKeys.insert(NormalizeSymbolSearchKey(item.first));
 
     std::vector<std::string> recentKeys;
     recentKeys.reserve(recentSymbols.size());
-    for (const std::string& symbol : recentSymbols)
-        recentKeys.push_back(NormalizeSymbolSearchKey(symbol));
+    std::unordered_map<std::string, size_t> recentRank;
+    recentRank.reserve(recentSymbols.size());
+    for (size_t index = 0; index < recentSymbols.size(); ++index) {
+        recentKeys.push_back(NormalizeSymbolSearchKey(recentSymbols[index]));
+        recentRank.try_emplace(recentKeys.back(), index);
+    }
 
-    std::vector<std::string> watchlistKeys;
+    std::vector<std::string> watchlistKeysInOrder;
+    watchlistKeysInOrder.reserve(watchlistSymbols.size());
+    std::unordered_set<std::string> watchlistKeys;
     watchlistKeys.reserve(watchlistSymbols.size());
-    for (const std::string& symbol : watchlistSymbols)
-        watchlistKeys.push_back(NormalizeSymbolSearchKey(symbol));
+    for (const std::string& symbol : watchlistSymbols) {
+        watchlistKeysInOrder.push_back(NormalizeSymbolSearchKey(symbol));
+        watchlistKeys.insert(watchlistKeysInOrder.back());
+    }
 
     const auto appendKnownSymbol = [&](const std::string& symbol,
                                        const std::string& symbolKey) {
-        if (std::find(resultKeys.begin(), resultKeys.end(), symbolKey) != resultKeys.end())
+        if (resultKeys.contains(symbolKey))
             return;
         const auto nameIt = recentSymbolNames.find(symbol);
         const std::string& name =
             nameIt != recentSymbolNames.end() ? nameIt->second : symbol;
-        if (ScoreSymbolSearchResult(query, symbol, name, {}) <= 0)
+        if (ScoreMatch(parsed, symbol, name, {}) <= 0)
             return;
         results.emplace_back(symbol, name.empty() ? symbol : name);
-        resultKeys.push_back(symbolKey);
+        resultKeys.insert(symbolKey);
     };
 
-    // Merge locally-known symbols when they genuinely match the query. This
-    // makes recent/watchlisted names discoverable even if the provider omits
-    // them from a particular response.
     for (size_t index = 0; index < recentSymbols.size(); ++index)
         appendKnownSymbol(recentSymbols[index], recentKeys[index]);
     for (size_t index = 0; index < watchlistSymbols.size(); ++index)
-        appendKnownSymbol(watchlistSymbols[index], watchlistKeys[index]);
+        appendKnownSymbol(watchlistSymbols[index], watchlistKeysInOrder[index]);
 
-    // Provider searches sometimes return a symbol-only placeholder whose ticker
-    // happens to equal a company-name query (for example APPLE - APPLE). When a
-    // real named company match is present, the placeholder is misleading rather
-    // than useful, so remove it before ranking.
     RemoveAmbiguousPlaceholderMatches(query, results);
 
     struct PersonalizedRank {
@@ -374,26 +430,18 @@ inline void PersonalizeSymbolSearchResults(
     std::vector<PersonalizedRank> order;
     order.reserve(results.size());
 
-    // Score each candidate once. Irrelevant rows are omitted from the rank list
-    // rather than erased and then scored a second time.
     for (size_t index = 0; index < results.size(); ++index) {
         const auto& [symbol, description] = results[index];
-        const int baseRelevance = ScoreSymbolSearchResult(query, symbol, description, {});
+        const int baseRelevance = ScoreMatch(parsed, symbol, description, {});
         if (baseRelevance <= 0)
             continue;
 
         int score = baseRelevance * 10;
         const std::string symbolKey = NormalizeSymbolSearchKey(symbol);
-        for (size_t recentIndex = 0; recentIndex < recentKeys.size(); ++recentIndex) {
-            if (recentKeys[recentIndex] == symbolKey) {
-                score += std::max(320, 920 - static_cast<int>(recentIndex) * 85);
-                break;
-            }
-        }
-        if (std::find(watchlistKeys.begin(), watchlistKeys.end(), symbolKey) !=
-            watchlistKeys.end()) {
+        if (const auto recent = recentRank.find(symbolKey); recent != recentRank.end())
+            score += std::max(320, 920 - static_cast<int>(recent->second) * 85);
+        if (watchlistKeys.contains(symbolKey))
             score += 360;
-        }
         order.push_back({index, score});
     }
 
@@ -403,14 +451,20 @@ inline void PersonalizeSymbolSearchResults(
             static_cast<int>(std::min<size_t>(order.size() - index, 20));
     }
 
-    std::stable_sort(order.begin(), order.end(), [](const PersonalizedRank& a,
-                                                     const PersonalizedRank& b) {
-        return a.score > b.score;
-    });
+    const size_t keep = std::min<size_t>(10, order.size());
+    const auto better = [](const PersonalizedRank& a, const PersonalizedRank& b) {
+        if (a.score != b.score)
+            return a.score > b.score;
+        return a.originalIndex < b.originalIndex;
+    };
+    std::partial_sort(order.begin(),
+                      order.begin() + static_cast<std::ptrdiff_t>(keep),
+                      order.end(),
+                      better);
 
     std::vector<std::pair<std::string, std::string>> reordered;
-    reordered.reserve(std::min<size_t>(10, order.size()));
-    for (size_t i = 0; i < order.size() && i < 10; ++i)
+    reordered.reserve(keep);
+    for (size_t i = 0; i < keep; ++i)
         reordered.push_back(std::move(results[order[i].originalIndex]));
     results = std::move(reordered);
 }

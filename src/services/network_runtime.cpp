@@ -9,6 +9,7 @@
 #include "services/secret_protection.hpp"
 #include "services/stock_data_service.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -339,15 +340,16 @@ StockFetchResult RunQuoteFlight(
             return {};
         const auto now = std::chrono::steady_clock::now();
         auto& waiters = flight->waiters;
-        for (auto it = waiters.begin(); it != waiters.end();) {
-            if (!*it || now >= (*it)->deadline) {
-                if (*it)
-                    expired.push_back(*it);
-                it = waiters.erase(it);
-            } else {
-                ++it;
-            }
-        }
+        waiters.erase(
+            std::remove_if(waiters.begin(), waiters.end(), [&](const auto& waiter) {
+                if (!waiter)
+                    return true;
+                if (now < waiter->deadline)
+                    return false;
+                expired.push_back(waiter);
+                return true;
+            }),
+            waiters.end());
         hasActiveWaiters = !waiters.empty();
         if (!hasActiveWaiters)
             g_QuoteFlights.erase(found);

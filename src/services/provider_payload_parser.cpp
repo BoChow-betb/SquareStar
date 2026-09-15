@@ -148,8 +148,20 @@ void NormalizeSplitBoundaries(const std::vector<SplitEvent>& splits,
                               bool hasPreviousClose) {
     if (timestamps.empty() || closes.empty())
         return;
+
+    struct Adjustment {
+        size_t index = 0;
+        double factor = 1.0;
+    };
+    std::vector<Adjustment> accepted;
+    accepted.reserve(splits.size());
+
+    // Decide which boundaries really need adjustment without rewriting the
+    // whole prefix after every split. Earlier split boundaries cannot change
+    // the sample immediately before a later boundary.
     for (const SplitEvent& split : splits) {
-        const auto boundary = std::lower_bound(timestamps.begin(), timestamps.end(), split.timestamp);
+        const auto boundary =
+            std::lower_bound(timestamps.begin(), timestamps.end(), split.timestamp);
         const size_t index = static_cast<size_t>(boundary - timestamps.begin());
         if (index == 0) {
             if (hasPreviousClose &&
@@ -158,17 +170,40 @@ void NormalizeSplitBoundaries(const std::vector<SplitEvent>& splits,
             }
             continue;
         }
-        if (index >= closes.size() ||
-            !SplitAdjustmentImprovesContinuity(closes[index - 1], closes[index], split.factor)) {
+        if (index >= closes.size())
             continue;
+
+        double before = closes[index - 1];
+        if (!accepted.empty() && accepted.back().index == index)
+            before /= accepted.back().factor;
+        if (!SplitAdjustmentImprovesContinuity(before, closes[index], split.factor))
+            continue;
+
+        if (!accepted.empty() && accepted.back().index == index)
+            accepted.back().factor *= split.factor;
+        else
+            accepted.push_back({index, split.factor});
+    }
+
+    if (accepted.empty())
+        return;
+
+    // Walk the samples once from newest to oldest. A sample is adjusted by
+    // every accepted split whose boundary lies to its right.
+    size_t adjustment = accepted.size();
+    long double factor = 1.0L;
+    for (size_t sample = closes.size(); sample-- > 0;) {
+        while (adjustment > 0 && accepted[adjustment - 1].index > sample) {
+            factor *= static_cast<long double>(accepted[adjustment - 1].factor);
+            --adjustment;
         }
-        for (size_t sample = 0; sample < index; ++sample) {
-            opens[sample] /= split.factor;
-            highs[sample] /= split.factor;
-            lows[sample] /= split.factor;
-            closes[sample] /= split.factor;
-            volumes[sample] *= split.factor;
-        }
+        if (factor == 1.0L)
+            continue;
+        opens[sample] = static_cast<double>(static_cast<long double>(opens[sample]) / factor);
+        highs[sample] = static_cast<double>(static_cast<long double>(highs[sample]) / factor);
+        lows[sample] = static_cast<double>(static_cast<long double>(lows[sample]) / factor);
+        closes[sample] = static_cast<double>(static_cast<long double>(closes[sample]) / factor);
+        volumes[sample] = static_cast<double>(static_cast<long double>(volumes[sample]) * factor);
     }
 }
 
@@ -290,15 +325,14 @@ bool ApplyYahooChartPayload(std::string payload,
     if (regularMarketVolume <= 0.0 && !parsedVolumes.empty()) {
         if (aggregateLatestTradingDayVolume) {
             regularMarketVolume = 0.0;
+            hasRegularMarketVolume = false;
             const int64_t latestDay = static_cast<int64_t>(parsedTimestamps.back()) / 86400;
             for (size_t index = 0; index < parsedVolumes.size(); ++index) {
+                const double volume = parsedVolumes[index];
+                hasRegularMarketVolume = hasRegularMarketVolume || volume > 0.0;
                 if (static_cast<int64_t>(parsedTimestamps[index]) / 86400 == latestDay)
-                    regularMarketVolume += parsedVolumes[index];
+                    regularMarketVolume += volume;
             }
-            hasRegularMarketVolume =
-                std::any_of(parsedVolumes.begin(), parsedVolumes.end(), [](double volume) {
-                    return volume > 0.0;
-                });
         } else {
             const auto lastVolume =
                 std::find_if(parsedVolumes.rbegin(), parsedVolumes.rend(), [](double volume) {

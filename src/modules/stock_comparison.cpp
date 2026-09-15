@@ -147,15 +147,40 @@ static float RenderComparisonStockPicker(AppState& state,
         pickerViewport,
         ImVec2(buttonMax.x - estimatedPickerSize.x, buttonMax.y + 6.0f),
         estimatedPickerSize);
+    const bool nativeLitePicker = state.navigation.liteGuiActive;
+    bool pickerOpen = false;
+    bool litePickerStylePushed = false;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f));
-    if (BeginAnimatedFloatingMenu(state,
-                                  "Comparison stock tabs",
-                                  togglePicker,
-                                  pickerPosition,
-                                  ImVec2(0.0f, 0.0f),
-                                  state.UiAnimationsEnabled(),
-                                  ImVec2(estimatedPickerSize.x, 0.0f),
-                                  estimatedPickerSize)) {
+    if (nativeLitePicker) {
+        constexpr const char* popupName = "##LiteComparisonStockPicker";
+        if (togglePicker) {
+            ImGui::OpenPopup(popupName);
+            RequestGuiRedraw();
+        }
+#ifdef IMGUI_HAS_VIEWPORT
+        if (pickerViewport)
+            ImGui::SetNextWindowViewport(pickerViewport->ID);
+#endif
+        ImGui::SetNextWindowPos(pickerPosition, ImGuiCond_Appearing);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(estimatedPickerSize.x, 0.0f),
+                                            estimatedPickerSize);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, UiRounding(state, 8.0f));
+        litePickerStylePushed = true;
+        pickerOpen = ImGui::BeginPopup(
+            popupName,
+            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
+                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+    } else {
+        pickerOpen = BeginAnimatedFloatingMenu(state,
+                                               "Comparison stock tabs",
+                                               togglePicker,
+                                               pickerPosition,
+                                               ImVec2(0.0f, 0.0f),
+                                               state.UiAnimationsEnabled(),
+                                               ImVec2(estimatedPickerSize.x, 0.0f),
+                                               estimatedPickerSize);
+    }
+    if (pickerOpen) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, UiRounding(state, 3.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 2.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 4.0f));
@@ -218,11 +243,19 @@ static float RenderComparisonStockPicker(AppState& state,
         ImGui::PopStyleColor(3);
         if (donePressed) {
             PlayUISound("click.wav", state);
-            CloseAnimatedFloatingMenu(true);
+            if (nativeLitePicker)
+                ImGui::CloseCurrentPopup();
+            else
+                CloseAnimatedFloatingMenu(true);
         }
         DrawCurrentWindowFocusOutline(state, 4);
-        EndAnimatedFloatingMenu();
+        if (nativeLitePicker)
+            ImGui::EndPopup();
+        else
+            EndAnimatedFloatingMenu();
     }
+    if (litePickerStylePushed)
+        ImGui::PopStyleVar();
     ImGui::PopStyleVar();
     DrawObjectFocusOutline(state, buttonMin, buttonMax, buttonHovered, 3);
     return comparisonButtonWidth;

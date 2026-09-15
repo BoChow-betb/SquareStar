@@ -77,7 +77,7 @@ inline constexpr std::array<YahooFuturesInstrument, 48> kCommonYahooFutures{{
 }};
 
 inline std::vector<std::pair<std::string, std::string>> SearchCommonYahooFutures(
-    std::string_view query,
+    const squarestar::search::QueryInfo& query,
     std::size_t maxResults = 10) {
     struct RankedMatch {
         std::string_view symbol;
@@ -88,21 +88,25 @@ inline std::vector<std::pair<std::string, std::string>> SearchCommonYahooFutures
     std::vector<RankedMatch> ranked;
     ranked.reserve(kCommonYahooFutures.size());
     for (const auto& instrument : kCommonYahooFutures) {
-        const int score = squarestar::search::RankSymbolSearchResult(
+        const int score = squarestar::search::RankMatch(
             query, instrument.symbol, instrument.description, "Futures", 0);
         if (score > 0)
             ranked.push_back({instrument.symbol, instrument.description, score});
     }
 
-    std::sort(ranked.begin(), ranked.end(), [](const RankedMatch& left, const RankedMatch& right) {
+    const std::size_t count = std::min(maxResults, ranked.size());
+    const auto better = [](const RankedMatch& left, const RankedMatch& right) {
         if (left.score != right.score)
             return left.score > right.score;
         if (left.symbol.size() != right.symbol.size())
             return left.symbol.size() < right.symbol.size();
         return left.symbol < right.symbol;
-    });
+    };
+    std::partial_sort(ranked.begin(),
+                      ranked.begin() + static_cast<std::ptrdiff_t>(count),
+                      ranked.end(),
+                      better);
 
-    const std::size_t count = std::min(maxResults, ranked.size());
     std::vector<std::pair<std::string, std::string>> matches;
     matches.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
@@ -110,6 +114,12 @@ inline std::vector<std::pair<std::string, std::string>> SearchCommonYahooFutures
                              std::string(ranked[index].description));
     }
     return matches;
+}
+
+inline std::vector<std::pair<std::string, std::string>> SearchCommonYahooFutures(
+    std::string_view query,
+    std::size_t maxResults = 10) {
+    return SearchCommonYahooFutures(squarestar::search::ParseQuery(query), maxResults);
 }
 
 } // namespace squarestar::market
