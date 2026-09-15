@@ -30,11 +30,7 @@ void ClearApplicationFontPointers(squarestar::application::AppRenderCache& state
 }
 
 void ReleaseContextRenderMemory(squarestar::application::StockContext& context) {
-    ReleaseVectorStorage(context.marketData.plot_sX);
-    ReleaseVectorStorage(context.marketData.plot_sC);
-    ReleaseVectorStorage(context.marketData.plot_sO);
-    ReleaseVectorStorage(context.marketData.plot_sH);
-    ReleaseVectorStorage(context.marketData.plot_sL);
+    ReleaseVectorStorage(context.marketData.plotMarketTimeX);
     ReleaseVectorStorage(context.render.render_sX);
     ReleaseVectorStorage(context.render.render_sC);
     ReleaseVectorStorage(context.render.renderCandle_sX);

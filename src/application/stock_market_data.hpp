@@ -60,7 +60,15 @@ class StockMarketDataState {
         dataRevision = 0;
     }
 
-    std::vector<double> plot_sX, plot_sC, plot_sO, plot_sH, plot_sL;
+    // Price samples stay authoritative in StockData. The chart only owns an
+    // alternate X-axis cache when New York wall-clock time is requested.
+    // Local-time rendering aliases raw timestamps directly, so the common
+    // path carries no duplicate chart-series allocation at all.
+    [[nodiscard]] const std::vector<double>& PlotX() const noexcept {
+        return plotMarketTimeX.empty() ? rawMarketData_->timestamps : plotMarketTimeX;
+    }
+
+    std::vector<double> plotMarketTimeX;
     double plot_miY = 1e9, plot_maY = -1e9;
     int lastTimeZone = -1;
     bool needsPlotDataUpdate = false;

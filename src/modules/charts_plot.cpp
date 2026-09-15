@@ -17,17 +17,24 @@
 #include "application/navigation_state.hpp"
 #include "application/main_loop_signal.hpp"
 #include "domain/chart_ranges.hpp"
+#include "domain/market_calendar.hpp"
 #include "domain/market_runtime.hpp"
 #include "domain/world_clock_zones.hpp"
 #include "platform/world_clock_runtime.hpp"
 #include "presentation/chart_axis.hpp"
-#include "presentation/chart_export.hpp"
 #include "presentation/chart_lod.hpp"
 #include "presentation/chart_price_axis.hpp"
 #include "presentation/chart_series.hpp"
 #include "presentation/chart_style.hpp"
 #include "presentation/chart_types.hpp"
 #include "presentation/stock_display_text.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <ctime>
+#include <limits>
+#include <vector>
 namespace squarestar::shell {
 
 
@@ -54,8 +61,6 @@ using squarestar::application::StockFetchNews;
 using squarestar::presentation::NotificationCardWidth;
 using squarestar::presentation::DrawStablePrevCloseLine;
 using squarestar::presentation::EllipsizeTextBinary;
-using squarestar::presentation::ChartVisualType;
-using squarestar::presentation::ChartExportMethod;
 using squarestar::presentation::EnsureConfiguredTimeAxisTicks;
 using squarestar::presentation::UpdateStableChartAxisLock;
 using squarestar::presentation::ResetChartRenderLod;
@@ -70,27 +75,63 @@ using squarestar::presentation::CrosshairDotColor;
 static void RefreshStockChartData(AppState& state,
                                   StockContext& ctx,
                                   int& count) {
-    if (ctx.marketData.needsPlotDataUpdate ||
-        ctx.marketData.plot_sX.size() != static_cast<size_t>(count) ||
+    const auto& raw = ctx.RawData();
+    count = static_cast<int>(std::min(raw.timestamps.size(), raw.closes.size()));
+    const bool marketTime = state.config.graphTimeZone == 1;
+    const bool xCacheOutOfSync =
+        marketTime ? ctx.marketData.plotMarketTimeX.size() != static_cast<size_t>(count)
+                   : !ctx.marketData.plotMarketTimeX.empty();
+    if (ctx.marketData.needsPlotDataUpdate || xCacheOutOfSync ||
         ctx.marketData.lastTimeZone != state.config.graphTimeZone ||
         ctx.render.lastPlotLineType != state.config.plotLineType) {
-        const ChartVisualType canvasType = state.config.plotLineType == 0
-                                               ? ChartVisualType::Candlestick
-                                               : ChartVisualType::LineShaded;
-        squarestar::presentation::ChartCanvasModel canvas =
-            squarestar::presentation::BuildChartCanvasModel(ctx.RawData(),
-                            canvasType,
-                            state.config.graphTimeZone == 1,
-                            false);
-        ctx.marketData.plot_sX = std::move(canvas.x);
-        ctx.marketData.plot_sC = std::move(canvas.close);
-        ctx.marketData.plot_sO = std::move(canvas.open);
-        ctx.marketData.plot_sH = std::move(canvas.high);
-        ctx.marketData.plot_sL = std::move(canvas.low);
+        if (marketTime) {
+            auto& projectedX = ctx.marketData.plotMarketTimeX;
+            if (count == 0) {
+                std::vector<double>().swap(projectedX);
+            } else if (projectedX.size() != static_cast<size_t>(count)) {
+                // Rebuild into a right-sized vector so moving from a long
+                // range to a short one does not retain the old peak capacity.
+                std::vector<double> rightSized(static_cast<size_t>(count));
+                projectedX.swap(rightSized);
+            }
+            for (int i = 0; i < count; ++i) {
+                const double timestamp = raw.timestamps[static_cast<size_t>(i)];
+                const auto pointTime = static_cast<std::time_t>(timestamp);
+                projectedX[static_cast<size_t>(i)] =
+                    timestamp + squarestar::market::NewYorkUtcOffsetSeconds(pointTime);
+            }
+        } else if (!ctx.marketData.plotMarketTimeX.empty()) {
+            // clear() would retain the previous full-series allocation. Local
+            // time can alias RawData timestamps, so return that memory now.
+            std::vector<double>().swap(ctx.marketData.plotMarketTimeX);
+        }
+
+        const bool candlestick = state.config.plotLineType == 0;
+        double lo = std::numeric_limits<double>::infinity();
+        double hi = -std::numeric_limits<double>::infinity();
+        for (int i = 0; i < count; ++i) {
+            const size_t index = static_cast<size_t>(i);
+            const double close = raw.closes[index];
+            const double low =
+                candlestick && index < raw.lows.size() ? raw.lows[index] : close;
+            const double high =
+                candlestick && index < raw.highs.size() ? raw.highs[index] : close;
+            if (std::isfinite(low) && low > 0.0)
+                lo = std::min(lo, low);
+            if (std::isfinite(high) && high > 0.0)
+                hi = std::max(hi, high);
+        }
+        if (!std::isfinite(lo) || !std::isfinite(hi)) {
+            lo = 0.0;
+            hi = 1.0;
+        } else if (std::abs(hi - lo) < 1e-9) {
+            lo -= 1.0;
+            hi += 1.0;
+        }
+
         ResetChartRenderLod(ctx);
-        count = (int)ctx.marketData.plot_sC.size();
-        ctx.marketData.plot_miY = canvas.lo;
-        ctx.marketData.plot_maY = canvas.hi;
+        ctx.marketData.plot_miY = lo;
+        ctx.marketData.plot_maY = hi;
         ctx.marketData.lastTimeZone = state.config.graphTimeZone;
         ctx.render.lastPlotLineType = state.config.plotLineType;
         ctx.marketData.needsPlotDataUpdate = false;
@@ -114,8 +155,8 @@ static StockPlotGeometry ConfigureStockPlot(AppState& state,
     auto& yAxisCache = ctx.render.priceAxisCache;
 
     ImPlot::SetupAxisScale(ImAxis_X1, ImPlotScale_Linear);
-    const double firstTs = ctx.marketData.plot_sX.front();
-    const double lastTs = ctx.marketData.plot_sX.back();
+    const double firstTs = ctx.marketData.PlotX().front();
+    const double lastTs = ctx.marketData.PlotX().back();
     const bool marketAxis = state.config.graphTimeZone == 1;
     std::time_t rawAxisAnchor = !ctx.RawData().timestamps.empty()
                                     ? (std::time_t)ctx.RawData().timestamps.back()
@@ -171,7 +212,7 @@ static StockPlotGeometry ConfigureStockPlot(AppState& state,
     const int effectiveXAxisMode = cleanGuiCapture ? 2 : state.config.chartXAxisMode;
     EnsureConfiguredTimeAxisTicks(xAxisCache,
                                   ctx.marketData.dataRevision,
-                                  ctx.marketData.plot_sX,
+                                  ctx.marketData.PlotX(),
                                   geometry.panMinX,
                                   geometry.panMaxX,
                                   ctx.navigation.displayedTimeRangeIndex,
@@ -243,18 +284,18 @@ static void RenderStockPriceSeries(AppState& state,
     const bool useLineRenderLod =
         !ctx.render.render_sX.empty() && !ctx.render.render_sC.empty();
     const std::vector<double>& lineX =
-        useLineRenderLod ? ctx.render.render_sX : ctx.marketData.plot_sX;
+        useLineRenderLod ? ctx.render.render_sX : ctx.marketData.PlotX();
     const std::vector<double>& lineC =
-        useLineRenderLod ? ctx.render.render_sC : ctx.marketData.plot_sC;
+        useLineRenderLod ? ctx.render.render_sC : ctx.RawData().closes;
     const int lineCount = (int)std::min(lineX.size(), lineC.size());
     const bool useCandleRenderLod =
         !ctx.render.renderCandle_sX.empty() && !ctx.render.renderCandle_sC.empty();
     const bool useShadeLod =
         !ctx.render.renderShade_sX.empty() && !ctx.render.renderShade_sC.empty();
     const std::vector<double>& shadeX =
-        useShadeLod ? ctx.render.renderShade_sX : ctx.marketData.plot_sX;
+        useShadeLod ? ctx.render.renderShade_sX : ctx.marketData.PlotX();
     const std::vector<double>& shadeC =
-        useShadeLod ? ctx.render.renderShade_sC : ctx.marketData.plot_sC;
+        useShadeLod ? ctx.render.renderShade_sC : ctx.RawData().closes;
     const int shadeCount = (int)std::min(shadeX.size(), shadeC.size());
 
     ImDrawList* seriesDrawList = ImPlot::GetPlotDrawList();
@@ -293,11 +334,11 @@ static void RenderStockPriceSeries(AppState& state,
                                   bullColor,
                                   bearColor);
         } else {
-            DrawCandlestickSeries(ctx.marketData.plot_sX,
-                                  ctx.marketData.plot_sO,
-                                  ctx.marketData.plot_sH,
-                                  ctx.marketData.plot_sL,
-                                  ctx.marketData.plot_sC,
+            DrawCandlestickSeries(ctx.marketData.PlotX(),
+                                  ctx.RawData().opens,
+                                  ctx.RawData().highs,
+                                  ctx.RawData().lows,
+                                  ctx.RawData().closes,
                                   bullColor,
                                   bearColor);
         }
@@ -383,9 +424,9 @@ static void RenderPreviousCloseReference(AppState& state,
                                mouse.y <= rectMax.y + hoverMargin;
         const ImPlotPoint hoverPlot = ImPlot::GetPlotMousePos();
         const size_t nearestIndex =
-            NearestSortedIndex(ctx.marketData.plot_sX, hoverPlot.x, (size_t)count);
+            NearestSortedIndex(ctx.marketData.PlotX(), hoverPlot.x, (size_t)count);
         const ImVec2 crosshairPoint = ImPlot::PlotToPixels(
-            ctx.marketData.plot_sX[nearestIndex], ctx.marketData.plot_sC[nearestIndex]);
+            ctx.marketData.PlotX()[nearestIndex], ctx.RawData().closes[nearestIndex]);
         labelObscuresPointer =
             labelObscuresPointer ||
             (crosshairPoint.x >= rectMin.x - hoverMargin &&
@@ -434,8 +475,8 @@ static bool RenderStockCrosshair(AppState& state,
     const bool crosshairActive = plotHovered || tooltipBoxHovered;
     if (hoverInteractive && plotHovered && !tooltipBoxHovered) {
         const size_t nearestIndex = NearestSortedIndex(
-            ctx.marketData.plot_sX, ImPlot::GetPlotMousePos().x, (size_t)count);
-        ctx.render.hoverCrosshairX = ctx.marketData.plot_sX[nearestIndex];
+            ctx.marketData.PlotX(), ImPlot::GetPlotMousePos().x, (size_t)count);
+        ctx.render.hoverCrosshairX = ctx.marketData.PlotX()[nearestIndex];
         ctx.render.hoverCrosshairValid = true;
     }
     if (!crosshairActive)
@@ -461,9 +502,9 @@ static bool RenderStockCrosshair(AppState& state,
         return crosshairActive;
 
     const size_t nearestIndex = NearestSortedIndex(
-        ctx.marketData.plot_sX, ctx.render.hoverCrosshairX, (size_t)count);
-    const double dataX = ctx.marketData.plot_sX[nearestIndex];
-    const double dataY = ctx.marketData.plot_sC[nearestIndex];
+        ctx.marketData.PlotX(), ctx.render.hoverCrosshairX, (size_t)count);
+    const double dataX = ctx.marketData.PlotX()[nearestIndex];
+    const double dataY = ctx.RawData().closes[nearestIndex];
     const float crosshairLineX = ImPlot::PlotToPixels(dataX, 1.0).x;
     const ImU32 lineColor = ImGui::ColorConvertFloat4ToU32(
         ImVec4(themeCol.x, themeCol.y, themeCol.z, 0.6f * ctx.render.hoverAlpha));
@@ -601,11 +642,11 @@ static void RenderStockPlot(AppState& state,
                                     chartCaptureMax);
         RefreshStockChartData(state, ctx, count);
         const bool plotDataValid =
-            count > 0 && ctx.marketData.plot_sX.size() >= (size_t)count &&
-            ctx.marketData.plot_sC.size() >= (size_t)count &&
+            count > 0 && ctx.marketData.PlotX().size() >= (size_t)count &&
+            ctx.RawData().closes.size() >= (size_t)count &&
             (state.config.plotLineType != 0 ||
-             (ctx.marketData.plot_sO.size() >= (size_t)count && ctx.marketData.plot_sH.size() >= (size_t)count &&
-              ctx.marketData.plot_sL.size() >= (size_t)count));
+             (ctx.RawData().opens.size() >= (size_t)count && ctx.RawData().highs.size() >= (size_t)count &&
+              ctx.RawData().lows.size() >= (size_t)count));
         const bool prevLocalTime = ImPlot::GetStyle().UseLocalTime;
         if (plotDataValid) {
             const StockPlotGeometry geometry = ConfigureStockPlot(

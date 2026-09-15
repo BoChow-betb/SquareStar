@@ -3,6 +3,7 @@
 #include "application/app_state.hpp"
 #include "application/main_loop_signal.hpp"
 #include "application/runtime_state.hpp"
+#include "domain/stock_data.hpp"
 #include "presentation/chart_lod.hpp"
 #include "presentation/gui_renderer_context.hpp"
 
@@ -699,8 +700,10 @@ BenchmarkRow BenchmarkChartLineLod(const SyntheticSeries& source,
                                    int warmups,
                                    int runs) {
     squarestar::application::StockContext context("BENCH");
-    context.marketData.plot_sX = source.x;
-    context.marketData.plot_sC = source.close;
+    squarestar::market::StockData raw;
+    raw.timestamps = source.x;
+    raw.closes = source.close;
+    context.PublishRawData(std::move(raw));
     auto run = [&] {
         context.render.renderLodLineType = -1;
         squarestar::presentation::BuildChartRenderLod(
@@ -738,11 +741,13 @@ BenchmarkRow BenchmarkChartCandleLod(const SyntheticSeries& source,
                                      int warmups,
                                      int runs) {
     squarestar::application::StockContext context("BENCH");
-    context.marketData.plot_sX = source.x;
-    context.marketData.plot_sC = source.close;
-    context.marketData.plot_sO = source.open;
-    context.marketData.plot_sH = source.high;
-    context.marketData.plot_sL = source.low;
+    squarestar::market::StockData raw;
+    raw.timestamps = source.x;
+    raw.closes = source.close;
+    raw.opens = source.open;
+    raw.highs = source.high;
+    raw.lows = source.low;
+    context.PublishRawData(std::move(raw));
     auto run = [&] {
         context.render.renderLodLineType = -1;
         squarestar::presentation::BuildChartRenderLod(
