@@ -266,6 +266,8 @@ bool ApplyYahooChartPayload(std::string payload,
         ReadString(meta, "shortName", companyName, 512);
     std::string exchange;
     ReadString(meta, "exchangeName", exchange, 64);
+    std::string currency;
+    ReadString(meta, "currency", currency, 16);
     double chartPreviousClose = 0.0;
     const bool hasChartPreviousClose =
         ReadNumber(meta, "chartPreviousClose", chartPreviousClose) &&
@@ -321,7 +323,8 @@ bool ApplyYahooChartPayload(std::string payload,
 
     if (!HasResolvedCompanyName(destination.companyName) && !companyName.empty())
         destination.companyName = std::move(companyName);
-    destination.currency = "USD";
+    if (!currency.empty())
+        destination.currency = std::move(currency);
     if (!exchange.empty())
         destination.exchange = std::move(exchange);
     // If the quote endpoint is unavailable, chart metadata can still provide a
@@ -351,6 +354,58 @@ bool ApplyYahooChartPayload(std::string payload,
 bool YahooChartPayloadHasUsableSeries(std::string payload) {
     squarestar::market::StockData parsed;
     return ApplyYahooChartPayload(std::move(payload), false, parsed);
+}
+
+std::optional<YahooFxRateSnapshot> ParseYahooFxRatePayload(std::string payload) {
+    if (payload.empty() || payload.size() > kMaxProviderPayloadBytes)
+        return std::nullopt;
+
+    JsonDocument document = ParseJsonInSitu(payload);
+    yyjson_val* root = document ? yyjson_doc_get_root(document.get()) : nullptr;
+    yyjson_val* chart = ObjectMember(root, "chart");
+    yyjson_val* results = ObjectMember(chart, "result");
+    yyjson_val* response =
+        results && yyjson_is_arr(results) ? yyjson_arr_get_first(results) : nullptr;
+    if (!response || !yyjson_is_obj(response))
+        return std::nullopt;
+
+    YahooFxRateSnapshot snapshot;
+    yyjson_val* meta = ObjectMember(response, "meta");
+    if (ReadNumber(meta, "regularMarketPrice", snapshot.rate) &&
+        std::isfinite(snapshot.rate) && snapshot.rate > 0.0) {
+        double timestamp = 0.0;
+        if (ReadNumber(meta, "regularMarketTime", timestamp) && timestamp > 0.0 &&
+            timestamp < kEpochSecondsUpperBoundExclusive) {
+            snapshot.timestamp = static_cast<std::time_t>(timestamp);
+        }
+        return snapshot;
+    }
+
+    yyjson_val* timestamps = ObjectMember(response, "timestamp");
+    yyjson_val* indicators = ObjectMember(response, "indicators");
+    yyjson_val* quotes = ObjectMember(indicators, "quote");
+    yyjson_val* quote =
+        quotes && yyjson_is_arr(quotes) ? yyjson_arr_get_first(quotes) : nullptr;
+    yyjson_val* closes = ObjectMember(quote, "close");
+    if (!closes || !yyjson_is_arr(closes))
+        return std::nullopt;
+
+    const size_t closeCount = yyjson_arr_size(closes);
+    for (size_t reverse = 0; reverse < closeCount; ++reverse) {
+        const size_t index = closeCount - reverse - 1;
+        double close = 0.0;
+        if (!ReadNumberAt(closes, index, close) || !std::isfinite(close) || close <= 0.0)
+            continue;
+        snapshot.rate = close;
+        double timestamp = 0.0;
+        if (timestamps && yyjson_is_arr(timestamps) &&
+            ReadNumberAt(timestamps, index, timestamp) && timestamp > 0.0 &&
+            timestamp < kEpochSecondsUpperBoundExclusive) {
+            snapshot.timestamp = static_cast<std::time_t>(timestamp);
+        }
+        return snapshot;
+    }
+    return std::nullopt;
 }
 
 std::vector<YahooQuoteSnapshot> ParseYahooQuoteBatchPayload(std::string payload) {

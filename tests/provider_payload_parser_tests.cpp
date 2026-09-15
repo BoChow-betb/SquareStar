@@ -165,6 +165,31 @@ int main() {
     Check(!YahooChartPayloadHasUsableSeries("not json"),
           "malformed Yahoo JSON is rejected");
 
+    StockData yahooCurrencyMetadata;
+    Check(ApplyYahooChartPayload(
+              R"json({"chart":{"result":[{"meta":{"currency":"HKD"},"timestamp":[1700000100,1700000200],"indicators":{"quote":[{"close":[10,11]}]}}]}})json",
+              false,
+              yahooCurrencyMetadata) &&
+              yahooCurrencyMetadata.currency == "HKD",
+          "Yahoo chart metadata preserves the provider currency instead of forcing USD");
+
+    const auto fxMetaRate = ParseYahooFxRatePayload(
+        R"json({"chart":{"result":[{"meta":{"regularMarketPrice":7.8342,"regularMarketTime":1700000200},"timestamp":[1700000100],"indicators":{"quote":[{"close":[7.8]}]}}]}})json");
+    Check(fxMetaRate && Near(fxMetaRate->rate, 7.8342) &&
+              fxMetaRate->timestamp == 1700000200,
+          "Yahoo FX parser prefers the regular-market quote snapshot");
+
+    const auto fxCloseFallback = ParseYahooFxRatePayload(
+        R"json({"chart":{"result":[{"timestamp":[1700000100,1700000200,1700000300],"indicators":{"quote":[{"close":[6.70,null,6.72]}]}}]}})json");
+    Check(fxCloseFallback && Near(fxCloseFallback->rate, 6.72) &&
+              fxCloseFallback->timestamp == 1700000300,
+          "Yahoo FX parser falls back to the newest positive close");
+    Check(!ParseYahooFxRatePayload("not json").has_value() &&
+              !ParseYahooFxRatePayload(
+                  R"json({"chart":{"result":[{"meta":{"regularMarketPrice":0},"indicators":{"quote":[{"close":[null,0]}]}}]}})json")
+                   .has_value(),
+          "malformed and non-positive Yahoo FX payloads are rejected");
+
     const auto batchQuotes = ParseYahooQuoteBatchPayload(
         R"json({"quoteResponse":{"result":[
           {"symbol":"AAPL","regularMarketPrice":201.5,"regularMarketPreviousClose":199,"regularMarketOpen":200,"regularMarketDayHigh":203,"regularMarketDayLow":198,"regularMarketTime":1700000100},

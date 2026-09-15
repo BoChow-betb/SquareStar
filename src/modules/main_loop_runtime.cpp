@@ -13,6 +13,7 @@
 #include "domain/stock_data.hpp"
 #include "modules/app_services.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/lite_gui.hpp"
 #include "modules/main_loop_render.hpp"
 #include "modules/main_loop_schedule.hpp"
@@ -126,6 +127,7 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
             if (ExpirePriceAlertSettlementMutes(
                     state, loop.lastPriceAlertMuteCheckSecond))
                 squarestar::config::RequestConfigSave();
+            PumpDisplayCurrency(state);
             ReconcilePriceAlertContexts(state);
             PumpMarketOpenSound(state);
             PumpPriceAlertMonitorRequests(state);

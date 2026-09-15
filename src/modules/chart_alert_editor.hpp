@@ -14,7 +14,6 @@ void RenderPriceAlertEditor(squarestar::application::AppState& state,
                             bool openEditor,
                             ImVec2 anchorMin,
                             ImVec2 anchorMax,
-                            double currentPrice,
-                            const char* currencyLabel);
+                            double currentPrice);
 
 } // namespace squarestar::shell

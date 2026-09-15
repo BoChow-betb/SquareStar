@@ -1,6 +1,7 @@
 #include "modules/charts.hpp"
 #include "modules/charts_internal.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/lite_gui.hpp"
 #include "modules/market_data.hpp"
 #include "modules/ui_focus.hpp"
@@ -27,6 +28,7 @@
 #include "presentation/chart_series.hpp"
 #include "presentation/chart_style.hpp"
 #include "presentation/chart_types.hpp"
+#include "presentation/chart_y_axis.hpp"
 #include "presentation/stock_display_text.hpp"
 namespace squarestar::shell {
 
@@ -66,6 +68,23 @@ using squarestar::presentation::ResolveVisibleReferenceLineY;
 using squarestar::presentation::CleanExchangeLabel;
 using squarestar::presentation::CleanCompanyDisplayName;
 using squarestar::presentation::CrosshairDotColor;
+using squarestar::presentation::FormatAxisTickValue;
+
+static void RefreshDisplayPriceAxisLabels(AppState& state,
+                                          squarestar::application::PriceAxisTickCache& cache) {
+    cache.labels.clear();
+    cache.labels.reserve(cache.ticks.size());
+    for (double tick : cache.ticks) {
+        double displayTick = 0.0;
+        cache.labels.push_back(TryConvertUsdForDisplay(state, tick, displayTick)
+                                   ? FormatAxisTickValue(displayTick)
+                                   : std::string("..."));
+    }
+    cache.labelPtrs.clear();
+    cache.labelPtrs.reserve(cache.labels.size());
+    for (const std::string& label : cache.labels)
+        cache.labelPtrs.push_back(label.c_str());
+}
 
 static void RefreshStockChartData(AppState& state,
                                   StockContext& ctx,
@@ -157,6 +176,7 @@ static StockPlotGeometry ConfigureStockPlot(AppState& state,
                             geometry.panMaxX,
                             previousClose,
                             yAxisPaddingFraction);
+    RefreshDisplayPriceAxisLabels(state, yAxisCache);
     geometry.lowerLimitY = yAxisCache.axisMin;
     ImPlot::SetupAxisLimits(
         ImAxis_Y1, yAxisCache.axisMin, yAxisCache.axisMax, ImGuiCond_Always);
@@ -333,12 +353,23 @@ static void RenderPreviousCloseReference(AppState& state,
     if (previousClose <= 0.0)
         return;
 
+    double displayPreviousClose = 0.0;
+    const bool displayPreviousCloseReady =
+        TryConvertUsdForDisplay(state, previousClose, displayPreviousClose);
+    const std::string currencyText(DisplayCurrencyCode(state));
     char previousCloseText[64];
-    snprintf(previousCloseText,
-             sizeof(previousCloseText),
-             "Prev Close: %.2f %s",
-             previousClose,
-             "USD");
+    if (displayPreviousCloseReady) {
+        snprintf(previousCloseText,
+                 sizeof(previousCloseText),
+                 "Prev Close: %.2f %s",
+                 displayPreviousClose,
+                 currencyText.c_str());
+    } else {
+        snprintf(previousCloseText,
+                 sizeof(previousCloseText),
+                 "Prev Close: ... %s",
+                 currencyText.c_str());
+    }
     const ImVec2 textSize = ImGui::CalcTextSize(previousCloseText);
     const ImVec2 plotPos = ImPlot::GetPlotPos();
     const ImVec2 plotMax(plotPos.x + ImPlot::GetPlotSize().x,
@@ -512,7 +543,12 @@ static bool RenderStockCrosshair(AppState& state,
                        timeText.end());
     }
 
-    const std::string overlayText = FormatDouble(dataY) + " USD  |  " + timeText;
+    double displayDataY = 0.0;
+    const bool displayDataYReady =
+        TryConvertUsdForDisplay(state, dataY, displayDataY);
+    const std::string overlayText =
+        (displayDataYReady ? FormatDouble(displayDataY) : std::string("...")) +
+        " " + std::string(DisplayCurrencyCode(state)) + "  |  " + timeText;
     const ImVec2 plotPos = ImPlot::GetPlotPos();
     constexpr float boxPadX = 10.0f;
     constexpr float boxPadY = 10.0f;

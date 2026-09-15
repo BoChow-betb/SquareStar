@@ -6,6 +6,7 @@
 #include "domain/chart_ranges.hpp"
 #include "domain/world_clock_zones.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/chart_alert_editor.hpp"
 #include "modules/market_data.hpp"
 #include "modules/stock_surface_feedback.hpp"
@@ -332,31 +333,55 @@ static void RenderLiteQuoteSummary(AppState& state,
         quoteChange < -quoteEpsilon  ? ThemeVec(state.config.theme.negative)
         : quoteChange > quoteEpsilon ? ThemeVec(state.config.theme.positive)
                                       : ThemeVec(state.config.theme.textDisabled);
-    char quotePriceText[80]{};
+
+    double displayQuotePrice = 0.0;
+    double displayQuoteChange = 0.0;
+    const bool displayPriceReady =
+        TryConvertUsdForDisplay(state, quotePrice, displayQuotePrice);
+    const bool displayChangeReady =
+        TryConvertUsdForDisplay(state, quoteChange, displayQuoteChange);
+    const std::string currencyText(DisplayCurrencyCode(state));
+
+    char quoteNumberText[64]{};
     char quoteMoveText[80]{};
-    snprintf(quotePriceText,
-             sizeof(quotePriceText),
-             "%.2f %s",
-             quotePrice,
-             "USD");
-    snprintf(quoteMoveText,
-             sizeof(quoteMoveText),
-             "%+.2f (%+.2f%%)",
-             quoteChange,
-             quotePercent);
+    if (displayPriceReady)
+        snprintf(quoteNumberText, sizeof(quoteNumberText), "%.2f", displayQuotePrice);
+    else
+        snprintf(quoteNumberText, sizeof(quoteNumberText), "...");
+    if (displayChangeReady) {
+        snprintf(quoteMoveText,
+                 sizeof(quoteMoveText),
+                 "%+.2f (%+.2f%%)",
+                 displayQuoteChange,
+                 quotePercent);
+    } else {
+        snprintf(quoteMoveText,
+                 sizeof(quoteMoveText),
+                 "... (%+.2f%%)",
+                 quotePercent);
+    }
+
     ImFont* summaryFont = state.render.fontData ? state.render.fontData : ImGui::GetFont();
     const float summarySize =
         state.render.fontData ? state.config.theme.fontData : ImGui::GetFontSize();
-    const ImVec2 priceTextSize = summaryFont->CalcTextSizeA(
+    const ImVec2 numberTextSize = summaryFont->CalcTextSizeA(
         summarySize,
         std::numeric_limits<float>::max(),
         0.0f,
-        quotePriceText);
+        quoteNumberText);
+    const ImVec2 currencyTextSize = summaryFont->CalcTextSizeA(
+        summarySize,
+        std::numeric_limits<float>::max(),
+        0.0f,
+        currencyText.c_str());
     const ImVec2 moveTextSize = summaryFont->CalcTextSizeA(
         summarySize,
         std::numeric_limits<float>::max(),
         0.0f,
         quoteMoveText);
+    constexpr float currencyGap = 4.0f;
+    const ImVec2 priceTextSize(numberTextSize.x + currencyGap + currencyTextSize.x,
+                               std::max(numberTextSize.y, currencyTextSize.y));
     const float summaryRight = chartCaptureMax.x - 18.0f;
     const float summaryTop =
         footerRowTop + std::max(0.0f, (32.0f - priceTextSize.y) * 0.5f);
@@ -365,6 +390,12 @@ static void RenderLiteQuoteSummary(AppState& state,
     const float summaryWidth = priceTextSize.x + summaryGap + moveTextSize.x;
     const float summaryLeft = std::max(safeLeft, summaryRight - summaryWidth);
     const ImVec2 pricePosition(summaryLeft, summaryTop);
+    const ImVec2 currencyPosition(summaryLeft + numberTextSize.x + currencyGap,
+                                  summaryTop +
+                                      std::max(0.0f,
+                                               (numberTextSize.y -
+                                                currencyTextSize.y) *
+                                                   0.5f));
     ImDrawList* footerDraw = ImGui::GetWindowDrawList();
     footerDraw->PushClipRect(ImVec2(chartCaptureMin.x, chartCaptureMax.y),
                              ImVec2(chartCaptureMax.x,
@@ -374,7 +405,12 @@ static void RenderLiteQuoteSummary(AppState& state,
                         summarySize,
                         pricePosition,
                         ImGui::GetColorU32(ImGuiCol_Text),
-                        quotePriceText);
+                        quoteNumberText);
+    footerDraw->AddText(summaryFont,
+                        summarySize,
+                        currencyPosition,
+                        ImGui::GetColorU32(ImGuiCol_TextDisabled),
+                        currencyText.c_str());
     footerDraw->AddText(summaryFont,
                         summarySize,
                         ImVec2(summaryLeft + priceTextSize.x + summaryGap,
@@ -385,27 +421,37 @@ static void RenderLiteQuoteSummary(AppState& state,
                         quoteMoveText);
     footerDraw->PopClipRect();
 
-    // The Lite quote is drawn directly into the footer, so hit-test its
-    // screen rectangle directly instead of moving ImGui's layout cursor.
-    // This avoids Dear ImGui 1.92's SetCursorPos parent-boundary assert
-    // and keeps every click independent of the previous activation.
+    // Keep the existing price-alert hit target on the numeric quote only. The
+    // currency suffix is a separate control that opens the display-unit list.
     const ImVec2 priceFocusMin = pricePosition;
-    const ImVec2 priceFocusMax(pricePosition.x + priceTextSize.x,
-                               pricePosition.y + priceTextSize.y);
-    // This text is draw-list content rather than a normal ImGui item.
-    // Accept the whole Lite surface hierarchy instead of requiring the
-    // exact child window to own hover, while still preventing clicks
-    // through unrelated popup/notification windows.
+    const ImVec2 priceFocusMax(pricePosition.x + numberTextSize.x,
+                               pricePosition.y + numberTextSize.y);
+    const ImVec2 currencyFocusMin = currencyPosition;
+    const ImVec2 currencyFocusMax(currencyPosition.x + currencyTextSize.x,
+                                  currencyPosition.y + currencyTextSize.y);
+    const bool surfaceHovered =
+        ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
     const bool priceHovered =
-        ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) &&
-        ImGui::IsMouseHoveringRect(priceFocusMin, priceFocusMax, false);
+        surfaceHovered && ImGui::IsMouseHoveringRect(priceFocusMin, priceFocusMax, false);
+    const bool currencyHovered =
+        surfaceHovered &&
+        ImGui::IsMouseHoveringRect(currencyFocusMin, currencyFocusMax, false);
     const bool priceClicked =
         priceHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left, false);
-    if (priceHovered) {
+    const bool currencyClicked =
+        currencyHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left, false);
+    if (priceHovered || currencyHovered)
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    if (priceHovered) {
         footerDraw->AddLine(ImVec2(priceFocusMin.x, priceFocusMax.y + 1.0f),
                             ImVec2(priceFocusMax.x, priceFocusMax.y + 1.0f),
                             ImGui::GetColorU32(ImGuiCol_Text),
+                            1.0f);
+    }
+    if (currencyHovered) {
+        footerDraw->AddLine(ImVec2(currencyFocusMin.x, currencyFocusMax.y + 1.0f),
+                            ImVec2(currencyFocusMax.x, currencyFocusMax.y + 1.0f),
+                            ImGui::GetColorU32(ImGuiCol_TextDisabled),
                             1.0f);
     }
     DrawObjectFocusOutline(state,
@@ -418,8 +464,13 @@ static void RenderLiteQuoteSummary(AppState& state,
                            priceClicked,
                            priceFocusMin,
                            priceFocusMax,
-                           quotePrice,
-                           "USD");
+                           quotePrice);
+    if (currencyClicked) {
+        OpenCurrencyPicker(state,
+                           currencyFocusMin,
+                           currencyFocusMax,
+                           ImGui::GetWindowViewport());
+    }
 }
 
 void RenderStockChartFooter(AppState& state,

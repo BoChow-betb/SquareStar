@@ -8,6 +8,7 @@
 #include "application/runtime_state.hpp"
 #include "application/user_feedback.hpp"
 #include "domain/market_runtime.hpp"
+#include "modules/currency_display.hpp"
 #include "platform/application_paths.hpp"
 #include "platform/glfw_runtime.hpp"
 #include "platform/win32_app_state.hpp"
@@ -603,13 +604,39 @@ void QueueTrayPriceMove(const AppState& state,
                                std::isfinite(alertThreshold) && alertThreshold > 0.0;
     if (!ticker || !*ticker || (!hasPriceMove && !hasAlertMatch))
         return;
+
+    double notificationBefore = before;
+    double notificationAfter = after;
+    double notificationThreshold = hasAlertMatch ? alertThreshold : 0.0;
+    std::string notificationCurrency(currency);
+    if (currency == "USD") {
+        double convertedAfter = 0.0;
+        double convertedBefore = 0.0;
+        double convertedThreshold = 0.0;
+        const bool afterReady =
+            TryConvertUsdForDisplay(state, after, convertedAfter);
+        const bool beforeReady =
+            !std::isfinite(before) || before <= 0.0 ||
+            TryConvertUsdForDisplay(state, before, convertedBefore);
+        const bool thresholdReady =
+            !hasAlertMatch ||
+            TryConvertUsdForDisplay(state, alertThreshold, convertedThreshold);
+        if (afterReady && beforeReady && thresholdReady) {
+            notificationAfter = convertedAfter;
+            if (std::isfinite(before) && before > 0.0)
+                notificationBefore = convertedBefore;
+            if (hasAlertMatch)
+                notificationThreshold = convertedThreshold;
+            notificationCurrency = std::string(DisplayCurrencyCode(state));
+        }
+    }
     NotificationChannel().QueuePriceMove(
         {ticker,
-         before,
-         after,
+         notificationBefore,
+         notificationAfter,
          priceAlert,
-         hasAlertMatch ? alertThreshold : 0.0,
-         std::string(currency)},
+         notificationThreshold,
+         std::move(notificationCurrency)},
         state.config.marketMoveBatching);
 }
 void FlushTrayPriceMoves() {

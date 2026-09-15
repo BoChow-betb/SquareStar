@@ -1,5 +1,6 @@
 #include "modules/stock_details.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/ui_focus.hpp"
 #include "modules/market_data.hpp"
 #include "application/stock_data_merge.hpp"
@@ -193,7 +194,13 @@ void RenderStockMetrics(AppState& state, StockContext& ctx, double pC) {
                                  ? (ctx.RawData().currentPrice - ctx.RawData().previousClose) /
                                        ctx.RawData().previousClose * 100.0
                                  : 0.0;
-    snprintf(changeBuf, sizeof(changeBuf), "%+.2f", metricChange);
+    double displayMetricChange = 0.0;
+    const bool displayMetricChangeReady =
+        TryConvertUsdForDisplay(state, metricChange, displayMetricChange);
+    if (displayMetricChangeReady)
+        snprintf(changeBuf, sizeof(changeBuf), "%+.2f", displayMetricChange);
+    else
+        snprintf(changeBuf, sizeof(changeBuf), "...");
     snprintf(changePctBuf, sizeof(changePctBuf), "%+.2f%%", metricPct);
     if (ctx.RawData().hasFiftyTwoWkChangePercent)
         snprintf(
@@ -238,15 +245,31 @@ void RenderStockMetrics(AppState& state, StockContext& ctx, double pC) {
             ++metricSection;
         };
         auto PriceOrNA = [&](double value) {
-            return value > 0.0 ? FormatDouble(value) : std::string("N/A");
+            if (value <= 0.0)
+                return std::string("N/A");
+            double displayValue = 0.0;
+            return TryConvertUsdForDisplay(state, value, displayValue)
+                       ? FormatDouble(displayValue)
+                       : std::string("...");
+        };
+        auto MarketValueOrNA = [&](double value) {
+            if (value <= 0.0)
+                return std::string("N/A");
+            double displayValue = 0.0;
+            return TryConvertUsdForDisplay(state, value, displayValue)
+                       ? FormatLargeNumber(displayValue)
+                       : std::string("...");
         };
         DrawMetricSection("SESSION", [&]() {
             DrawFinancialRow("Open", PriceOrNA(ctx.RawData().openPrice));
             DrawFinancialRow("High", PriceOrNA(ctx.RawData().dayHigh));
             DrawFinancialRow("Low", PriceOrNA(ctx.RawData().dayLow));
-            DrawFinancialRow("Prev Close", pC > 0.0 ? FormatDouble(pC) : std::string("N/A"));
+            DrawFinancialRow("Prev Close", PriceOrNA(pC));
             DrawFinancialRow("Change",
-                             pC > 0.0 ? std::string(changeBuf) : std::string("N/A"),
+                             pC > 0.0 && displayMetricChangeReady
+                                 ? std::string(changeBuf)
+                                 : (pC > 0.0 ? std::string("...")
+                                             : std::string("N/A")),
                              true,
                              pC > 0.0 ? &dayMoveColor : nullptr);
             DrawFinancialRow("Change %",
@@ -274,7 +297,7 @@ void RenderStockMetrics(AppState& state, StockContext& ctx, double pC) {
         DrawMetricSection("FUNDAMENTALS", [&]() {
             DrawFinancialRow("Market Cap",
                              ctx.RawData().marketCap > 0.0
-                                 ? FormatLargeNumber(ctx.RawData().marketCap)
+                                 ? MarketValueOrNA(ctx.RawData().marketCap)
                                  : std::string("N/A"));
             DrawFinancialRow("P/E Ratio",
                              ctx.RawData().peRatio > 0.0 ? FormatDouble(ctx.RawData().peRatio)

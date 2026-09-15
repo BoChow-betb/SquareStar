@@ -18,6 +18,7 @@ struct AppConfig {
     bool animEnabled = true;
     bool zeroGraphics = false;
     int graphTimeZone = 1;
+    std::string displayCurrency = "USD";
     std::vector<int> activeWorldClocks;
     char exportDirectory[260] = "default";
     bool objectFocus = false;

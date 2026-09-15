@@ -1,5 +1,6 @@
 #include "modules/views.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/ui_focus.hpp"
 #include "modules/market_data.hpp"
 #include "modules/integrated_search_bar.hpp"
@@ -26,6 +27,7 @@
 
 #include <algorithm>
 #include <ctime>
+#include <string>
 #include <vector>
 namespace squarestar::shell {
 
@@ -252,9 +254,25 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
         ImGui::PopFont();
 
         ImGui::SetCursorPosY(priceRowsY);
-        ImGui::Text("Current  %s USD", FormatDouble(toast.price).c_str());
-        ImGui::TextDisabled("Alert level  <= %s USD",
-                            FormatDouble(toast.threshold).c_str());
+        double displayToastPrice = 0.0;
+        double displayToastThreshold = 0.0;
+        const bool displayToastPriceReady =
+            TryConvertUsdForDisplay(state, toast.price, displayToastPrice);
+        const bool displayToastThresholdReady =
+            TryConvertUsdForDisplay(state, toast.threshold, displayToastThreshold);
+        const std::string alertCurrency(DisplayCurrencyCode(state));
+        if (displayToastPriceReady)
+            ImGui::Text("Current  %s %s",
+                        FormatDouble(displayToastPrice).c_str(),
+                        alertCurrency.c_str());
+        else
+            ImGui::Text("Current  ... %s", alertCurrency.c_str());
+        if (displayToastThresholdReady)
+            ImGui::TextDisabled("Alert level  <= %s %s",
+                                FormatDouble(displayToastThreshold).c_str(),
+                                alertCurrency.c_str());
+        else
+            ImGui::TextDisabled("Alert level  <= ... %s", alertCurrency.c_str());
 
         ImGui::SetCursorPosY(lookupY);
         const std::string lookupLabel = "Open " + toast.ticker + " in Terminal";
@@ -492,8 +510,10 @@ static void RenderOverviewTable(AppState& state,
                             compact ? ImGuiTableColumnFlags_WidthFixed
                                     : ImGuiTableColumnFlags_WidthStretch,
                             compact ? 116.0f : (wide ? 0.65f : 1.4f));
-    constexpr const char* priceHeader = "PRICE (USD)";
-    ImGui::TableSetupColumn(priceHeader,
+    const std::string priceHeaderLabel =
+        "PRICE (" + std::string(DisplayCurrencyCode(state)) + ")";
+    const char* priceHeader = priceHeaderLabel.c_str();
+    ImGui::TableSetupColumn("PRICE",
                             ImGuiTableColumnFlags_WidthFixed,
                             compact ? 108.0f : 124.0f);
     ImGui::TableSetupColumn("CHANGE", ImGuiTableColumnFlags_WidthFixed, compact ? 82.0f : 92.0f);
@@ -521,10 +541,31 @@ static void RenderOverviewTable(AppState& state,
                                  "52W CHANGE",
                                  "MARKET CAP"};
     const char** headers = compact ? compactHeaders : (wide ? wideHeaders : fullHeaders);
+    const int priceHeaderColumn = compact ? 2 : 3;
     ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
     for (int headerColumn = 0; headerColumn < columns; ++headerColumn) {
         ImGui::TableSetColumnIndex(headerColumn);
+        if (headerColumn != priceHeaderColumn) {
+            ImGui::TableHeader(headers[headerColumn]);
+            continue;
+        }
+        // Use the same TableHeader path as every other column so the clickable
+        // currency label cannot increase the header-row height. The whole PRICE
+        // header is the unit selector; its last-item rectangle is a stable anchor
+        // for the shared picker without introducing a framed/inline control.
         ImGui::TableHeader(headers[headerColumn]);
+        const bool priceHeaderHovered = ImGui::IsItemHovered();
+        const ImVec2 priceHeaderMin = ImGui::GetItemRectMin();
+        const ImVec2 priceHeaderMax = ImGui::GetItemRectMax();
+        if (priceHeaderHovered)
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        if (priceHeaderHovered &&
+            ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
+            OpenCurrencyPicker(state,
+                               priceHeaderMin,
+                               priceHeaderMax,
+                               ImGui::GetWindowViewport());
+        }
     }
     const std::size_t revealFirst =
         std::min(state.render.overviewRowsRevealFirstIndex, count);
@@ -617,10 +658,15 @@ static void RenderOverviewTable(AppState& state,
         }
         BeginColumn(column++);
         ImGui::AlignTextToFramePadding();
-        if (row.hasPrice)
-            ImGui::Text("%s", FormatDouble(row.price).c_str());
-        else
+        if (row.hasPrice) {
+            double displayPrice = 0.0;
+            if (TryConvertUsdForDisplay(state, row.price, displayPrice))
+                ImGui::Text("%s", FormatDouble(displayPrice).c_str());
+            else
+                ImGui::TextDisabled("...");
+        } else {
             ImGui::TextDisabled("N/A");
+        }
         BeginColumn(column++);
         ImGui::AlignTextToFramePadding();
         if (row.hasChangePercent) {
@@ -665,9 +711,13 @@ static void RenderOverviewTable(AppState& state,
             }
             BeginColumn(column++);
             ImGui::AlignTextToFramePadding();
-            if (row.hasMarketCap)
-                ImGui::Text("%s", FormatLargeNumber(row.marketCap).c_str());
-            else
+            if (row.hasMarketCap) {
+                double displayMarketCap = 0.0;
+                if (TryConvertUsdForDisplay(state, row.marketCap, displayMarketCap))
+                    ImGui::Text("%s", FormatLargeNumber(displayMarketCap).c_str());
+                else
+                    ImGui::TextDisabled("...");
+            } else
                 ImGui::TextDisabled("N/A");
         }
         ImGui::PopStyleVar();

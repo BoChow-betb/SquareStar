@@ -6,6 +6,7 @@
 #include "application/ui_animation.hpp"
 #include "domain/number_format.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/ui_focus.hpp"
 
 #include <algorithm>
@@ -190,10 +191,22 @@ NotificationCenterCardResult RenderNotificationCenterCard(
     std::string detail;
 
     if (row.priceAlert) {
-        body = "Current price  " + squarestar::format::FormatDouble(row.after) +
-               (row.currency.empty() ? std::string{} : " " + row.currency);
-        detail = "Alert level  " + squarestar::format::FormatDouble(row.alertThreshold) +
-                 (row.currency.empty() ? std::string{} : " " + row.currency) + " or below";
+        double displayAfter = 0.0;
+        double displayThreshold = 0.0;
+        const bool displayAfterReady =
+            TryConvertUsdForDisplay(state, row.after, displayAfter);
+        const bool displayThresholdReady =
+            TryConvertUsdForDisplay(state, row.alertThreshold, displayThreshold);
+        const std::string currency(DisplayCurrencyCode(state));
+        body = "Current price  " +
+               (displayAfterReady ? squarestar::format::FormatDouble(displayAfter)
+                                  : std::string("...")) +
+               " " + currency;
+        detail = "Alert level  " +
+                 (displayThresholdReady
+                      ? squarestar::format::FormatDouble(displayThreshold)
+                      : std::string("...")) +
+                 " " + currency + " or below";
     } else {
         body = squarestar::application::FormatStockMovePrices(row.before, row.after, row.currency);
         detail = squarestar::application::FormatStockMoveDelta(row.before, row.after);

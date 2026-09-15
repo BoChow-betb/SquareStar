@@ -9,6 +9,7 @@
 #include "application/persisted_state.hpp"
 #include "application/theme_profiles.hpp"
 #include "domain/chart_ranges.hpp"
+#include "domain/currency_conversion.hpp"
 #include "domain/json_text.hpp"
 #include "domain/market_symbol.hpp"
 #include "domain/text.hpp"
@@ -364,6 +365,7 @@ std::string EncodeConfigState(
     field("marketMoveBatching", state.marketMoveBatching);
     field("fpsMode", state.fpsMode);
     field("graphTimeZone", state.graphTimeZone);
+    stringField("displayCurrency", state.displayCurrency);
     field("chartXAxisMode", state.chartXAxisMode);
     field("plotLineType", state.plotLineType);
     field("crosshairMode", state.crosshairMode);
@@ -452,6 +454,15 @@ ConfigDecodeResult DecodeConfigState(
         state.fpsMode = NormalizeGuiFrameRateMode((int)iVal);
     if (JsonInt(obj, "graphTimeZone", iVal))
         state.graphTimeZone = std::clamp((int)iVal, 0, 1);
+    std::string displayCurrency;
+    if (JsonString(obj, "displayCurrency", displayCurrency)) {
+        state.displayCurrency =
+            squarestar::market::IsSupportedDisplayCurrency(displayCurrency)
+                ? std::move(displayCurrency)
+                : std::string("USD");
+    } else if (!squarestar::market::IsSupportedDisplayCurrency(state.displayCurrency)) {
+        state.displayCurrency = "USD";
+    }
     if (JsonInt(obj, "chartXAxisMode", iVal))
         state.chartXAxisMode = std::clamp((int)iVal, 0, 2);
     if (JsonInt(obj, "plotLineType", iVal))

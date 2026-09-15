@@ -8,6 +8,7 @@
 #include "application/runtime_state.hpp"
 #include "modules/app_services.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/gui_shell.hpp"
 #include "modules/lite_gui.hpp"
 #include "modules/main_loop_schedule.hpp"
@@ -49,6 +50,8 @@ void RenderGuiSurface(GLFWwindow* window, AppState& state) {
         RenderLiteGui(state, window);
     else
         RenderStockTerminal(state, window);
+
+    RenderCurrencyPickerPopup(state);
 
     // Foreground feedback is a shell overlay, not a feature owned by either
     // full GUI or LiteGUI. Keeping the single call here guarantees both modes

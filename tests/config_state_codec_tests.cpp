@@ -33,6 +33,7 @@ int main() {
     sourceConfig.searchHistory = {"MSFT", "AAPL"};
     sourceConfig.activeWorldClocks = {0, 2, 6};
     sourceConfig.saveSearchHistory = true;
+    sourceConfig.displayCurrency = "HKD";
     sourceNavigation.lastActiveTab = "AAPL";
     sourceNavigation.activeSidebarTab = SidebarTab::Overview;
     sourceNavigation.guiWorkspace.stockTabs.push_back({"AAPL", 2, 1, false});
@@ -86,8 +87,9 @@ int main() {
             "private state payload decodes after DPAPI unwrapping");
     Require(decodedConfig.watchlist == sourceConfig.watchlist &&
                 decodedConfig.searchHistory == sourceConfig.searchHistory &&
-                decodedConfig.activeWorldClocks == sourceConfig.activeWorldClocks,
-            "private symbols and public clock settings round-trip");
+                decodedConfig.activeWorldClocks == sourceConfig.activeWorldClocks &&
+                decodedConfig.displayCurrency == "HKD",
+            "private symbols and public display settings round-trip");
     Require(decodedNavigation.lastActiveTab == "AAPL" &&
                 decodedNavigation.activeSidebarTab == SidebarTab::Overview &&
                 decodedNavigation.guiWorkspace.stockTabs.size() == 1,
@@ -131,6 +133,15 @@ int main() {
     Require(plaintextFields.parsed && plaintextConfig.watchlist.empty() &&
                 plaintextConfig.searchHistory.empty(),
             "plaintext private fields are ignored by the current public-state codec");
+    AppConfig invalidCurrencyConfig;
+    AppNavigation invalidCurrencyNavigation;
+    squarestar::alerts::AlertService invalidCurrencyAlerts;
+    InitializeThemeProfiles(invalidCurrencyConfig);
+    const auto invalidCurrency = squarestar::config::DecodeConfigState(
+        R"json({"version":1,"apiKeyProtected":"","privateStateProtected":"protected","displayCurrency":"XYZ"})json",
+        {invalidCurrencyConfig, invalidCurrencyNavigation, invalidCurrencyAlerts});
+    Require(invalidCurrency.parsed && invalidCurrencyConfig.displayCurrency == "USD",
+            "unsupported display currencies fall back to USD");
 
     const auto unsupportedVersion = squarestar::config::DecodeConfigState(
         R"json({"version":2,"apiKeyProtected":"","privateStateProtected":"protected"})json",

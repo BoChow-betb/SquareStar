@@ -1,7 +1,10 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
+#include <ctime>
+#include <future>
 #include <list>
 #include <memory>
 #include <string>
@@ -11,6 +14,7 @@
 #include "application/navigation_state.hpp"
 #include "application/screener_item.hpp"
 #include "application/stock_context.hpp"
+#include "domain/currency_conversion.hpp"
 
 namespace squarestar::application {
 
@@ -43,6 +47,18 @@ struct ScreenerSnapshot {
     }
 };
 
+struct CurrencyDisplayRuntime {
+    std::string activeCurrency = "USD";
+    double usdToActive = 1.0;
+    std::time_t rateTimestamp = 0;
+    bool initialized = false;
+    bool requestPending = false;
+    bool switchingCurrency = false;
+    std::string pendingCurrency;
+    std::future<squarestar::market::CurrencyRateResult> pendingRequest;
+    std::chrono::steady_clock::time_point lastAttemptAt{};
+};
+
 struct AppMarketData {
     AppMarketData()
         : screenerSnapshot(std::make_shared<const ScreenerSnapshot>()) {
@@ -59,6 +75,8 @@ struct AppMarketData {
     // active set is capped at sixteen tabs and is traversed far more often than
     // it is inserted/erased, so contiguous pointer storage is a better fit than
     // one allocation per std::list node.
+    CurrencyDisplayRuntime currencyDisplay;
+
     std::vector<std::unique_ptr<StockContext>> activeContexts;
     // Retired contexts may outlive the visible surface while in-flight work
     // settles, so keep the node-stable retirement queue independent of the hot

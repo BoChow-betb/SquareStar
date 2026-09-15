@@ -25,6 +25,11 @@ struct YahooQuoteSnapshot {
     std::time_t timestamp = 0;
 };
 
+struct YahooFxRateSnapshot {
+    double rate = 0.0;
+    std::time_t timestamp = 0;
+};
+
 struct FinnhubQuote {
     double currentPrice = 0.0;
     double previousClose = 0.0;
@@ -48,6 +53,8 @@ std::vector<YahooQuoteSnapshot> ParseYahooQuoteBatchPayload(std::string payload)
 // Decodes the latest positive FX quote from a Yahoo chart response. The
 // regular-market value is preferred because it is the same quote snapshot used
 // by the stock header; the newest close is a fallback for sparse FX payloads.
+
+std::optional<YahooFxRateSnapshot> ParseYahooFxRatePayload(std::string payload);
 
 std::optional<FinnhubQuote> ParseFinnhubQuotePayload(std::string_view payload);
 bool FinnhubQuotePayloadHasPrice(std::string_view payload);

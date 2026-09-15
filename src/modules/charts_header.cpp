@@ -1,6 +1,7 @@
 #include "modules/charts.hpp"
 #include "modules/charts_internal.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/lite_gui.hpp"
 #include "modules/market_data.hpp"
 #include "modules/ui_focus.hpp"
@@ -186,9 +187,19 @@ static void RenderStockQuoteRow(AppState& state,
     ImGui::Dummy(ImVec2(0.0f, 1.0f));
     UpdateQuoteFlash(state, ctx, dt);
 
+    double displayPrice = 0.0;
+    double displayChange = 0.0;
+    const bool displayPriceReady =
+        TryConvertUsdForDisplay(state, currentPrice, displayPrice);
+    const bool displayChangeReady =
+        TryConvertUsdForDisplay(state, change, displayChange);
+
     char priceText[32];
-    std::snprintf(priceText, sizeof(priceText), "%.2f", currentPrice);
-    constexpr const char* currencyText = "USD";
+    if (displayPriceReady)
+        std::snprintf(priceText, sizeof(priceText), "%.2f", displayPrice);
+    else
+        std::snprintf(priceText, sizeof(priceText), "...");
+    const std::string currencyText(DisplayCurrencyCode(state));
     ImFont* priceFont = state.render.fontQuote;
     float priceFontSize = state.config.theme.fontQuote;
     if (strlen(priceText) >= 12 && state.render.fontLarge) {
@@ -200,12 +211,16 @@ static void RenderStockQuoteRow(AppState& state,
     }
 
     char changeText[96]{};
-    if (std::isfinite(referencePrice) && referencePrice > 0.0) {
+    if (std::isfinite(referencePrice) && referencePrice > 0.0 &&
+        displayChangeReady) {
         std::snprintf(changeText,
                       sizeof(changeText),
                       "%c%.2f (%.2f%%)",
-                      change > 0 ? '+' : (change < 0 ? '-' : ' '),
-                      std::abs(change),
+                      displayChange > 0 ? '+' : (displayChange < 0 ? '-' : ' '),
+                      std::abs(displayChange),
+                      std::abs(changePercent));
+    } else if (std::isfinite(referencePrice) && referencePrice > 0.0) {
+        std::snprintf(changeText, sizeof(changeText), "... (%.2f%%)",
                       std::abs(changePercent));
     } else {
         std::snprintf(changeText, sizeof(changeText), "-- (--)");
@@ -217,7 +232,7 @@ static void RenderStockQuoteRow(AppState& state,
                                                  0.0f,
                                                  priceText)
                                  .x;
-    const float currencyWidth = ImGui::CalcTextSize(currencyText).x;
+    const float currencyWidth = ImGui::CalcTextSize(currencyText.c_str()).x;
     const float changeWidth = state.render.fontLarge
                                   ->CalcTextSizeA(state.config.theme.fontTitle,
                                                   std::numeric_limits<float>::max(),
@@ -250,18 +265,17 @@ static void RenderStockQuoteRow(AppState& state,
             1.0f);
     }
     DrawObjectFocusOutline(state, priceFocusMin, priceFocusMax, priceHovered, 4);
+    // Alerts remain stored/evaluated on the raw U.S.-market quote basis (USD),
+    // while the editor mirrors the currently selected display currency.
     RenderPriceAlertEditor(state,
                            ctx,
                            priceClicked,
                            priceFocusMin,
                            priceFocusMax,
-                           currentPrice,
-                           currencyText);
+                           currentPrice);
 
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ThemeVec(state.config.theme.textDisabled));
-    ImGui::TextUnformatted(currencyText);
-    ImGui::PopStyleColor();
+    RenderCurrencyUnitSelector(state, ThemeVec(state.config.theme.textDisabled));
     if (stackChange)
         ImGui::Dummy(ImVec2(0.0f, 2.0f));
     else
@@ -343,17 +357,37 @@ static void RenderMonitorStockHeader(AppState& state,
     ImGui::TextUnformatted(ctx.navigation.ticker);
     ImGui::PopFont();
     if (ctx.RawData().success) {
+        double displayPrice = 0.0;
+        double displayChange = 0.0;
+        const bool displayPriceReady =
+            TryConvertUsdForDisplay(state, currentPrice, displayPrice);
+        const bool displayChangeReady =
+            TryConvertUsdForDisplay(state, change, displayChange);
+        const std::string currencyText(DisplayCurrencyCode(state));
+
         ImGui::SameLine(0.0f, dense ? 8.0f : 12.0f);
         ImGui::PushFont(state.render.fontNormal ? state.render.fontNormal : ImGui::GetFont());
-        ImGui::TextColored(ThemeVec(state.config.theme.text, 0.82f), "%.2f USD", currentPrice);
+        if (displayPriceReady)
+            ImGui::TextColored(ThemeVec(state.config.theme.text, 0.82f),
+                               "%.2f %s",
+                               displayPrice,
+                               currencyText.c_str());
+        else
+            ImGui::TextColored(ThemeVec(state.config.theme.text, 0.82f),
+                               "... %s",
+                               currencyText.c_str());
         ImGui::PopFont();
         ImGui::SameLine(0.0f, dense ? 8.0f : 12.0f);
         ImGui::PushFont(state.render.fontData ? state.render.fontData : ImGui::GetFont());
-        ImGui::TextColored(changeColor,
-                           "%c%.2f (%.2f%%)",
-                           change > 0 ? '+' : (change < 0 ? '-' : ' '),
-                           std::abs(change),
-                           std::abs(changePercent));
+        if (displayChangeReady) {
+            ImGui::TextColored(changeColor,
+                               "%c%.2f (%.2f%%)",
+                               displayChange > 0 ? '+' : (displayChange < 0 ? '-' : ' '),
+                               std::abs(displayChange),
+                               std::abs(changePercent));
+        } else {
+            ImGui::TextColored(changeColor, "... (%.2f%%)", std::abs(changePercent));
+        }
         ImGui::PopFont();
     } else {
         ImGui::SameLine(0.0f, 10.0f);

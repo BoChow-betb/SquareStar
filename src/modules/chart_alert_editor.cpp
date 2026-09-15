@@ -4,9 +4,11 @@
 #include "application/price_alert_policy.hpp"
 #include "application/ui_animation.hpp"
 #include "modules/core.hpp"
+#include "modules/currency_display.hpp"
 #include "modules/ui_focus.hpp"
 #include "services/config_save_queue.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -23,16 +25,27 @@ void RenderPriceAlertEditor(AppState& state,
                             bool openEditor,
                             ImVec2 anchorMin,
                             ImVec2 anchorMax,
-                            double currentPrice,
-                            const char* currencyLabel) {
+                            double currentPrice) {
     const std::string popupId =
         "Price Alert##" + std::string(context.navigation.ticker);
     const bool compactLite = state.navigation.liteGuiActive;
     const bool nativePopup = compactLite;
     if (openEditor) {
         const auto configuredAlert = ConfiguredPriceAlert(state.alerts, context);
-        context.alerts.priceAlertEditorValue =
-            configuredAlert ? *configuredAlert : currentPrice;
+        const double rawSeed = configuredAlert ? *configuredAlert : currentPrice;
+        double displaySeed = rawSeed;
+        double usdPerDisplayUnit = 1.0;
+        if (TryConvertUsdForDisplay(state, rawSeed, displaySeed) &&
+            TryConvertDisplayToUsd(state, 1.0, usdPerDisplayUnit)) {
+            context.alerts.priceAlertEditorValue = displaySeed;
+            context.alerts.priceAlertEditorUsdPerDisplayUnit = usdPerDisplayUnit;
+            context.alerts.priceAlertEditorCurrency =
+                std::string(DisplayCurrencyCode(state));
+        } else {
+            context.alerts.priceAlertEditorValue = rawSeed;
+            context.alerts.priceAlertEditorUsdPerDisplayUnit = 1.0;
+            context.alerts.priceAlertEditorCurrency = "USD";
+        }
         PlayUISound(compactLite ? "click.wav" : "transition.wav", state);
         if (nativePopup)
             ImGui::OpenPopup(popupId.c_str());
@@ -77,6 +90,7 @@ void RenderPriceAlertEditor(AppState& state,
     ImGui::PushFont(state.render.fontData);
     ImGui::Text("%s price alert", context.navigation.ticker);
     ImGui::PopFont();
+    const char* currencyLabel = context.alerts.priceAlertEditorCurrency.c_str();
     ImGui::SetNextItemWidth(-ImGui::CalcTextSize(currencyLabel).x -
                             ImGui::GetStyle().ItemSpacing.x);
     const bool enterPressed = ImGui::InputDouble("##PriceAlertValue",
@@ -88,8 +102,12 @@ void RenderPriceAlertEditor(AppState& state,
     ImGui::SameLine();
     ImGui::TextUnformatted(currencyLabel);
     const auto configuredAlert = ConfiguredPriceAlert(state.alerts, context);
-    if (configuredAlert)
-        ImGui::TextDisabled("Saved: %.2f %s", *configuredAlert, currencyLabel);
+    if (configuredAlert) {
+        const double savedDisplay =
+            *configuredAlert /
+            std::max(context.alerts.priceAlertEditorUsdPerDisplayUnit, 1e-12);
+        ImGui::TextDisabled("Saved: %.2f %s", savedDisplay, currencyLabel);
+    }
 
     const float buttonWidth = compactLite ? 66.0f : 70.0f;
     const float buttonHeight = compactLite ? 28.0f : 30.0f;
@@ -102,8 +120,11 @@ void RenderPriceAlertEditor(AppState& state,
     if (!validAlert)
         ImGui::EndDisabled();
     if ((setClicked || enterPressed) && validAlert) {
+        const double thresholdUsd =
+            context.alerts.priceAlertEditorValue *
+            context.alerts.priceAlertEditorUsdPerDisplayUnit;
         if (!state.alerts.SetThreshold(context.navigation.ticker,
-                                       context.alerts.priceAlertEditorValue)) {
+                                       thresholdUsd)) {
             PublishUserFeedback(
                 state,
                 UserFeedbackType::Warning,
