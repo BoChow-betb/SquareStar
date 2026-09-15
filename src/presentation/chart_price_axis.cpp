@@ -35,18 +35,18 @@ bool BuildVisiblePriceTicks(const application::StockContext& context,
     labelPtrs.clear();
     visibleMinPrice = std::numeric_limits<double>::max();
     visibleMaxPrice = -std::numeric_limits<double>::max();
-    const auto& sourceX = context.marketData.PlotX();
-    const auto& raw = context.RawData();
-    const std::size_t count = std::min(sourceX.size(), raw.closes.size());
-    const auto valuesBegin = sourceX.begin();
+    const std::size_t count = std::min(context.marketData.plot_sX.size(), context.marketData.plot_sC.size());
+    const auto valuesBegin = context.marketData.plot_sX.begin();
     const auto valuesEnd = valuesBegin + static_cast<std::ptrdiff_t>(count);
     const std::size_t firstVisible = static_cast<std::size_t>(
         std::distance(valuesBegin, std::lower_bound(valuesBegin, valuesEnd, visibleMinX)));
     const std::size_t lastVisible = static_cast<std::size_t>(
         std::distance(valuesBegin, std::upper_bound(valuesBegin, valuesEnd, visibleMaxX)));
     for (std::size_t i = firstVisible; i < lastVisible; ++i) {
-        const double lo = candlestick && i < raw.lows.size() ? raw.lows[i] : raw.closes[i];
-        const double hi = candlestick && i < raw.highs.size() ? raw.highs[i] : raw.closes[i];
+        const double lo = candlestick && i < context.marketData.plot_sL.size() ? context.marketData.plot_sL[i]
+                                                                    : context.marketData.plot_sC[i];
+        const double hi = candlestick && i < context.marketData.plot_sH.size() ? context.marketData.plot_sH[i]
+                                                                    : context.marketData.plot_sC[i];
         if (!std::isfinite(lo) || !std::isfinite(hi))
             continue;
         visibleMinPrice = std::min(visibleMinPrice, lo);
@@ -137,8 +137,7 @@ void EnsureVisiblePriceTicks(application::StockContext& context,
                              double requiredPrice,
                              double axisPaddingFraction) {
     application::PriceAxisTickCache& cache = context.render.priceAxisCache;
-    const std::size_t sourceCount =
-        std::min(context.marketData.PlotX().size(), context.RawData().closes.size());
+    const std::size_t sourceCount = std::min(context.marketData.plot_sX.size(), context.marketData.plot_sC.size());
     if (cache.valid && cache.dataRevision == context.marketData.dataRevision &&
         cache.sourceCount == sourceCount && cache.candlestick == candlestick &&
         SameCacheDouble(cache.visibleMinX, visibleMinX) &&

@@ -147,10 +147,7 @@ void BuildChartRenderLod(squarestar::application::StockContext& ctx,
                          int lineType,
                          float pixelWidth,
                          float framebufferScale) {
-    const auto& sourceX = ctx.marketData.PlotX();
-    const auto& raw = ctx.RawData();
-    const auto& sourceC = raw.closes;
-    const std::size_t count = std::min(sourceX.size(), sourceC.size());
+    const std::size_t count = std::min(ctx.marketData.plot_sX.size(), ctx.marketData.plot_sC.size());
     const ChartRenderLodTargets targets =
         CalculateChartRenderLodTargets(lineType, pixelWidth, framebufferScale);
     if (ctx.render.renderLodSourceCount == count && ctx.render.renderLodTarget == targets.line &&
@@ -163,15 +160,15 @@ void BuildChartRenderLod(squarestar::application::StockContext& ctx,
     ctx.render.renderLodLineType = lineType;
     if (lineType != 0) {
         if (count > targets.line)
-            BuildLttbSeries(sourceX, sourceC, targets.line, ctx.render.render_sX, ctx.render.render_sC);
+            BuildLttbSeries(ctx.marketData.plot_sX, ctx.marketData.plot_sC, targets.line, ctx.render.render_sX, ctx.render.render_sC);
         if (count > targets.shade)
-            BuildLttbSeries(sourceX, sourceC, targets.shade,
+            BuildLttbSeries(ctx.marketData.plot_sX, ctx.marketData.plot_sC, targets.shade,
                             ctx.render.renderShade_sX, ctx.render.renderShade_sC);
         return;
     }
     if (count <= targets.line)
         return;
-    if (raw.opens.size() < count || raw.highs.size() < count || raw.lows.size() < count)
+    if (ctx.marketData.plot_sO.size() < count || ctx.marketData.plot_sH.size() < count || ctx.marketData.plot_sL.size() < count)
         return;
     const std::size_t bucketSize = std::max<std::size_t>(1, (count + targets.line - 1) / targets.line);
     const std::size_t bucketCount = (count + bucketSize - 1) / bucketSize;
@@ -182,17 +179,17 @@ void BuildChartRenderLod(squarestar::application::StockContext& ctx,
     ctx.render.renderCandle_sL.reserve(bucketCount);
     for (std::size_t begin = 0; begin < count; begin += bucketSize) {
         const std::size_t end = std::min(count, begin + bucketSize);
-        double high = raw.highs[begin];
-        double low = raw.lows[begin];
+        double high = ctx.marketData.plot_sH[begin];
+        double low = ctx.marketData.plot_sL[begin];
         for (std::size_t i = begin + 1; i < end; ++i) {
-            high = std::max(high, raw.highs[i]);
-            low = std::min(low, raw.lows[i]);
+            high = std::max(high, ctx.marketData.plot_sH[i]);
+            low = std::min(low, ctx.marketData.plot_sL[i]);
         }
-        ctx.render.renderCandle_sX.push_back(sourceX[begin + (end - begin - 1) / 2]);
-        ctx.render.renderCandle_sO.push_back(static_cast<float>(raw.opens[begin]));
+        ctx.render.renderCandle_sX.push_back(ctx.marketData.plot_sX[begin + (end - begin - 1) / 2]);
+        ctx.render.renderCandle_sO.push_back(static_cast<float>(ctx.marketData.plot_sO[begin]));
         ctx.render.renderCandle_sH.push_back(static_cast<float>(high));
         ctx.render.renderCandle_sL.push_back(static_cast<float>(low));
-        ctx.render.renderCandle_sC.push_back(static_cast<float>(sourceC[end - 1]));
+        ctx.render.renderCandle_sC.push_back(static_cast<float>(ctx.marketData.plot_sC[end - 1]));
     }
 }
 
