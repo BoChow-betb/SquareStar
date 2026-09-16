@@ -407,6 +407,10 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
         "48 FPS Cap", "VSync (60 FPS, Recommended)", "240 FPS Cap",
         "Eco 30 FPS (Low power)"};
     static_assert(IM_ARRAYSIZE(fpsModes) == GUI_FRAME_RATE_MODE_COUNT);
+    const ImVec2 primaryComboFramePadding(
+        ImGui::GetStyle().FramePadding.x,
+        std::max(0.0f,
+                 (kControlHeight - ImGui::GetFontSize()) * 0.5f));
     BeginSettingsCard(state,
                       "AppearanceSettings",
                       "Appearance & behavior",
@@ -415,11 +419,6 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
                       bodyContentWidth);
 
     const bool primaryTwoColumns = ImGui::GetContentRegionAvail().x >= 560.0f;
-    const float comboPaddingY =
-        std::max(0.0f, (kControlHeight - ImGui::GetFontSize()) * 0.5f);
-    ImGui::PushStyleVar(
-        ImGuiStyleVar_FramePadding,
-        ImVec2(ImGui::GetStyle().FramePadding.x, comboPaddingY));
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
                         ImVec2(primaryTwoColumns ? 6.0f : 0.0f, 2.0f));
     if (ImGui::BeginTable("AppearancePrimaryGrid",
@@ -429,11 +428,14 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
         auto DrawThemeControl = [&] {
             ImGui::TextDisabled("APP THEME");
             ImGui::SetNextItemWidth(-1.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                                primaryComboFramePadding);
             const bool themeChanged = UiCombo(state,
                                               "##GUITheme",
                                               &state.config.themeModeIndex,
                                               themes,
                                               IM_ARRAYSIZE(themes));
+            ImGui::PopStyleVar();
             if (themeChanged) {
                 PlayUISound("transition.wav", state);
                 SetThemePreset(state.config, state.config.themeModeIndex);
@@ -445,11 +447,14 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
         auto DrawFrameRateControl = [&] {
             ImGui::TextDisabled("FRAME RATE");
             ImGui::SetNextItemWidth(-1.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                                primaryComboFramePadding);
             const bool fpsChanged = UiCombo(state,
                                             "##FPSLimit",
                                             &state.config.fpsMode,
                                             fpsModes,
                                             IM_ARRAYSIZE(fpsModes));
+            ImGui::PopStyleVar();
             if (fpsChanged)
                 CommitUiSetting(state, "transition.wav");
         };
@@ -467,7 +472,7 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
         }
         ImGui::EndTable();
     }
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar();
 
     ImGui::Dummy(ImVec2(0.0f, 2.0f));
     ImGui::TextDisabled("OPTIONS");
@@ -580,7 +585,10 @@ static void RenderPrivacySettingsCard(AppState& state) {
     BeginSettingsCard(state, "PrivacySettings", "Privacy");
     ImGui::TextDisabled("LOCAL SEARCH HISTORY");
     ImGui::AlignTextToFramePadding();
-    if (NeutralCheckbox("Save search history", state.config.saveSearchHistory, state)) {
+    const bool saveSearchHistoryChanged =
+        NeutralCheckbox("Save search history", state.config.saveSearchHistory, state);
+    const float searchHistoryControlHeight = ImGui::GetItemRectSize().y;
+    if (saveSearchHistoryChanged) {
         if (!state.config.saveSearchHistory) {
             state.config.searchHistory.clear();
             state.config.searchHistoryNames.clear();
@@ -591,14 +599,13 @@ static void RenderPrivacySettingsCard(AppState& state) {
 
     ImGui::SameLine();
     constexpr float clearHistoryWidth = 132.0f;
-    constexpr float clearHistoryHeight = 26.0f;
     AlignNextSettingsControlRight(clearHistoryWidth);
     const bool hasSearchHistory = !state.config.searchHistory.empty() ||
                                   !state.config.searchHistoryNames.empty();
     if (!hasSearchHistory)
         ImGui::BeginDisabled();
     if (ImGui::Button("Clear history",
-                      ImVec2(clearHistoryWidth, clearHistoryHeight))) {
+                      ImVec2(clearHistoryWidth, searchHistoryControlHeight))) {
         state.config.searchHistory.clear();
         state.config.searchHistoryNames.clear();
         squarestar::config::RequestConfigSave();
