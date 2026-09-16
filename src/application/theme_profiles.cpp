@@ -67,8 +67,6 @@ void SetBuiltInThemePreset(AppConfig& state, int mode) {
         setColor(state.theme.inverseBg, 0.84f, 0.84f, 0.86f);
         setColor(state.theme.inverseText, 0.08f, 0.08f, 0.09f);
         setColor(state.theme.wipeBg, 0.12f, 0.12f, 0.14f);
-        setColor(state.theme.startupBg, 0.10f, 0.10f, 0.12f);
-        setColor(state.theme.startupText, 0.90f, 0.90f, 0.90f);
         setColor(state.theme.sidebarText, 0.70f, 0.70f, 0.70f);
         setColor(state.theme.tabActive, 0.20f, 0.20f, 0.24f);
         setColor(state.theme.tabInactive, 0.11f, 0.11f, 0.13f);
@@ -111,8 +109,6 @@ void SetBuiltInThemePreset(AppConfig& state, int mode) {
         setColor(state.theme.inverseBg, 0.16f, 0.16f, 0.18f);
         setColor(state.theme.inverseText, 0.96f, 0.96f, 0.97f);
         setColor(state.theme.wipeBg, 0.92f, 0.92f, 0.92f);
-        setColor(state.theme.startupBg, 0.96f, 0.96f, 0.96f);
-        setColor(state.theme.startupText, 0.08f, 0.08f, 0.08f);
         setColor(state.theme.sidebarText, 0.30f, 0.30f, 0.30f);
         setColor(state.theme.tabActive, 0.985f, 0.985f, 0.99f);
         setColor(state.theme.tabInactive, 0.93f, 0.94f, 0.96f);

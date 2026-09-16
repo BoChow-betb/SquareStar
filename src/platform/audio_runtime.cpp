@@ -334,28 +334,6 @@ void StopAllAppAudio() {
 #endif
 }
 
-void TrimIdleAppAudioMemory() {
-#ifdef _WIN32
-    std::lock_guard<std::mutex> lock(g_AudioPlaybackMutex);
-    // Once the short PCM cue plus a small safety margin has elapsed, close the
-    // waveOut device instead of retaining the Windows audio/driver allocation
-    // for the lifetime of SquareStar. The next cue lazily reopens it.
-    if (g_ActiveSoundPriorityUntil != std::chrono::steady_clock::time_point{} &&
-        std::chrono::steady_clock::now() <
-            g_ActiveSoundPriorityUntil + std::chrono::milliseconds(250)) {
-        return;
-    }
-    StopActiveWaveOutLocked();
-    g_ActiveSoundClip.reset();
-    g_ActiveSoundPriority = 0;
-    g_ActiveSoundPriorityUntil = {};
-    for (WaveOutDevice& device : g_WaveOutDevices) {
-        if (device.handle)
-            waveOutClose(device.handle);
-    }
-    std::vector<WaveOutDevice>().swap(g_WaveOutDevices);
-#endif
-}
 
 void ShutdownAppAudio() {
     StopAllAppAudio();

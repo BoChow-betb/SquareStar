@@ -55,7 +55,7 @@ using squarestar::presentation::ShouldStackNotificationRowValues;
 void RenderMarketMoveNotices(AppState& state,
                                     ImGuiViewport* viewport,
                                     NotificationBlockStack& stack) {
-    if (!viewport || state.StartupAnimationVisible() || IsCleanGuiCaptureFrame())
+    if (!viewport || IsCleanGuiCaptureFrame())
         return;
 
     const auto now = std::chrono::steady_clock::now();
@@ -143,7 +143,7 @@ void RenderMarketMoveNotices(AppState& state,
 void RenderInteractionNotice(AppState& state,
                                     ImGuiViewport* viewport,
                                     NotificationBlockStack& stack) {
-    if (!viewport || state.StartupAnimationVisible() || IsCleanGuiCaptureFrame())
+    if (!viewport || IsCleanGuiCaptureFrame())
         return;
 
     auto& notice = state.render.notifications.interaction;
@@ -200,7 +200,7 @@ void RenderFirstFetchWarmupNotice(AppState& state,
         warmup.Clear();
         return;
     }
-    if (state.StartupAnimationVisible() || IsCleanGuiCaptureFrame())
+    if (IsCleanGuiCaptureFrame())
         return;
 
     const auto now = std::chrono::steady_clock::now();

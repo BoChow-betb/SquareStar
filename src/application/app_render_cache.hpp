@@ -8,7 +8,6 @@
 namespace squarestar::application {
 
 struct AppRenderCache {
-    float startupAnimTimer = 0.0f;
     float sidebarAnim = 64.0f;
     // Screener rows animate independently from network/sparkline completion.
     // Keeping only the current visible batch avoids request-lifetime coupling
@@ -29,7 +28,6 @@ struct AppRenderCache {
     ImFont* fontLarge = nullptr;
     ImFont* fontGiant = nullptr;
     ImFont* fontQuote = nullptr;
-    ImFont* fontLaunch = nullptr;
     float objectFocusAnim = 0.0f;
 
 };

@@ -4,12 +4,6 @@
 
 #include "application/app_state.hpp"
 
-#include "imgui_internal.h"
-#ifdef _WIN32
-#include "implot.h"
-#include "implot_internal.h"
-#endif
-
 namespace squarestar::presentation {
 namespace {
 
@@ -26,7 +20,6 @@ void ClearApplicationFontPointers(squarestar::application::AppRenderCache& state
     state.fontLarge = nullptr;
     state.fontGiant = nullptr;
     state.fontQuote = nullptr;
-    state.fontLaunch = nullptr;
 }
 
 void ReleaseContextRenderMemory(squarestar::application::StockContext& context) {
@@ -74,38 +67,5 @@ void ReleaseGuiStateRenderMemory(squarestar::application::AppState& state) {
     release(state.alerts.Monitors());
 }
 
-void CompactGuiTransientMemory() {
-    // SquareStar is event-driven: after a few idle seconds the previous frame's
-    // CPU draw buffers are no longer needed. Dear ImGui normally compacts only
-    // windows that became inactive, which means the main active window can keep
-    // the largest chart/table draw allocation indefinitely. Compact all window
-    // transient buffers while idle; Begin() automatically wakes them on demand.
-    if (GImGui) {
-        for (ImGuiWindow* window : GImGui->Windows) {
-            if (window && !window->MemoryCompacted)
-                ImGui::GcCompactTransientWindowBuffers(window);
-        }
-        ImGui::GcCompactTransientMiscBuffers();
-    }
-
-#ifdef _WIN32
-    // ImPlot keeps several general-purpose scratch vectors at their historical
-    // peak capacity. They contain no persistent plot state and are rebuilt on
-    // demand, so release them during the same idle maintenance pass.
-    if (ImPlotContext* plot = ImPlot::GetCurrentContext()) {
-        plot->TempDouble1.clear();
-        plot->TempDouble2.clear();
-        plot->TempInt1.clear();
-        plot->CTicker.Ticks.clear();
-        plot->CTicker.TextBuffer.Buf.clear();
-        plot->Annotations.Annotations.clear();
-        plot->Annotations.TextBuffer.Buf.clear();
-        plot->Annotations.Size = 0;
-        plot->Tags.Tags.clear();
-        plot->Tags.TextBuffer.Buf.clear();
-        plot->Tags.Size = 0;
-    }
-#endif
-}
 
 } // namespace squarestar::presentation

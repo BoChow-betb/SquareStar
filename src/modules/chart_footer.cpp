@@ -101,6 +101,7 @@ static void RenderLiteChartRangeSelector(AppState& state, StockContext& ctx) {
                 if (ImGui::IsItemHovered())
                     ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
                 if (rangeSelected) {
+                    PlayUISound("click.wav", state);
                     SelectStockViewRange(state, ctx, rangeIndex);
                     ImGui::CloseCurrentPopup();
                 }

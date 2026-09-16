@@ -1030,7 +1030,6 @@ void PrepareGuiProbeState(squarestar::application::AppState& state) {
         return;
     state.config.lastOpenMode = 0;
     state.config.soundEnabled = false;
-    state.config.showStartupAnim = false;
     state.config.zeroGraphics = false;
     state.alerts.ClearThresholds();
     state.alerts.ClearToasts();

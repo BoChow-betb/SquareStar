@@ -107,7 +107,7 @@ void UpdateContextualKeybindHint(AppState& state) {
         hint.ClearActive();
         return;
     }
-    if (state.StartupAnimationVisible() || IsCleanGuiCaptureFrame())
+    if (IsCleanGuiCaptureFrame())
         return;
 
     const auto now = std::chrono::steady_clock::now();

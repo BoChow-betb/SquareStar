@@ -13,6 +13,4 @@ IMGUI_IMPL_API void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data);
 IMGUI_IMPL_API bool ImGui_ImplDX11_CreateDeviceObjects();
 IMGUI_IMPL_API void ImGui_ImplDX11_InvalidateDeviceObjects();
 IMGUI_IMPL_API void ImGui_ImplDX11_UpdateTexture(ImTextureData* tex);
-// SquareStar-specific: release only transient vertex/index high-water buffers.
-IMGUI_IMPL_API void ImGui_ImplDX11_CompactBufferMemory();
 #endif

@@ -28,7 +28,6 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <limits>
 
 namespace squarestar::shell {
 
@@ -36,73 +35,6 @@ using squarestar::application::RequestGuiRedraw;
 using squarestar::application::UiRounding;
 using squarestar::application::AppState;
 
-void RenderStartupOverlay(AppState& state, ImGuiViewport* viewport) {
-    if (!state.StartupAnimationVisible())
-        return;
-    if (!state.UiAnimationsEnabled()) {
-        state.config.showStartupAnim = false;
-        return;
-    }
-
-    constexpr float coverDuration = 0.42f;
-    constexpr float revealDelay = 0.30f;
-    constexpr float revealDuration = 0.48f;
-    constexpr float holdDuration = 0.38f;
-    constexpr float exitDuration = 0.45f;
-    constexpr float exitStart = revealDelay + revealDuration + holdDuration;
-    constexpr float totalDuration = exitStart + exitDuration;
-    state.render.startupAnimTimer += UiFrameDelta();
-    if (state.render.startupAnimTimer >= totalDuration) {
-        state.config.showStartupAnim = false;
-        return;
-    }
-
-    const auto smooth = [](float value) {
-        value = std::clamp(value, 0.0f, 1.0f);
-        return value * value * (3.0f - 2.0f * value);
-    };
-    const ImVec2 min = viewport->Pos;
-    const ImVec2 size = viewport->Size;
-    const ImVec2 max(min.x + size.x, min.y + size.y);
-    const float cover = smooth(state.render.startupAnimTimer / coverDuration);
-    const float reveal = smooth((state.render.startupAnimTimer - revealDelay) / revealDuration);
-    const float screenWipe = smooth((state.render.startupAnimTimer - exitStart) / exitDuration);
-    const ImVec2 splashMin(min.x + size.x * screenWipe, min.y);
-
-    ImDrawList* draw = ImGui::GetForegroundDrawList(viewport);
-    draw->PushClipRect(splashMin, max, true);
-    draw->AddRectFilled(
-        splashMin, max, ImGui::ColorConvertFloat4ToU32(ThemeVec(state.config.theme.startupBg)));
-
-    constexpr const char* title = "SquareStar";
-    ImFont* font = state.render.fontLaunch ? state.render.fontLaunch : ImGui::GetFont();
-    const float fontSize =
-        state.render.fontLaunch ? state.config.theme.fontLaunch : ImGui::GetFontSize();
-    const ImVec2 textSize =
-        font->CalcTextSizeA(fontSize, std::numeric_limits<float>::max(), 0.0f, title);
-    const ImVec2 textPos(min.x + (size.x - textSize.x) * 0.5f,
-                         min.y + (size.y - textSize.y) * 0.5f);
-    constexpr float padding = 14.0f;
-    const float wipeWidth = textSize.x + padding * 2.0f;
-    const float wipeStart = textPos.x - padding;
-    const float wipeLeft = wipeStart + wipeWidth * reveal;
-    const float wipeRight = wipeStart + wipeWidth * cover;
-    const float textRevealRight = std::clamp(wipeLeft, textPos.x, textPos.x + textSize.x);
-    const ImU32 textColor = ImGui::ColorConvertFloat4ToU32(ThemeVec(state.config.theme.startupText));
-
-    if (textRevealRight > textPos.x) {
-        draw->PushClipRect(textPos, ImVec2(textRevealRight, textPos.y + textSize.y), true);
-        draw->AddText(font, fontSize, textPos, textColor, title);
-        draw->PopClipRect();
-    }
-    if (wipeRight > wipeLeft) {
-        draw->AddRectFilled(ImVec2(wipeLeft, textPos.y - 6.0f),
-                            ImVec2(wipeRight, textPos.y + textSize.y + 6.0f),
-                            textColor);
-    }
-    draw->PopClipRect();
-    RequestGuiRedraw();
-}
 void SynchronizeTerminalNavigationState(AppState& state, size_t openStockTabs) {
     if (!state.navigation.pureMonitorMode && openStockTabs == 0 &&
         state.navigation.activeSidebarTab == squarestar::application::SidebarTab::Stock) {

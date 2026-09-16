@@ -532,23 +532,6 @@ void ImGui_ImplDX11_InvalidateDeviceObjects() {
     SafeRelease(bd->vertexShader);
 }
 
-void ImGui_ImplDX11_CompactBufferMemory() {
-    BackendData* bd = GetBackendData();
-    if (!bd)
-        return;
-    // The immediate context can retain references to currently bound buffers.
-    // Unbind first so Release() actually drops the transient high-water storage.
-    ID3D11Buffer* nullVertexBuffer = nullptr;
-    const UINT zero = 0;
-    bd->context->IASetVertexBuffers(0, 1, &nullVertexBuffer, &zero, &zero);
-    bd->context->IASetIndexBuffer(nullptr, DXGI_FORMAT_R16_UINT, 0);
-    SafeRelease(bd->vertexBuffer);
-    SafeRelease(bd->indexBuffer);
-    bd->vertexBufferSize = 5000;
-    bd->indexBufferSize = 10000;
-    bd->context->Flush();
-}
-
 bool ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
     ImGuiIO& io = ImGui::GetIO();
     IMGUI_CHECKVERSION();

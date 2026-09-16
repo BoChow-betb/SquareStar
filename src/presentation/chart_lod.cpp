@@ -148,6 +148,20 @@ void BuildChartRenderLod(squarestar::application::StockContext& ctx,
                          float pixelWidth,
                          float framebufferScale) {
     const std::size_t count = std::min(ctx.marketData.plot_sX.size(), ctx.marketData.plot_sC.size());
+    // Normal provider ranges contain only hundreds of points. Downsampling
+    // those small histories saves essentially nothing and adds another data
+    // path. Keep LOD only as a safety valve for genuinely large inputs.
+    constexpr std::size_t kMinSourcePointsForLod = 4096;
+    if (count <= kMinSourcePointsForLod) {
+        if (ctx.render.renderLodSourceCount != count ||
+            ctx.render.renderLodLineType != lineType) {
+            ResetChartRenderLod(ctx);
+            ctx.render.renderLodSourceCount = count;
+            ctx.render.renderLodLineType = lineType;
+        }
+        return;
+    }
+
     const ChartRenderLodTargets targets =
         CalculateChartRenderLodTargets(lineType, pixelWidth, framebufferScale);
     if (ctx.render.renderLodSourceCount == count && ctx.render.renderLodTarget == targets.line &&

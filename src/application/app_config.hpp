@@ -13,7 +13,6 @@
 namespace squarestar::application {
 
 struct AppConfig {
-    bool showStartupAnim = true;
     bool soundEnabled = true;
     bool animEnabled = true;
     bool zeroGraphics = false;

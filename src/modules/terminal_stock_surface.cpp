@@ -196,6 +196,7 @@ void RenderStockTabStrip(AppState& state) {
         ImGui::InvisibleButton("##StockTab", ImVec2(tabWidth, tabHeight));
         const bool hovered = ImGui::IsItemHovered();
         const bool pressed = ImGui::IsItemClicked(ImGuiMouseButton_Left);
+        const bool rightClicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
         const bool closeAllowed = active && tabWidth >= 82.0f;
         const float closeZone = closeAllowed ? 28.0f : 0.0f;
         const bool closeHovered =
@@ -273,7 +274,9 @@ void RenderStockTabStrip(AppState& state) {
                            ImGui::ColorConvertFloat4ToU32(closeColor));
         }
 
-        if (pressed) {
+        if (rightClicked) {
+            closeTicker = context.navigation.ticker;
+        } else if (pressed) {
             if (closeHovered) {
                 closeTicker = context.navigation.ticker;
             } else if (!active) {

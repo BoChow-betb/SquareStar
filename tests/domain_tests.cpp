@@ -70,18 +70,17 @@ int main() {
     modeState.config.animEnabled = true;
     modeState.config.zeroGraphics = false;
     modeState.config.objectFocus = true;
-    modeState.config.showStartupAnim = true;
     modeState.config.activeWorldClocks = {0, 1, 2, 3};
     Check(modeState.UiAnimationsEnabled() && !modeState.ZeroGraphicsEnabled() &&
-              modeState.ObjectFocusEnabled() && modeState.StartupAnimationVisible(),
+              modeState.ObjectFocusEnabled(),
           "normal GUI behavior is derived from persistent preferences");
     modeState.navigation.liteGuiActive = true;
     modeState.navigation.liteWorldClocks = {0, 1};
     modeState.navigation.liteHiddenWorldClocks = {2, 3};
     Check(!modeState.UiAnimationsEnabled() && modeState.ZeroGraphicsEnabled() &&
-              !modeState.ObjectFocusEnabled() && !modeState.StartupAnimationVisible() &&
+              !modeState.ObjectFocusEnabled() &&
               modeState.config.animEnabled && !modeState.config.zeroGraphics &&
-              modeState.config.objectFocus && modeState.config.showStartupAnim,
+              modeState.config.objectFocus,
           "LiteGUI overrides behavior without rewriting persistent preferences");
     modeState.SetWorldClockEnabled(0, false);
     modeState.SetWorldClockEnabled(4, true);

@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <initializer_list>
 #include <memory>
+
+#include "services/yyjson_document_heap.hpp"
 #include <string>
 
 #include "yyjson.h"
@@ -13,7 +15,8 @@ namespace squarestar::json {
 inline constexpr std::size_t kMaxJsonDocumentBytes = 16 * 1024 * 1024;
 
 struct DocumentDeleter {
-    void operator()(yyjson_doc* document) const noexcept;
+    squarestar::json_memory::AllocatorOwner allocationOwner{};
+    void operator()(yyjson_doc* document) noexcept;
 };
 
 using Document = std::unique_ptr<yyjson_doc, DocumentDeleter>;

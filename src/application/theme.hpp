@@ -34,8 +34,6 @@ struct Theme {
     float inverseBg[4] = {1.00f, 1.00f, 1.00f, 1.00f};
     float inverseText[4] = {0.00f, 0.00f, 0.00f, 1.00f};
     float wipeBg[4] = {0.12f, 0.12f, 0.14f, 1.00f};
-    float startupBg[4] = {0.10f, 0.10f, 0.12f, 1.00f};
-    float startupText[4] = {0.90f, 0.90f, 0.90f, 1.00f};
     float sidebarText[4] = {0.70f, 0.70f, 0.70f, 1.00f};
     float tabActive[4] = {0.20f, 0.20f, 0.24f, 1.00f};
     float tabInactive[4] = {0.11f, 0.11f, 0.13f, 1.00f};
@@ -63,7 +61,6 @@ struct Theme {
     float fontTitle = 32.0f;
     float fontHero = 38.0f;
     float fontQuote = 56.0f;
-    float fontLaunch = 64.0f;
     float sidebarCollapsed = 64.0f;
     float sidebarExpanded = 200.0f;
     float contentPadding = 24.0f;

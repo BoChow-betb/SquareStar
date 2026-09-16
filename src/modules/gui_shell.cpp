@@ -106,8 +106,6 @@ void RenderStockTerminal(AppState& state, GLFWwindow* window) {
                              ImVec2(viewport->WorkPos.x + viewport->WorkSize.x,
                                     viewport->WorkPos.y + viewport->WorkSize.y));
     ImGui::End();
-
-    RenderStartupOverlay(state, viewport);
 }
 
 

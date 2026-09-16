@@ -5,19 +5,29 @@
 
 namespace squarestar::json {
 
-void DocumentDeleter::operator()(yyjson_doc* document) const noexcept {
+void DocumentDeleter::operator()(yyjson_doc* document) noexcept {
     if (document)
         yyjson_doc_free(document);
+    squarestar::json_memory::Release(allocationOwner);
 }
 
 Document ParseJson(const std::string& text) {
     if (text.empty() || text.size() > kMaxJsonDocumentBytes)
         return {};
-    return Document(yyjson_read_opts(const_cast<char*>(text.data()),
-                                     text.size(),
-                                     YYJSON_READ_NOFLAG,
-                                     nullptr,
-                                     nullptr));
+    yyjson_alc allocator{};
+    squarestar::json_memory::AllocatorOwner owner{};
+    const yyjson_alc* selected =
+        squarestar::json_memory::Initialize(allocator, owner);
+    yyjson_doc* document = yyjson_read_opts(const_cast<char*>(text.data()),
+                                            text.size(),
+                                            YYJSON_READ_NOFLAG,
+                                            selected,
+                                            nullptr);
+    if (!document) {
+        squarestar::json_memory::Release(owner);
+        return {};
+    }
+    return Document(document, DocumentDeleter{owner});
 }
 
 Document ParseJsonInSitu(std::string& text) {
@@ -25,8 +35,17 @@ Document ParseJsonInSitu(std::string& text) {
         return {};
     const std::size_t payloadSize = text.size();
     text.resize(payloadSize + YYJSON_PADDING_SIZE, '\0');
-    return Document(yyjson_read_opts(
-        text.data(), payloadSize, YYJSON_READ_INSITU, nullptr, nullptr));
+    yyjson_alc allocator{};
+    squarestar::json_memory::AllocatorOwner owner{};
+    const yyjson_alc* selected =
+        squarestar::json_memory::Initialize(allocator, owner);
+    yyjson_doc* document = yyjson_read_opts(
+        text.data(), payloadSize, YYJSON_READ_INSITU, selected, nullptr);
+    if (!document) {
+        squarestar::json_memory::Release(owner);
+        return {};
+    }
+    return Document(document, DocumentDeleter{owner});
 }
 
 yyjson_val* JsonPath(yyjson_val* value, std::initializer_list<const char*> keys) {

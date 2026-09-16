@@ -12,8 +12,6 @@ struct AppState;
 namespace squarestar::shell {
 
 // Internal terminal-shell sections. Public entry points remain in gui_shell.hpp.
-void RenderStartupOverlay(squarestar::application::AppState& state,
-                          ImGuiViewport* viewport);
 void SynchronizeTerminalNavigationState(squarestar::application::AppState& state,
                                         std::size_t openStockTabs);
 float RenderTerminalSidebar(squarestar::application::AppState& state,

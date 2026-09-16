@@ -746,10 +746,7 @@ void SilencePriceAlertForClosedTab(AppState& state, StockContext& ctx) {
 }
 void PumpPriceAlertSounds(AppState& state) {
     const auto now = std::chrono::steady_clock::now();
-    if (now < state.alerts.AlertPresentationNotBefore() ||
-        (ApplicationRuntime().CurrentUiMode() ==
-             squarestar::application::AppUiMode::Gui &&
-         state.StartupAnimationVisible()))
+    if (now < state.alerts.AlertPresentationNotBefore())
         return;
     const auto pump = [&](auto& contexts) {
         for (auto& ctx : contexts) {

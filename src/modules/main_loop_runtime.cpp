@@ -21,14 +21,11 @@
 #include "modules/platform.hpp"
 #include "modules/stock_request_runtime.hpp"
 #include "platform/application_paths.hpp"
-#include "platform/audio_runtime.hpp"
 #include "platform/frame_pacer.hpp"
 #include "platform/glfw_runtime.hpp"
-#include "platform/process_memory_trim.hpp"
 #include "platform/win32_app_state.hpp"
 #include "presentation/gui_renderer_context.hpp"
 #include "presentation/gui_shell_runtime_state.hpp"
-#include "presentation/render_memory.hpp"
 #include "services/config_save_queue.hpp"
 #include "services/network_runtime.hpp"
 
@@ -41,7 +38,6 @@
 #include <utility>
 #include <vector>
 
-#include "imgui_impl_dx11.h"
 
 namespace squarestar::shell {
 
@@ -199,48 +195,6 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
             loop.inputSettleFramesRemaining = 2;
 
         PumpCompletedStockRequests(state, windowSuspended);
-
-        // After a quiet period, ask the LFH to release unused backing pages.
-        // Skip this while animation or input is waiting for a frame.
-        const auto memoryTrimNow = std::chrono::steady_clock::now();
-        const bool memoryTrimQuiet =
-            !squarestar::application::ScreenerJobBusy() &&
-            !guiInputQueuedAfterEventPump && !ImGui::IsAnyMouseDown() &&
-            loop.inputSettleFramesRemaining == 0 &&
-            squarestar::application::GuiRedrawRevision() ==
-                loop.renderedGuiRevision;
-        if (!memoryTrimQuiet) {
-            loop.memoryTrimIdleSince = memoryTrimNow;
-        } else {
-            const bool idleLongEnough =
-                memoryTrimNow - loop.memoryTrimIdleSince >=
-                std::chrono::seconds(5);
-            const bool trimDue =
-                loop.lastMemoryTrimAt == std::chrono::steady_clock::time_point{} ||
-                memoryTrimNow - loop.lastMemoryTrimAt >=
-                    std::chrono::seconds(20);
-            if (idleLongEnough && trimDue) {
-                // First drop application/renderer high-water buffers, then ask
-                // the Windows LFH to decommit pages they occupied. Avoid
-                // compacting a visible stock/comparison surface that is about
-                // to redraw its clock/live labels every second; that would only
-                // force the same draw buffers to be reallocated immediately.
-                const auto trimPage = CurrentGuiPage(state);
-                const bool compactRenderer =
-                    windowSuspended ||
-                    GuiPeriodicRefreshSeconds(state, trimPage) >= 5.0;
-                if (compactRenderer) {
-                    // Compact only transient draw/scratch storage. Deeper
-                    // device-object and per-stock cache teardown would create
-                    // avoidable reallocation churn on the next visit.
-                    squarestar::presentation::CompactGuiTransientMemory();
-                    ImGui_ImplDX11_CompactBufferMemory();
-                }
-                squarestar::platform::TrimIdleAppAudioMemory();
-                (void)squarestar::platform::TrimProcessPrivateMemory();
-                loop.lastMemoryTrimAt = memoryTrimNow;
-            }
-        }
 
         if (windowSuspended)
             continue;

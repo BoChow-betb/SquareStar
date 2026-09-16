@@ -38,10 +38,6 @@ struct AppState {
         return config.objectFocus && !navigation.liteGuiActive;
     }
 
-    [[nodiscard]] bool StartupAnimationVisible() const noexcept {
-        return config.showStartupAnim && !navigation.liteGuiActive;
-    }
-
     [[nodiscard]] const std::vector<int>& VisibleWorldClocks() const noexcept {
         return navigation.liteGuiActive ? navigation.liteWorldClocks
                                         : config.activeWorldClocks;

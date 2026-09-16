@@ -225,7 +225,6 @@ void RebuildApplicationFonts(squarestar::application::AppState& state) {
     if (!state.render.fontGiant)
         state.render.fontGiant = state.render.fontLarge;
     state.render.fontQuote = state.render.fontGiant;
-    state.render.fontLaunch = state.render.fontGiant;
     io.FontDefault = state.render.fontNormal;
     io.Fonts->CompactCache();
 }

@@ -6,6 +6,7 @@
 #include "application/stock_data_merge.hpp"
 #include "platform/world_clock_runtime.hpp"
 #include "domain/stock_data.hpp"
+#include "services/api_key_store.hpp"
 #include "services/http_client.hpp"
 #include "services/url_policy.hpp"
 
@@ -21,6 +22,7 @@ using squarestar::application::StockFetchProfile;
 using squarestar::application::StockFetchNews;
 using squarestar::http::OpenExternalHttpsUrl;
 using squarestar::http::IsSafeExternalHttpsUrl;
+using squarestar::secrets::HasFinnhubApiKey;
 
 namespace {
 
@@ -91,10 +93,12 @@ void RenderStockNews(AppState& state, StockContext& ctx) {
             ctx.requests.pendingDetailsRequest.valid() &&
             (ctx.requests.requestedDetailMask & StockFetchNews) != 0 &&
             (ctx.RawData().resolvedDetailMask & StockFetchNews) == 0;
-        ImGui::TextDisabled(
-            loadingNews
-                ? "Loading recent business articles..."
-                : "No business articles discovered for this symbol over the past 7 days.");
+        const char* emptyNewsMessage = loadingNews
+                                           ? "Loading recent business articles..."
+                                           : !HasFinnhubApiKey()
+                                                 ? "No Finnhub API key. Add one in Settings to load recent business articles."
+                                                 : "No business articles discovered for this symbol over the past 7 days.";
+        ImGui::TextDisabled("%s", emptyNewsMessage);
     } else {
         RenderNewsList(state, ctx);
     }

@@ -78,7 +78,7 @@ bool OpenNotificationStock(AppState& state, const std::string& ticker) {
 }
 
 void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
-    if (state.alerts.ToastCount() == 0 || state.StartupAnimationVisible())
+    if (state.alerts.ToastCount() == 0)
         return;
 
     const auto now = std::chrono::steady_clock::now();

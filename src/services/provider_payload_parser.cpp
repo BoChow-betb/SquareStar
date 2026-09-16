@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "yyjson.h"
+#include "services/yyjson_document_heap.hpp"
 
 namespace squarestar::providers {
 namespace {
@@ -21,9 +22,11 @@ namespace {
 constexpr double kEpochSecondsUpperBoundExclusive = 9223372036854775808.0;
 
 struct JsonDocumentDeleter {
-    void operator()(yyjson_doc* document) const noexcept {
+    squarestar::json_memory::AllocatorOwner allocationOwner{};
+    void operator()(yyjson_doc* document) noexcept {
         if (document)
             yyjson_doc_free(document);
+        squarestar::json_memory::Release(allocationOwner);
     }
 };
 
@@ -32,7 +35,21 @@ using JsonDocument = std::unique_ptr<yyjson_doc, JsonDocumentDeleter>;
 JsonDocument ParseJson(std::string_view payload) {
     if (payload.empty())
         return {};
-    return JsonDocument(yyjson_read(payload.data(), payload.size(), YYJSON_READ_NOFLAG));
+    yyjson_alc allocator{};
+    squarestar::json_memory::AllocatorOwner owner{};
+    const yyjson_alc* selected =
+        squarestar::json_memory::Initialize(allocator, owner);
+    yyjson_doc* document = yyjson_read_opts(
+        const_cast<char*>(payload.data()),
+        payload.size(),
+        YYJSON_READ_NOFLAG,
+        selected,
+        nullptr);
+    if (!document) {
+        squarestar::json_memory::Release(owner);
+        return {};
+    }
+    return JsonDocument(document, JsonDocumentDeleter{owner});
 }
 
 JsonDocument ParseJsonInSitu(std::string& payload) {
@@ -40,8 +57,17 @@ JsonDocument ParseJsonInSitu(std::string& payload) {
         return {};
     const size_t payloadSize = payload.size();
     payload.resize(payloadSize + YYJSON_PADDING_SIZE, '\0');
-    return JsonDocument(yyjson_read_opts(
-        payload.data(), payloadSize, YYJSON_READ_INSITU, nullptr, nullptr));
+    yyjson_alc allocator{};
+    squarestar::json_memory::AllocatorOwner owner{};
+    const yyjson_alc* selected =
+        squarestar::json_memory::Initialize(allocator, owner);
+    yyjson_doc* document = yyjson_read_opts(
+        payload.data(), payloadSize, YYJSON_READ_INSITU, selected, nullptr);
+    if (!document) {
+        squarestar::json_memory::Release(owner);
+        return {};
+    }
+    return JsonDocument(document, JsonDocumentDeleter{owner});
 }
 
 yyjson_val* ObjectMember(yyjson_val* object, const char* key) {

@@ -31,10 +31,6 @@ struct MainLoopState {
     // frame. Continuous animations request their own redraws explicitly.
     unsigned inputSettleFramesRemaining = 0;
     std::time_t lastPriceAlertMuteCheckSecond = 0;
-    // Trim only while idle; never compete with animation or direct input.
-    std::chrono::steady_clock::time_point memoryTrimIdleSince =
-        std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point lastMemoryTrimAt{};
 };
 
 void RenderMainGuiFrame(GLFWwindow* window,

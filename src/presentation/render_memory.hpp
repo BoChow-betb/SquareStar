@@ -12,6 +12,5 @@ void ClearApplicationFontPointers(squarestar::application::AppRenderCache& state
 void RebuildApplicationFonts(squarestar::application::AppState& state);
 void ReleaseContextRenderMemory(squarestar::application::StockContext& context);
 void ReleaseGuiStateRenderMemory(squarestar::application::AppState& state);
-void CompactGuiTransientMemory();
 
 } // namespace squarestar::presentation
