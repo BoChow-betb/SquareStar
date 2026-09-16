@@ -53,4 +53,4 @@ const StockRequestGeneration& StockRequestCoordinator::State(
     return generations_[Index(channel)];
 }
 
-} // namespace squarestar::application
+}

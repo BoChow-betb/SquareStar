@@ -101,7 +101,7 @@ std::shared_ptr<LatestScreenerJobExecutor> Executor() {
     return g_Executor;
 }
 
-} // namespace
+}
 
 bool SubmitLatestScreenerJob(std::function<void()> job) {
     const auto executor = Executor();
@@ -124,4 +124,4 @@ bool ScreenerJobBusy() noexcept {
     return g_Executor && g_Executor->Busy();
 }
 
-} // namespace squarestar::application
+}

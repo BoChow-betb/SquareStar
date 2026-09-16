@@ -22,7 +22,7 @@ double NiceAxisStepCeil(double rawStep) {
     return niceFraction * magnitude;
 }
 
-} // namespace
+}
 
 std::string FormatAxisTickValue(double value) {
     if (!std::isfinite(value))
@@ -89,8 +89,8 @@ UnifiedYAxis CalculateUnifiedYAxis(double lowestValue,
     const double paddedHigh = highestValue + padding;
     const double rawMedian = (lowestValue + highestValue) * 0.5;
     const double requiredHalfSpan = std::max(rawMedian - paddedLow, paddedHigh - rawMedian);
-    // Price charts use four intervals. A half-unit floor keeps flat and nearly
-    // flat quotes readable without emitting unstable sub-cent tick labels.
+
+
     constexpr double minimumPriceStep = 0.5;
     double step = std::max(minimumPriceStep,
                            NiceAxisStepCeil(requiredHalfSpan / 2.0));
@@ -122,4 +122,4 @@ UnifiedYAxis CalculateUnifiedYAxis(double lowestValue,
     return axis;
 }
 
-} // namespace squarestar::presentation
+}

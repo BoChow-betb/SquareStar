@@ -55,7 +55,7 @@ void SetBuiltInThemePreset(AppConfig& state, int mode) {
         setColor(state.theme.panelAlt, 0.15f, 0.15f, 0.18f);
         setColor(state.theme.sidebarBg, 0.12f, 0.12f, 0.14f);
         setColor(
-            state.theme.monitorBg, 0.07f, 0.07f, 0.08f); // black/dark stays exclusive to dark mode
+            state.theme.monitorBg, 0.07f, 0.07f, 0.08f);
         setColor(state.theme.grid, 1.0f, 1.0f, 1.0f, 0.055f);
         setColor(state.theme.searchBg, 0.20f, 0.20f, 0.20f);
         setColor(state.theme.searchHover, 0.25f, 0.25f, 0.25f);
@@ -97,7 +97,7 @@ void SetBuiltInThemePreset(AppConfig& state, int mode) {
         setColor(state.theme.panel, 1.0f, 1.0f, 1.0f);
         setColor(state.theme.panelAlt, 0.96f, 0.96f, 0.97f);
         setColor(state.theme.sidebarBg, 0.92f, 0.92f, 0.92f);
-        setColor(state.theme.monitorBg, 1.0f, 1.0f, 1.0f); // monitor light mode is solid white
+        setColor(state.theme.monitorBg, 1.0f, 1.0f, 1.0f);
         setColor(state.theme.grid, 0.0f, 0.0f, 0.0f, 0.055f);
         setColor(state.theme.searchBg, 0.85f, 0.85f, 0.85f);
         setColor(state.theme.searchHover, 0.80f, 0.80f, 0.80f);
@@ -145,4 +145,4 @@ void SetThemePreset(AppConfig& state, int mode) {
     SetBuiltInThemePreset(state, mode);
 }
 
-} // namespace squarestar::application
+}

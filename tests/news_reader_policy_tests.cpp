@@ -15,7 +15,7 @@ void Require(bool condition, const char* message) {
     }
 }
 
-} // namespace
+}
 
 int main() {
     using namespace squarestar::market;

@@ -27,7 +27,7 @@ squarestar::application::StockMoveNotification Move(const char* ticker,
     return row;
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::application::NativeNotificationChannel;

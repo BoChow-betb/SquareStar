@@ -17,10 +17,9 @@
 namespace squarestar::providers {
 
 std::string BuildYahooFiftyTwoWeekScreenerBody(bool gainers, std::size_t limit) {
-    // Match Yahoo Finance's stock 52-week screens: US equities, >= $2B market
-    // cap, >= 15K volume, and the seven mainstream US listing venues shown by
-    // the Yahoo screener UI. The direction and sort use actual 52-week % change.
-    const std::size_t size = std::min<std::size_t>(limit, 250);
+
+
+const std::size_t size = std::min<std::size_t>(limit, 250);
     const char* comparison = gainers ? "GTE" : "LTE";
     const char* sortType = gainers ? "DESC" : "ASC";
     std::string body;
@@ -56,8 +55,7 @@ using squarestar::market::FindScreenerRouteByGuiId;
 using squarestar::market::ScreenerRoute;
 using squarestar::market::YahooSymbolKey;
 
-// Queue the visible fullscreen page in one wave; the batch executor still
-// enforces the network concurrency limit.
+
 constexpr std::size_t kMaximumQueuedChartRequestsPerWave =
     squarestar::application::kMaximizedOverviewRows;
 
@@ -243,10 +241,9 @@ bool FetchYahooTrendingQuoteBatches(
             continue;
         ApplyYahooEquityQuoteResponsePayload(
             std::move(response.body), itemIndex, items, equitySymbols);
-        // Publish only rows already confirmed as equities. The quote batches are
-        // queued together, so the first visible page can appear as soon as the
-        // first batch resolves without exposing crypto/unresolved candidates.
-        if (!PublishTrendingEquityProgress(
+
+
+if (!PublishTrendingEquityProgress(
                 items, equitySymbols, limit, dependencies)) {
             cancelledDuringBatch = true;
         }
@@ -273,12 +270,8 @@ std::vector<ScreenerItem> FetchYahooWatchlist(
         items.push_back(std::move(item));
     }
 
-    // Watchlist rows are user-curated and stable. Do not publish a symbol-only
-    // placeholder and then replace the company column a fraction of a second
-    // later. Resolve quote/name batches off-screen and publish the list as one
-    // coherent snapshot. Same-route refreshes already keep the previous complete
-    // snapshot visible until this replacement is ready.
-    ScreenerFetchDependencies stableDependencies = dependencies;
+
+ScreenerFetchDependencies stableDependencies = dependencies;
     stableDependencies.publishPartial = {};
     if (!FetchYahooQuoteBatches(yahooSymbols,
                                 itemIndex,
@@ -322,11 +315,8 @@ std::vector<ScreenerItem> FetchYahooTrendingScreener(
         (!dependencies.queueYahooAuthenticatedGet && !dependencies.queueBatchHttpGet))
         return items;
 
-    // Yahoo's trending feed is multi-asset. The stock page keeps the feed's
-    // ranking but removes non-equities. Do that from quoteType, not ticker
-    // suffix heuristics (which would miss crypto and other
-    // future non-stock instruments).
-    const std::size_t candidateLimit = std::min<std::size_t>(
+
+const std::size_t candidateLimit = std::min<std::size_t>(
         100, std::max<std::size_t>(25, limit));
     const std::string suffix =
         "/v1/finance/trending/US?lang=en-US&region=US&count=" +
@@ -355,8 +345,8 @@ std::vector<ScreenerItem> FetchYahooTrendingScreener(
     }
     std::unordered_set<std::string> equitySymbols;
     equitySymbols.reserve(yahooSymbols.size());
-    // Trending is multi-asset. Resolve quoteType in batches and publish only
-    // confirmed equities so crypto rows never flash in the table.
+
+
     if (!FetchYahooTrendingQuoteBatches(yahooSymbols,
                                         itemIndex,
                                         items,
@@ -499,11 +489,8 @@ bool FetchTrendWaveWithFallback(std::vector<ScreenerItem>& items,
         if (Cancelled(cancelled) || !publicationAccepted)
             continue;
 
-        // A slow primary is not a failure signal. Starting a second transfer
-        // merely because 175 ms elapsed doubled Yahoo traffic during upstream
-        // latency incidents. Only fail over after the primary has completed
-        // unsuccessfully, so at most one host is in flight per symbol.
-        if (!response.IsSuccess()) {
+
+if (!response.IsSuccess()) {
             response = AwaitHttpResponse(QueueBatchGet(
                 request.secondaryUrl, cancelled, dependencies));
         }
@@ -514,15 +501,15 @@ bool FetchTrendWaveWithFallback(std::vector<ScreenerItem>& items,
             ApplyYahooScreenerChartPayload(
                 std::move(response.body), items[request.index], true);
         }
-        // Mark the attempt complete only after the request resolves so in-flight rows
-        // stay pending instead of briefly showing N/A.
+
+
         items[request.index].sparklineAttempted = true;
         publicationAccepted = PublishPartial(items, dependencies);
     }
     return !Cancelled(cancelled) && publicationAccepted;
 }
 
-} // namespace
+}
 
 bool EnrichMarketScreenerSparklines(
     std::vector<ScreenerItem>& items,
@@ -535,9 +522,8 @@ bool EnrichMarketScreenerSparklines(
         !dependencies.queueBatchHttpGet)
         return !Cancelled(cancelled);
 
-    // Match the largest Overview page exactly so every visible row receives
-    // a 5D trend without spending requests on the next page.
-    constexpr std::size_t kMaximumRowsPerTrendPass =
+
+constexpr std::size_t kMaximumRowsPerTrendPass =
         squarestar::application::kMaximizedOverviewRows;
     const std::size_t end = std::min(
         items.size(), firstIndex + std::min(count, kMaximumRowsPerTrendPass));
@@ -589,4 +575,4 @@ bool FetchMarketScreener(const std::string& guiId,
     return true;
 }
 
-} // namespace squarestar::providers
+}

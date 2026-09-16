@@ -50,4 +50,4 @@ std::string EllipsizeTextBinary(const std::string& text, float maxWidth) {
     return text.substr(0, lo) + suffix;
 }
 
-} // namespace squarestar::presentation
+}

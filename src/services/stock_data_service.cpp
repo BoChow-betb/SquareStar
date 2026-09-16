@@ -73,8 +73,8 @@ static void RememberHttpFailure(const HttpResponse& response,
     summary.rateLimited = summary.rateLimited || response.statusCode == 429;
     if (response.error == HttpError::None)
         return;
-    // A transport failure is more actionable than an HTTP status from a
-    // different fallback provider. Otherwise retain the first concrete cause.
+
+
     if (summary.error == HttpError::None ||
         (summary.error == HttpError::HttpStatus && response.error != HttpError::HttpStatus)) {
         summary.error = response.error;
@@ -117,8 +117,8 @@ static std::string TakeBody(HttpResponse response,
                             const char* operation) {
     if (!response.IsSuccess()) {
         RememberHttpFailure(response, failures);
-        // 404 is normal negative ticker evidence and cancellation is normal
-        // lifecycle control; neither belongs in a release failure log.
+
+
         if (response.statusCode != 404 && response.error != HttpError::Cancelled) {
             squarestar::diagnostics::WriteDiagnosticEvent(
                 {provider,
@@ -138,7 +138,7 @@ static const char* StockFetchHttpFailureMessage(const HttpFailureSummary& failur
             return "Market-data provider unavailable";
         if (failure.statusCode == 401 || failure.statusCode == 403)
             return "Market-data provider rejected the request";
-        // A 404 is valid negative ticker evidence, not a network diagnosis.
+
         if (failure.statusCode == 404)
             return "";
     }
@@ -165,7 +165,7 @@ std::string CompanyNewsUrl(const std::string& ticker,
            "&from=" + from + "&to=" + to + "&token=" + encodedApiKey;
 }
 
-} // namespace
+}
 
 namespace {
 
@@ -351,7 +351,7 @@ void FailPendingAlertQuoteBatch(std::exception_ptr error) noexcept {
     }
 }
 
-} // namespace
+}
 
 std::future<StockFetchResult> QueueAlertQuoteRequest(const std::string& ticker) {
     auto waiter = std::make_shared<AlertQuoteWaiter>();
@@ -582,9 +582,8 @@ void ProbeHistoricalTradingStatus(const std::string& yahooTicker,
         return;
     }
 
-    // Only classify a stopped symbol when both recent-range requests produced
-    // authoritative answers. A transport outage must never look like a delist.
-    if (oneDay.answered && fiveDay.answered) {
+
+if (oneDay.answered && fiveDay.answered) {
         result.tradingStatus.chartAvailability =
             ChartAvailability::TradingStoppedWithHistory;
         result.tradingStatus.corporateAction =
@@ -615,7 +614,7 @@ void SetFullLoadFailureMessage(StockData& result,
     }
 }
 
-} // namespace
+}
 
 StockFetchResult FetchStockData(
     const std::string& ticker,
@@ -664,10 +663,9 @@ StockFetchResult FetchStockData(
     }
     const bool fullLoad = kind == FetchKind::Full;
     const bool detailsLoad = kind == FetchKind::Details;
-    // A lean full load gets the chart series from Yahoo Chart and the session
-    // quote from Yahoo Quote. Finnhub stays off the normal critical path and is
-    // retained only as a fallback when the authoritative quote request fails.
-    const bool leanCoreLoad = fullLoad && detailMask == 0;
+
+
+const bool leanCoreLoad = fullLoad && detailMask == 0;
     const bool needChart = fullLoad || kind == FetchKind::Chart;
     const bool needLiveQuote = kind == FetchKind::LiveQuote ||
                                kind == FetchKind::AlertQuote ||
@@ -715,17 +713,16 @@ StockFetchResult FetchStockData(
             QueueHttpGet("https://finnhub.io/api/v1/stock/profile2?symbol=" + finnhubTicker +
                          "&token=" + apiKey);
     }
-    // Session quote fields come from the quote endpoint, never from chart-range
-    // metadata. Full loads request it concurrently with the chart.
+
+
     const bool needYahooQuote =
         fullLoad || needLiveQuote || (detailsLoad && wantMetrics);
     if (needYahooQuote) {
         std::string url =
             "https://query1.finance.yahoo.com/v7/finance/quote?symbols=" + yahooTicker;
-        // Yahoo's quote endpoint requires the cookie/crumb session. Prefer
-        // correctness over sharing this request through the generic single-flight
-        // transport; Finnhub still retains single-flight deduplication.
-        yQuoteFuture = QueueYahooAuthenticatedGet(std::move(url)).share();
+
+
+yQuoteFuture = QueueYahooAuthenticatedGet(std::move(url)).share();
     }
     if (hasFinnhubKey && wantNews && !yahooOnlyInstrument) {
         newsFuture = QueueHttpGet(CompanyNewsUrl(finnhubTicker, apiKey, 7));
@@ -754,10 +751,9 @@ StockFetchResult FetchStockData(
     if (newsFuture.valid())
         newsRaw = TakeBody(
             newsFuture.get(), httpFailures, "finnhub", "stock-news");
-    // A clear or replacement invalidates responses started with the previous
-    // credential. Yahoo data remains usable, but stale Finnhub payloads must
-    // not be published after the key changes.
-    if (!IsApiKeyRevisionCurrent(apiKeyRevision)) {
+
+
+if (!IsApiKeyRevisionCurrent(apiKeyRevision)) {
         fhQuoteRaw.clear();
         fhMetricsRaw.clear();
         fhProfileRaw.clear();
@@ -780,20 +776,17 @@ StockFetchResult FetchStockData(
             requestedChart.missing = retry.missing;
         }
         chartApplied = requestedChart.applied;
-        // A missing intraday series is not enough evidence to classify a symbol
-        // as unavailable. Full initial loads try progressively wider ranges.
+
+
         if (!chartApplied && fullLoad && timeRangeIndex == 0) {
             chartApplied = RecoverInitialChartRange(
                 yahooTicker, requestedChart.answered, httpFailures, fetch);
         } else if (chartApplied) {
             result.tradingStatus.chartAvailability =
                 ChartAvailability::ActiveSelectedRange;
-            // A saved 1M/1Y/5Y/All tab can still render historical data after
-            // the company stops trading. If Yahoo's quote is missing or stale,
-            // probe 1D and 5D without replacing the user's selected chart. This
-            // keeps corporate-action detection alive after restarts and range
-            // changes instead of only detecting delists from an initial 1D load.
-            if (fullLoad && timeRangeIndex >= 2 && !yahooOnlyInstrument &&
+
+
+if (fullLoad && timeRangeIndex >= 2 && !yahooOnlyInstrument &&
                 !HasRecentYahooQuoteSnapshot(yQuoteRaw, std::time(nullptr))) {
                 ProbeHistoricalTradingStatus(
                     yahooTicker, httpFailures, result);
@@ -814,10 +807,9 @@ StockFetchResult FetchStockData(
         ChartAvailability::TradingStoppedWithHistory;
     if (needsCorporateActionEvidence && newsRaw.empty() && hasFinnhubKey &&
         !yahooOnlyInstrument && IsApiKeyRevisionCurrent(apiKeyRevision)) {
-        // A slightly wider window than the normal news surface catches a
-        // completed transaction followed by a holiday/weekend while remaining
-        // bounded and cheap. Classification still requires explicit wording.
-        newsRaw = TakeBody(
+
+
+newsRaw = TakeBody(
             QueueHttpGet(CompanyNewsUrl(finnhubTicker, apiKey, 14)).get(),
             httpFailures,
             "finnhub",
@@ -826,10 +818,8 @@ StockFetchResult FetchStockData(
             newsRaw.clear();
     }
 
-    // If Yahoo's authoritative quote failed, retain the existing Finnhub
-    // fallback for lean full loads. Avoid issuing both quote requests when Yahoo
-    // already answered successfully.
-    if (leanCoreLoad && !yahooOnlyInstrument && yQuoteRaw.empty() &&
+
+if (leanCoreLoad && !yahooOnlyInstrument && yQuoteRaw.empty() &&
         (!chartApplied || result.previousClose <= 0.0) && fhQuoteRaw.empty() &&
         hasFinnhubKey && IsApiKeyRevisionCurrent(apiKeyRevision)) {
         fhQuoteRaw = TakeBody(
@@ -864,11 +854,9 @@ StockFetchResult FetchStockData(
         return finish();
     }
     if (detailsLoad) {
-        // A Yahoo quote can still provide the core market-cap / P-E / volume /
-        // 52-week metrics when Finnhub's optional metric endpoint times out.
-        // Keep the Finnhub detail bit unresolved in that case so the caller can
-        // retry it later for fields such as beta and dividend yield.
-        const bool hasMetricFallback = wantMetrics && HasAnyMarketMetricData(result);
+
+
+const bool hasMetricFallback = wantMetrics && HasAnyMarketMetricData(result);
         result.success = result.resolvedDetailMask != 0 || hasMetricFallback;
         if (!result.success)
             result.errorMessage = "Unable to refresh optional stock details";
@@ -885,4 +873,4 @@ StockFetchResult FetchStockData(
     return fetch;
 }
 
-} // namespace squarestar::marketdata
+}

@@ -70,7 +70,7 @@ int ResourceIdForName(std::string_view name) noexcept {
 }
 #endif
 
-} // namespace
+}
 
 EmbeddedResourceView FindEmbeddedResource(std::string_view name) noexcept {
 #ifdef _WIN32
@@ -96,4 +96,4 @@ EmbeddedResourceView FindEmbeddedResource(std::string_view name) noexcept {
 #endif
 }
 
-} // namespace squarestar::platform
+}

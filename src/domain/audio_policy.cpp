@@ -27,4 +27,4 @@ AppSoundPolicy AppSoundPolicyFor(std::string_view filename) noexcept {
     return {"", filename.empty() ? 0 : 50, std::chrono::milliseconds(80)};
 }
 
-} // namespace squarestar::audio
+}

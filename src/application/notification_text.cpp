@@ -106,4 +106,4 @@ BackgroundNotificationText FormatBackgroundStockMoves(
     return result;
 }
 
-} // namespace squarestar::application
+}

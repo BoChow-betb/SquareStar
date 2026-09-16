@@ -16,7 +16,7 @@ SymbolSearchService& RuntimeService() {
             return squarestar::http::UrlEncode(std::string(value));
         },
         [](std::string url) {
-            // Route HTTP through the shared lane; the search worker only parses and ranks.
+
             const squarestar::http::HttpResponse response =
                 QueueRealtimeHttpGet(std::move(url)).get();
             return SymbolSearchHttpResponse{
@@ -26,7 +26,7 @@ SymbolSearchService& RuntimeService() {
     return service;
 }
 
-} // namespace
+}
 
 SymbolSearchService::Results LookupSymbols(std::string_view query) {
     return RuntimeService().Lookup(query, false);
@@ -36,4 +36,4 @@ void ClearSymbolSearchCache() {
     RuntimeService().ClearCache();
 }
 
-} // namespace squarestar::search
+}

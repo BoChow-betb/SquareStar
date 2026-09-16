@@ -74,12 +74,9 @@ void RenderSingleStockWindowContent(AppState& state,
     float dt = std::min(rawDt, 1.0f / 30.0f);
     const bool cleanGuiCapture = IsCleanGuiCaptureFrame();
     const ImVec2 stockCaptureMin = ImGui::GetCursorScreenPos();
-    // A market quote is data, not an animation target. Interpolating the numeric
-    // value makes one fixed provider quote appear as a stream of fake prices
-    // (especially noticeable immediately after search while the market is closed).
-    // Snap the displayed number to the published quote; priceFlashAnim below
-    // still provides visual feedback when a real quote update arrives.
-    ctx.render.displayPrice = ctx.RawData().currentPrice;
+
+
+ctx.render.displayPrice = ctx.RawData().currentPrice;
     float targetFetchAnim = ctx.requests.isLoading ? 1.0f : 0.0f;
     if (state.UiAnimationsEnabled()) {
         ctx.render.loadingBlockAnim += (targetFetchAnim - ctx.render.loadingBlockAnim) * dt * 14.0f;
@@ -148,11 +145,9 @@ void RenderSingleStockWindowContent(AppState& state,
                  ? ctx.RawData().chartPreviousClose
                  : dailyPreviousClose;
         if (pC > 0.0) {
-            // Keep the normal GUI and LiteGUI aligned to the currently
-            // displayed chart range. Yahoo's chartPreviousClose is the close
-            // immediately before that range, so the line, gain/loss label and
-            // chart direction all share one range-aware baseline.
-            const double rangeCurrentPrice = ctx.RawData().currentPrice;
+
+
+const double rangeCurrentPrice = ctx.RawData().currentPrice;
             diff = rangeCurrentPrice - pC;
             pct = (diff / pC) * 100.0;
             const double neutralEpsilon = std::max(1e-8, std::abs(pC) * 1e-8);
@@ -208,8 +203,8 @@ void RenderSingleStockWindowContent(AppState& state,
     }
     if (compactLite) {
         RenderStockTabBar(state, ctx, cleanGuiCapture);
-        // Lite mode can otherwise settle immediately after a click, leaving the
-        // selected tab queued until an unrelated event wakes another frame.
+
+
         ApplyPendingUpperTab();
         ImGui::Dummy(ImVec2(0.0f, 6.0f));
     } else {
@@ -251,4 +246,4 @@ void RenderSingleStockWindowContent(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

@@ -23,4 +23,4 @@ TransientNoticeAnimationStep AdvanceTransientNoticeAnimation(float current,
                                                               bool animEnabled,
                                                               float speed = 18.0f) noexcept;
 
-} // namespace squarestar::application
+}

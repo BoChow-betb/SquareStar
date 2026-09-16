@@ -11,4 +11,4 @@ void RenderCreditsModal(squarestar::application::AppState& state,
 void RenderClearDataModal(squarestar::application::AppState& state,
                           bool openSavedDataModal);
 
-} // namespace squarestar::shell
+}

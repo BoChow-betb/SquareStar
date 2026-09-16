@@ -53,13 +53,11 @@ void RenderGuiSurface(GLFWwindow* window, AppState& state) {
 
     RenderCurrencyPickerPopup(state);
 
-    // Foreground feedback is a shell overlay, not a feature owned by either
-    // full GUI or LiteGUI. Keeping the single call here guarantees both modes
-    // render the exact same notification cards and interaction actions.
-    RenderForegroundNotifications(state, ImGui::GetMainViewport());
+
+RenderForegroundNotifications(state, ImGui::GetMainViewport());
 }
 
-} // namespace
+}
 
 void RenderMainGuiFrame(GLFWwindow* window,
                                AppState& state,
@@ -107,10 +105,9 @@ void RenderMainGuiFrame(GLFWwindow* window,
         ImGui::GetIO().DeltaTime = 1.0f / 60.0f;
     ImGui::NewFrame();
     RenderGuiSurface(window, state);
-    // ImGui's GLFW backend normally updates the native cursor before
-    // ImGui::NewFrame(), so an event-driven loop can expose a one-frame cursor
-    // delay. Apply the cursor selected by this frame immediately.
-    ImGui_ImplGlfw_UpdateMouseCursor();
+
+
+ImGui_ImplGlfw_UpdateMouseCursor();
     ImGui::Render();
     int display_w = 0, display_h = 0;
     glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -125,10 +122,9 @@ void RenderMainGuiFrame(GLFWwindow* window,
     }
 #ifdef IMGUI_HAS_VIEWPORT
     if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0) {
-        // Detached LiteGUI search results are real platform windows. Create,
-        // size and render those after the main swap chain, matching Dear
-        // ImGui's standard multi-viewport frame order.
-        ImGui::UpdatePlatformWindows();
+
+
+ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
 #endif
@@ -157,4 +153,4 @@ void RenderMainGuiFrame(GLFWwindow* window,
 }
 
 
-} // namespace squarestar::shell
+}

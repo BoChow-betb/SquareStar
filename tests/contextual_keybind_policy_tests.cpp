@@ -10,7 +10,7 @@ void Check(bool condition, const char* message) {
     std::cerr << "FAILED: " << message << '\n';
     std::exit(1);
 }
-} // namespace
+}
 
 int main() {
     using namespace squarestar::application;

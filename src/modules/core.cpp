@@ -52,10 +52,7 @@ using squarestar::platform::AppSoundDurationSeconds;
 using squarestar::platform::StopAllAppAudio;
 using squarestar::platform::PlayAppSoundRuntime;
 
-// 36 px title bar + 16 px top margin + 40 px search bar + 16 px bottom margin.
-// Search suggestions and LiteGUI confirmation dialogs use owned platform
-// overlays, so the compact native host does not grow merely to contain them.
-// Market ranges, world-clock zones, and cached market status compile independently.
+
 ImVec4 ThemeVec(const float (&c)[4], float alpha) {
     return ImVec4(c[0], c[1], c[2], alpha >= 0.0f ? alpha : c[3]);
 }
@@ -277,7 +274,7 @@ void DrawIcon(ImDrawList* dl, ImVec2 center, float size, int type, ImU32 color) 
                     color,
                     1.5f);
     } else if (type == 15) {
-        // Speedometer gauge.
+
         const ImVec2 gaugeCenter(center.x, center.y + r * 0.28f);
         dl->PathArcTo(gaugeCenter, r * 0.86f, IM_PI, 2.0f * IM_PI, 20);
         dl->PathStroke(color, 0, 1.8f);
@@ -293,7 +290,7 @@ void DrawIcon(ImDrawList* dl, ImVec2 center, float size, int type, ImU32 color) 
                     2.2f);
         dl->AddCircleFilled(gaugeCenter, r * 0.13f, color);
     } else if (type == 16) {
-        // Notification bell used by the global price-alert manager.
+
         const float bellTop = center.y - r * 0.62f;
         const float bellBottom = center.y + r * 0.42f;
         dl->PathLineTo(ImVec2(center.x - r * 0.62f, bellBottom));
@@ -479,10 +476,9 @@ void EndAnimatedFloatingMenu() {
 ImVec2 ClampPopupPosition(ImGuiViewport* viewport, ImVec2 position, ImVec2 size) {
     ImGuiViewport* boundsViewport = viewport ? viewport : ImGui::GetMainViewport();
     const ImVec2 boundsMin = boundsViewport->WorkPos;
-    // Animated context menus rise by as much as eight pixels while opening.
-    // Keep that travel inside the viewport so the top rows and focus cutout do
-    // not get clipped during the transition.
-    constexpr float margin = 14.0f;
+
+
+constexpr float margin = 14.0f;
     const auto clamped = squarestar::presentation::ClampWindowToBounds(
         {position.x, position.y},
         {size.x, size.y},
@@ -547,10 +543,8 @@ bool BeginClampedContextMenu(const AppState& state,
     if (!enabled)
         return false;
 
-    // Keep chart context menus in the same animated window system as the rest
-    // of the UI. Besides providing a smooth open/close transition, this lets
-    // the object-focus overlay treat the menu as the active surface.
-    ImGuiStorage* ownerStorage = ImGui::GetStateStorage();
+
+ImGuiStorage* ownerStorage = ImGui::GetStateStorage();
     const ImGuiID menuId = ImGui::GetID(id);
     const bool hasActivationRect = activationMax.x > activationMin.x &&
                                    activationMax.y > activationMin.y;
@@ -558,10 +552,9 @@ bool BeginClampedContextMenu(const AppState& state,
         hasActivationRect
             ? ImGui::IsMouseHoveringRect(activationMin, activationMax, false)
             : ImGui::IsItemHovered();
-    // Toggle on the press. Waiting for release made the second activation easy
-    // to lose when the event-driven loop changed the focused ImGui window after
-    // the first context menu had appeared.
-    bool toggleTrigger =
+
+
+bool toggleTrigger =
         activationHovered &&
         ImGui::IsMouseClicked(ImGuiMouseButton_Right, false);
     float* storedX = ownerStorage->GetFloatRef(menuId + 4, ImGui::GetIO().MousePos.x);
@@ -600,8 +593,8 @@ bool BeginClampedContextMenu(const AppState& state,
 bool PlayUISound(const char* filename, const AppState& state) {
     if (!state.config.soundEnabled || !filename)
         return false;
-    // LiteGUI keeps ordinary feedback audio-only. Price alerts use the separate
-    // alert playback path.
+
+
     if (ApplicationRuntime().CurrentUiMode() ==
             squarestar::application::AppUiMode::LiteGui &&
         std::strcmp(filename, "key.wav") != 0 &&
@@ -643,7 +636,7 @@ bool UiCombo(AppState& state,
     bool changed = false;
 
     const bool open = ImGui::BeginCombo(label, preview);
-    // Capture activation before popup rows replace ImGui's last-item state.
+
     if (ImGui::IsItemActivated())
         PlayUISound("click.wav", state);
 
@@ -758,7 +751,7 @@ void PumpPriceAlertSounds(AppState& state) {
             }
             if (now < ctx->alerts.nextPriceAlertSoundAt)
                 continue;
-            // Price alerts still play in LiteGUI even though other UI sounds are filtered.
+
             if (PlayAppSoundRuntime("error.wav")) {
                 --ctx->alerts.priceAlertSoundPlaysRemaining;
                 const double replayDelay =
@@ -776,8 +769,8 @@ void PumpMarketOpenSound(AppState& state) {
     const auto now = std::chrono::steady_clock::now();
     if (now < state.alerts.NextMarketOpenCheckAt())
         return;
-    // Mode changes and network completions have explicit wake events. A 30-second
-    // boundary check is sufficient for the market-open cue.
+
+
     state.alerts.SetNextMarketOpenCheckAt(now + std::chrono::seconds(30));
     const bool marketOpen = CachedMarketOpen();
     const bool marketJustOpened = ShouldPresentMarketOpenNotice(
@@ -841,8 +834,8 @@ void ApplyTheme(const AppState& state) {
     s.FrameBorderSize = state.ZeroGraphicsEnabled() ? 0.0f : t.frameBorderSize;
     s.TabBorderSize = state.ZeroGraphicsEnabled() ? 0.0f : t.tabBorderSize;
 #if IMGUI_VERSION_NUM >= 19090
-    // The tab fill already communicates selection; the newer ImGui overline
-    // added a redundant top stroke that looked like a stray border.
+
+
     s.TabBarOverlineSize = 0.0f;
 #endif
     s.AntiAliasedLines = !state.ZeroGraphicsEnabled();
@@ -1008,6 +1001,6 @@ bool RenderUnifiedLink(const AppState& state,
     ImGui::PopID();
     return clicked;
 }
-// JSON escaping and API-key protection compile in standalone domain/service components.
 
-} // namespace squarestar::shell
+
+}

@@ -52,4 +52,4 @@ struct AppConfig {
     std::map<TerminalAction, KeyBind> KeyBinds;
 };
 
-} // namespace squarestar::application
+}

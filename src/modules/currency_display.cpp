@@ -82,10 +82,8 @@ std::future<CurrencyRateResult> QueueYahooCurrencyRate(std::string currency) {
                     squarestar::http::HttpError::None;
                 long lastStatus = 0;
 
-                // Prefer Yahoo's quote endpoint because its regularMarketPrice
-                // is the same quote field used by the stock header. This is the
-                // closest basis to the number users compare against on Yahoo.
-                try {
+
+try {
                     std::string quoteUrl =
                         "https://query1.finance.yahoo.com/v7/finance/quote?symbols=" +
                         symbol;
@@ -117,9 +115,8 @@ std::future<CurrencyRateResult> QueueYahooCurrencyRate(std::string currency) {
                     result.errorMessage = "Yahoo currency quote request failed";
                 }
 
-                // Public chart metadata is a Yahoo-only fallback when the
-                // cookie/crumb quote session is unavailable.
-                for (const char* host : {"query1.finance.yahoo.com",
+
+for (const char* host : {"query1.finance.yahoo.com",
                                          "query2.finance.yahoo.com"}) {
                     const std::string url =
                         std::string("https://") + host + "/v8/finance/chart/" +
@@ -202,8 +199,8 @@ void SelectDisplayCurrency(AppState& state, std::string_view currency) {
     runtime.initialized = true;
 
     if (currency == "USD") {
-        // Abandon any in-flight selection. The background transfer may finish,
-        // but dropping this future makes its result unable to mutate UI state.
+
+
         runtime.pendingRequest = {};
         runtime.requestPending = false;
         runtime.switchingCurrency = false;
@@ -232,9 +229,8 @@ void SelectDisplayCurrency(AppState& state, std::string_view currency) {
         return;
     }
 
-    // A newly selected unit must never display a stale USD number under the new
-    // label. Mark this as a switch so rendering waits for the matching FX quote.
-    runtime.pendingRequest = {};
+
+runtime.pendingRequest = {};
     runtime.requestPending = false;
     BeginCurrencyRequest(state, currency, true);
 }
@@ -290,7 +286,7 @@ void CompleteCurrencyRequest(AppState& state) {
     }
 }
 
-} // namespace
+}
 
 void PumpDisplayCurrency(AppState& state) {
     auto& runtime = state.marketData.currencyDisplay;
@@ -311,8 +307,8 @@ void PumpDisplayCurrency(AppState& state) {
     const auto now = std::chrono::steady_clock::now();
     if (runtime.lastAttemptAt == std::chrono::steady_clock::time_point{} ||
         now - runtime.lastAttemptAt >= kCurrencyRateRefreshInterval) {
-        // Refresh in place: keep showing the last valid rate until the new
-        // Yahoo snapshot arrives, rather than blanking the user's prices.
+
+
         BeginCurrencyRequest(state, runtime.activeCurrency, false);
     }
 }
@@ -362,10 +358,9 @@ void OpenCurrencyPicker(AppState& state,
                         ImVec2 anchorMax,
                         ImGuiViewport* viewport) {
     PlayUISound("click.wav", state);
-    // Opening the unit picker is an idempotent request, not a toggle. Clear any
-    // stale/fading animated-menu state first so a fresh LiteGUI click can never
-    // be interpreted as "close the picker" while still playing click.wav.
-    CloseAllAnimatedFloatingMenus();
+
+
+CloseAllAnimatedFloatingMenus();
     g_CurrencyPicker.openRequested = true;
     g_CurrencyPicker.anchorMin = anchorMin;
     g_CurrencyPicker.anchorMax = anchorMax;
@@ -410,10 +405,8 @@ void RenderCurrencyPickerPopup(AppState& state) {
     if (!viewport)
         viewport = ImGui::GetMainViewport();
 
-    // Render from a stable, input-transparent host window. The selector can be
-    // activated from either the screener table or a stock header, but both
-    // source windows may already be closed by the time shell overlays render.
-    ImGui::SetNextWindowPos(viewport->Pos, ImGuiCond_Always);
+
+ImGui::SetNextWindowPos(viewport->Pos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(viewport->Size, ImGuiCond_Always);
 #ifdef IMGUI_HAS_VIEWPORT
     ImGui::SetNextWindowViewport(viewport->ID);
@@ -452,10 +445,9 @@ void RenderCurrencyPickerPopup(AppState& state) {
         (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0;
     ImGuiWindowClass pickerWindowClass;
     if (detachedLitePicker) {
-        // LiteGUI is a fixed compact native host. Keep the upward-opening
-        // currency list in its own owned borderless viewport so it cannot be
-        // clipped or hidden by the LiteGUI platform window.
-        pickerWindowClass.ParentViewportId = viewport->ID;
+
+
+pickerWindowClass.ParentViewportId = viewport->ID;
         pickerWindowClass.ViewportFlagsOverrideSet =
             ImGuiViewportFlags_NoAutoMerge |
             ImGuiViewportFlags_NoDecoration |
@@ -502,4 +494,4 @@ void RenderCurrencyPickerPopup(AppState& state) {
     ImGui::End();
 }
 
-} // namespace squarestar::shell
+}

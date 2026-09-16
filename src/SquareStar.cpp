@@ -1,5 +1,5 @@
-// SquareStar
-// Windows GUI application entry point.
+
+
 
 #if __cplusplus < 202002L
 #error SquareStar requires C++20. Compile with C++20 or newer.

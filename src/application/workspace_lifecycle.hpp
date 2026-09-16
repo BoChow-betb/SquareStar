@@ -17,4 +17,4 @@ void RestoreSavedGuiStockTabs(AppState& state,
                               bool keepSavedTabs = false);
 
 
-} // namespace squarestar::application
+}

@@ -139,7 +139,7 @@ int FormatTimeAxisValueForContext(double value,
     return (int)written;
 }
 
-} // namespace
+}
 
 std::pair<double, double> OneDayMarketSessionBounds(std::time_t rawAnchor,
                                                     bool marketTime) {
@@ -301,4 +301,4 @@ void EnsureConfiguredTimeAxisTicks(application::TimeAxisTickCache& cache,
                                  axisSecondsPerUnit);
 }
 
-} // namespace squarestar::presentation
+}

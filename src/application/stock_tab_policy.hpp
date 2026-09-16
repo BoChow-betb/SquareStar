@@ -26,4 +26,4 @@ void PrepareComparisonSelection(AppState& state,
                                 bool requestPicker,
                                 const ComparisonRangeSync& syncRange);
 
-} // namespace squarestar::application
+}

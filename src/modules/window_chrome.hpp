@@ -13,4 +13,4 @@ void RenderCustomTitleBar(GLFWwindow* window,
 void ToggleApplicationFullscreen(GLFWwindow* window,
                                  squarestar::application::AppState& state);
 
-} // namespace squarestar::shell
+}

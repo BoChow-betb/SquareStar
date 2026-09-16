@@ -16,4 +16,4 @@ void RenderStockComparison(squarestar::application::AppState& state,
                            squarestar::application::StockContext& primary,
                            const ImVec2& stockCaptureMin);
 
-} // namespace squarestar::shell
+}

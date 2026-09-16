@@ -36,7 +36,7 @@ std::string ReadFileBytes(const std::filesystem::path& path) {
     return contents;
 }
 
-} // namespace
+}
 
 int main() {
     namespace fs = std::filesystem;
@@ -81,7 +81,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    // A stale temp file from a prior crash must never block the next save.
+
     const fs::path staleTemp = fs::path(ordered.string() + ".tmp");
     {
         std::ofstream stale(staleTemp, std::ios::binary | std::ios::trunc);
@@ -190,9 +190,8 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    // A rejected startup config must be preserved byte-for-byte under a unique
-    // backup name so the app can recover with defaults without destroying data.
-    const fs::path portableDataRoot =
+
+const fs::path portableDataRoot =
         squarestar::platform::Utf8FilesystemPath(
             squarestar::platform::GetApplicationDataDirectory());
     fs::remove_all(portableDataRoot, error);

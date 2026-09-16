@@ -10,4 +10,4 @@ const char* ChartVisualTypeSlug(ChartVisualType type) noexcept {
     return type == ChartVisualType::Candlestick ? "candlestick" : "line";
 }
 
-} // namespace squarestar::presentation
+}

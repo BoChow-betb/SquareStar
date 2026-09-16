@@ -12,7 +12,7 @@ void ReleaseVectorStorage(std::vector<T>& values) {
     std::vector<T>().swap(values);
 }
 
-} // namespace
+}
 
 void ClearApplicationFontPointers(squarestar::application::AppRenderCache& state) {
     state.fontNormal = nullptr;
@@ -68,4 +68,4 @@ void ReleaseGuiStateRenderMemory(squarestar::application::AppState& state) {
 }
 
 
-} // namespace squarestar::presentation
+}

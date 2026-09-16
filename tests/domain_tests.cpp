@@ -63,7 +63,7 @@ std::time_t UtcTime(int year, int month, int day, int hour, int minute = 0) {
     return squarestar::market::UtcTmToTimeT(value);
 }
 
-} // namespace
+}
 
 int main() {
     squarestar::application::AppState modeState;

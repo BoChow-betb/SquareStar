@@ -16,4 +16,4 @@ bool SampleSortedSeriesAtX(const std::vector<double>& x,
                            double target,
                            double& value);
 
-} // namespace squarestar::presentation
+}

@@ -55,19 +55,16 @@ void StartConfiguredApplicationMode(AppState& state,
     if (state.config.lastOpenMode == 2) {
         ApplicationRuntime().SetUiMode(AppUiMode::LiteGui);
         EnterLiteGuiWorkspace(window, state);
-        // Launch into the LiteGUI home/search surface ready for typing. This is
-        // a one-shot request consumed by RenderIntegratedSearchBar, so focus is
-        // not stolen again after the user clicks elsewhere.
-        if (!squarestar::benchmark::SuppressExternalWork() &&
+
+
+if (!squarestar::benchmark::SuppressExternalWork() &&
             state.marketData.activeContexts.empty())
             state.navigation.liteSearch.focusRequested = true;
     } else {
         ApplicationRuntime().SetUiMode(AppUiMode::Gui);
-        // Match command-palette style startup UX on Home: the first printable
-        // key should go straight into stock search without an initial click.
-        // Preserve restored Overview/Settings/stock sessions by requesting
-        // focus only when the launch destination is actually Home.
-        if (!squarestar::benchmark::SuppressExternalWork() &&
+
+
+if (!squarestar::benchmark::SuppressExternalWork() &&
             state.navigation.activeSidebarTab == squarestar::application::SidebarTab::Home &&
             state.marketData.activeContexts.empty())
             state.navigation.mainSearch.focusRequested = true;
@@ -75,11 +72,9 @@ void StartConfiguredApplicationMode(AppState& state,
     glfwShowWindow(window);
     glfwPollEvents();
     if (!squarestar::benchmark::SuppressExternalWork()) {
-        // Keep the network runtime lazy. Pre-creating the HTTP/background pools
-        // here leaves worker stacks plus libcurl/TLS connection state resident
-        // even when the user opens SquareStar and simply leaves it idle. The
-        // first real request creates exactly the pools it needs.
-        if (ApplicationRuntime().CurrentUiMode() == AppUiMode::Gui &&
+
+
+if (ApplicationRuntime().CurrentUiMode() == AppUiMode::Gui &&
             state.config.soundEnabled)
             PlayUISound("launch.wav", state);
     }
@@ -175,8 +170,8 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
                                     inputSettleFramePending)) {
                 glfwPollEvents();
             } else {
-                // Native input and background completions wake this immediately; only explicit
-                // redraw work keeps the loop active afterward.
+
+
                 glfwWaitEventsTimeout(settledWaitSeconds);
             }
         }
@@ -184,12 +179,8 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
         if (squarestar::benchmark::PollGuiProbe())
             continue;
 
-        // Inspect the queue after both polling paths. Secondary ImGui viewport
-        // windows use backend-owned callbacks, so their activation click may
-        // not update the host window's activity timestamps even though the
-        // input event is ready. Rendering it immediately avoids combining the
-        // press and release after another idle wait.
-        const bool guiInputQueuedAfterEventPump =
+
+const bool guiInputQueuedAfterEventPump =
             GImGui && GImGui->InputEventsQueue.Size > 0;
         if (guiInputQueuedAfterEventPump)
             loop.inputSettleFramesRemaining = 2;
@@ -208,4 +199,4 @@ void RunApplicationMainLoop(GLFWwindow*& window, AppState& state) {
 }
 
 
-} // namespace squarestar::shell
+}

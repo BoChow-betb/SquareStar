@@ -13,17 +13,15 @@ bool g_GuiLayoutInitialBaselinePending = false;
 std::string g_CurrentImGuiIni;
 std::string g_LastPersistedImGuiIni;
 
-} // namespace
+}
 
 void ConfigureGuiLayoutPersistence(bool enabled, std::string initialSnapshot) {
     std::lock_guard<std::mutex> lock(g_GuiLayoutPersistenceMutex);
     g_GuiLayoutPersistenceEnabled = enabled;
     g_GuiLayoutPersistRetryRequested = false;
-    // With no saved layout, ImGui will mark the first rendered window geometry
-    // as dirty even when the user has not interacted with the application. Use
-    // that first rendered layout as the in-memory baseline instead of treating
-    // application-created defaults as a reason to create portable storage.
-    g_GuiLayoutInitialBaselinePending = enabled && initialSnapshot.empty();
+
+
+g_GuiLayoutInitialBaselinePending = enabled && initialSnapshot.empty();
     g_CurrentImGuiIni = initialSnapshot;
     g_LastPersistedImGuiIni = std::move(initialSnapshot);
 }
@@ -100,4 +98,4 @@ void ResetGuiLayoutPersistence() {
     std::string().swap(g_LastPersistedImGuiIni);
 }
 
-} // namespace squarestar::application
+}

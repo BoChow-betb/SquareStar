@@ -22,4 +22,4 @@ bool OpenNotificationStock(squarestar::application::AppState& state,
 void RenderPriceAlertPopups(squarestar::application::AppState& state,
                            squarestar::presentation::NotificationBlockStack& stack);
 
-} // namespace squarestar::shell
+}

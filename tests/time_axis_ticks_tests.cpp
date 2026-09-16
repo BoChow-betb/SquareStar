@@ -42,7 +42,7 @@ bool Near(double actual, double expected, double tolerance = 0.5) {
     return std::abs(actual - expected) <= tolerance;
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::market::BuildSparseTimeAxisTicks;

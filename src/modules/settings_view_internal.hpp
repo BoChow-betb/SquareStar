@@ -6,7 +6,7 @@ struct AppState;
 
 namespace squarestar::shell {
 
-// Internal settings-surface primitives shared by the page implementations.
+
 void BeginSettingsCard(squarestar::application::AppState& state,
                        const char* id,
                        const char* heading,
@@ -21,4 +21,4 @@ void RenderGeneralSettingsPage(squarestar::application::AppState& state,
 void RenderNotificationSettingsPage(squarestar::application::AppState& state,
                                     float bodyContentWidth);
 
-} // namespace squarestar::shell
+}

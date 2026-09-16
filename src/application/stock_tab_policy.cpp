@@ -39,9 +39,8 @@ void RestoreNavigationAfterFailedStockOpen(AppState& state,
                                            StockContext& failedContext) noexcept {
     failedContext.navigation.open = false;
 
-    // Do not pull the user away from a different surface they selected while
-    // the request was in flight. The failed tab still closes and is retired.
-    if (state.navigation.lastActiveTab != failedContext.navigation.ticker)
+
+if (state.navigation.lastActiveTab != failedContext.navigation.ticker)
         return;
 
     if (IsSidebarPage(failedContext.navigation.failureReturnSidebarTab)) {
@@ -128,11 +127,9 @@ int ResolveComparisonSyncRangeIndex(const AppState& state,
             !requiresHistoricalFloor(*candidate)) {
             continue;
         }
-        // A stopped/delisted tab may only have a wider historical range. Do not
-        // keep hammering an unavailable intraday range every frame; instead
-        // lift the whole comparison to the narrowest range already known to
-        // contain that symbol's history.
-        targetRange = std::max(targetRange,
+
+
+targetRange = std::max(targetRange,
                                candidate->navigation.displayedTimeRangeIndex);
     }
     return targetRange;
@@ -163,10 +160,9 @@ void PrepareComparisonSelection(AppState& state,
         std::count(primary.navigation.comparisonSymbols.begin(), primary.navigation.comparisonSymbols.end(),
                    primarySymbol) != 1) {
         std::erase(primary.navigation.comparisonSymbols, primarySymbol);
-        // Appending and rotating avoids GCC's -Wnull-dereference false positive
-        // for vector<string>::insert(begin(), value) under -O3 while preserving
-        // the same ordering and iterator-lifetime semantics.
-        primary.navigation.comparisonSymbols.push_back(primarySymbol);
+
+
+primary.navigation.comparisonSymbols.push_back(primarySymbol);
         std::rotate(primary.navigation.comparisonSymbols.begin(),
                     primary.navigation.comparisonSymbols.end() - 1,
                     primary.navigation.comparisonSymbols.end());
@@ -181,10 +177,8 @@ void PrepareComparisonSelection(AppState& state,
             primary.navigation.comparisonSymbols.emplace_back(*other);
     }
 
-    // Entering comparison is based on open tabs rather than completed network
-    // responses. Keep the picker request even while another open tab is still
-    // loading; otherwise the VS click changes modes but appears to do nothing.
-    if (requestPicker && CanEnterStockComparison(state))
+
+if (requestPicker && CanEnterStockComparison(state))
         primary.navigation.comparisonPickerRequested = true;
 
     if (!syncRange)
@@ -202,4 +196,4 @@ void PrepareComparisonSelection(AppState& state,
     }
 }
 
-} // namespace squarestar::application
+}

@@ -67,4 +67,4 @@ squarestar::application::FetchStartResult TriggerFetch(
     bool background,
     squarestar::market::FetchKind kind = squarestar::market::FetchKind::Full);
 
-} // namespace squarestar::shell
+}

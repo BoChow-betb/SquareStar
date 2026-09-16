@@ -9,10 +9,9 @@
 namespace squarestar::platform {
 
 GuiFramePacer::GuiFramePacer() {
-    // CREATE_WAITABLE_TIMER_HIGH_RESOLUTION is 0x2. Spell out the value so
-    // older MinGW headers can still build while Windows 10/11 use the
-    // high-resolution scheduler.
-    constexpr DWORD highResolutionTimerFlag = 0x00000002;
+
+
+constexpr DWORD highResolutionTimerFlag = 0x00000002;
     timer_ = CreateWaitableTimerExW(nullptr,
                                     nullptr,
                                     highResolutionTimerFlag,
@@ -39,4 +38,4 @@ void GuiFramePacer::WaitFor(std::chrono::steady_clock::duration duration) const 
     std::this_thread::sleep_for(duration);
 }
 
-} // namespace squarestar::platform
+}

@@ -12,4 +12,4 @@ void SetBuiltInThemePreset(AppConfig& config, int mode);
 void InitializeThemeProfiles(AppConfig& config);
 void SetThemePreset(AppConfig& config, int mode);
 
-} // namespace squarestar::application
+}

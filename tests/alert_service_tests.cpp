@@ -33,7 +33,7 @@ const Value& RequireNotNull(const Value* value, const char* message) {
     std::exit(EXIT_FAILURE);
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::alerts::AlertService;

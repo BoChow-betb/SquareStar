@@ -19,13 +19,12 @@ struct ConfigDecodeResult {
     std::string protectedPrivateState;
 };
 
-// Serializes privacy-sensitive state before it is encrypted by Windows DPAPI.
+
 std::string EncodePrivateConfigState(
     squarestar::application::PersistedStateConstView state,
     std::int64_t nowEpoch);
 
-// Decodes a DPAPI-unwrapped private state payload. The input buffer is securely
-// cleared before returning.
+
 bool DecodePrivateConfigState(
     std::string json,
     squarestar::application::PersistedStateView state,
@@ -40,4 +39,4 @@ ConfigDecodeResult DecodeConfigState(
     std::string json,
     squarestar::application::PersistedStateView state);
 
-} // namespace squarestar::config
+}

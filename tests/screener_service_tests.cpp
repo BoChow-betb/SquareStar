@@ -85,7 +85,7 @@ std::future<squarestar::http::HttpResponse> ReadyTrendingQuoteResponse() {
     return ready.get_future();
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::application::ScreenerItem;
@@ -189,10 +189,8 @@ int main() {
                 slowTrendElapsed >= std::chrono::milliseconds(200),
             "slow trend requests must not launch speculative duplicate hosts");
 
-    // A completed row may publish while another row is still in flight, but
-    // the in-flight row must remain in the loading state rather than flashing
-    // a false N/A before its 5D chart arrives.
-    std::vector<ScreenerItem> progressiveItems(2);
+
+std::vector<ScreenerItem> progressiveItems(2);
     progressiveItems[0].symbol = "FIRST";
     progressiveItems[1].symbol = "SECOND";
     std::size_t progressiveRequests = 0;

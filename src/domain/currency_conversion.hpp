@@ -13,9 +13,7 @@ struct DisplayCurrencyOption {
     std::string_view yahooUsdSymbol;
 };
 
-// SquareStar's stock universe is currently U.S.-market securities, so the raw
-// quote basis is USD. Yahoo exposes direct USD/<currency> FX instruments using
-// these canonical symbols (for example HKD=X for USD/HKD and CNY=X for USD/CNY).
+
 inline constexpr std::array<DisplayCurrencyOption, 10> kDisplayCurrencies{{
     {"USD", ""},
     {"HKD", "HKD=X"},
@@ -51,4 +49,4 @@ struct CurrencyRateResult {
     std::string errorMessage;
 };
 
-} // namespace squarestar::market
+}

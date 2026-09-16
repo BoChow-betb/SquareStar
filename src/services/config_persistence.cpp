@@ -43,7 +43,7 @@ void Complete(ConfigWriteCompletion completion, bool succeeded) noexcept {
     try {
         completion(succeeded);
     } catch (...) {
-        // Completion observers must never terminate the persistence worker.
+
     }
 }
 
@@ -130,8 +130,8 @@ bool ReplaceConfigFile(const std::string& temporaryPath, const std::string& path
     if (error)
         return false;
 #if defined(__linux__)
-    // fsync(temp) makes the bytes durable. Flush the containing directory too
-    // so the atomic name replacement survives sudden power loss.
+
+
     std::filesystem::path parent = std::filesystem::path(path).parent_path();
     if (parent.empty())
         parent = ".";
@@ -163,9 +163,8 @@ bool WriteConfigPayload(const ConfigWriteJob& job) {
         }
     }
 
-    // There is one writer per user instance, so one stable temp file is enough.
-    // Replace a temp file left by a crash on the next save.
-    const std::string temporaryPath = job.path + ".tmp";
+
+const std::string temporaryPath = job.path + ".tmp";
     if (!WriteTemporaryConfigDurably(temporaryPath, job.payload)) {
         ReportConfigWriteFailure("config-write-temporary");
         std::error_code error;
@@ -258,7 +257,7 @@ ConfigWriter& GetConfigWriter() {
     return writer;
 }
 
-} // namespace
+}
 
 std::optional<std::string> PreserveRejectedConfigForRecovery() {
     const std::string configPath = squarestar::platform::GetConfigPath();
@@ -300,9 +299,8 @@ std::optional<std::string> PreserveRejectedConfigForRecovery() {
         if (!error)
             return filename;
 
-        // The application holds the per-user single-instance guard, so a
-        // rename failure is not expected to be a competing SquareStar writer.
-        return std::nullopt;
+
+return std::nullopt;
     }
     return std::nullopt;
 }
@@ -321,4 +319,4 @@ bool FlushConfigWrites() {
     return GetConfigWriter().Flush();
 }
 
-} // namespace squarestar::config
+}

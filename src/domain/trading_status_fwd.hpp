@@ -26,4 +26,4 @@ struct TradingStatus {
     std::string evidenceHeadline;
 };
 
-} // namespace squarestar::market
+}

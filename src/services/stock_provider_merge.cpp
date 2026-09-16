@@ -149,12 +149,9 @@ StockProviderMergeResult ApplyStockProviderPayloads(
 
     if (!payloads.finnhubQuote.empty()) {
         const auto quote = ParseFinnhubQuotePayload(payloads.finnhubQuote);
-        // Yahoo owns the coherent price snapshot. Finnhub fills holes without
-        // mixing pre-split previous close into Yahoo's adjusted chart basis.
-        // Keep the quote timestamp tied to the provider that actually supplied
-        // currentPrice; otherwise the UI could show a newer "As of" time for a
-        // price that came from an older provider snapshot.
-        if (quote && quote->currentPrice > 0.0 && result.currentPrice <= 0.0) {
+
+
+if (quote && quote->currentPrice > 0.0 && result.currentPrice <= 0.0) {
             result.instrumentNature = InstrumentNature::PublicMarketSecurity;
             result.currentPrice = quote->currentPrice;
             result.success = true;
@@ -223,4 +220,4 @@ StockProviderMergeResult ApplyStockProviderPayloads(
     return merge;
 }
 
-} // namespace squarestar::marketdata
+}

@@ -73,7 +73,7 @@ void CompleteConfigWrite(bool succeeded) noexcept {
         if (queue.consecutiveFailures < 64)
             ++queue.consecutiveFailures;
         failureCount = queue.consecutiveFailures;
-        // Notify once per failure streak. A successful write resets the streak.
+
         if (failureCount == 1)
             queue.failureNoticePending = true;
     }
@@ -93,7 +93,7 @@ ConfigWriteCompletion WrapConfigCompletion(
     };
 }
 
-} // namespace
+}
 
 void RequestConfigSave() {
     ScheduleAt(std::chrono::steady_clock::now() + kConfigSaveDebounce);
@@ -133,14 +133,14 @@ bool FlushPendingConfigSave(squarestar::application::PersistedStateConstView sta
         queue.dueAt = {};
     }
 
-    // Writer failures schedule a retry; success clears the failure streak.
+
     return SaveConfig(state, WrapConfigCompletion());
 }
 
 bool PersistConfigSnapshot(squarestar::application::PersistedStateConstView state,
                            ConfigWriteCompletion completion) {
-    // This snapshot replaces the pending dirty mark. Cancel first so a fast
-    // writer failure cannot lose its retry.
+
+
     CancelPendingConfigSave();
     return SaveConfig(
         state, WrapConfigCompletion(std::move(completion)));
@@ -161,4 +161,4 @@ void CancelPendingConfigSave() noexcept {
     queue.dueAt = {};
 }
 
-} // namespace squarestar::config
+}

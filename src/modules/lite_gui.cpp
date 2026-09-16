@@ -40,7 +40,7 @@ using squarestar::presentation::ChartVisualType;
 using squarestar::application::ResolveLiteMonitorStockTabs;
 using squarestar::platform::CenterGlfwWindowInWorkArea;
 
-// ============================================================================
+
 static void SyncLiteGuiStockTabs(AppState& state) {
     CaptureOpenGuiStockTabs(state);
     state.navigation.guiWorkspace.lastActiveTab = state.navigation.lastActiveTab;
@@ -325,8 +325,8 @@ static void RenderLiteMonitorGrid(AppState& state) {
     const ImVec2 gridMin = ImGui::GetCursorScreenPos();
     const ImVec2 available = ImGui::GetContentRegionAvail();
     const ImVec2 gridMax(gridMin.x + available.x, gridMin.y + available.y);
-    // Match FullGUI monitor geometry: exact shared edges with no outer or
-    // per-tile gutters, so the monitor grid consumes the complete Lite surface.
+
+
     constexpr float tileInset = 0.0f;
     for (std::size_t tileIndex = 0; tileIndex < selection.count; ++tileIndex) {
         const std::size_t contextIndex = selection.indices[tileIndex];
@@ -429,13 +429,11 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
     const bool hasLiteStock = activeLiteStock != nullptr;
     const bool priceAlertVisible = state.alerts.ToastCount() != 0;
     const bool marketMoveVisible = !state.render.notifications.marketMoves.notices.empty();
-    // The search-only Lite host stays compact even while the exit confirmation
-    // is open. That modal is an owned platform overlay, just like the detached
-    // History/Recommended search surface, instead of being contained by a taller
-    // native LiteGUI border.
-    constexpr int compactLiteHeight = LITE_GUI_SEARCH_HEIGHT;
-    // LiteGUI only reserves notification room for the two visual classes it
-    // supports: price alerts and market moves. Ordinary feedback is audio-only.
+
+
+constexpr int compactLiteHeight = LITE_GUI_SEARCH_HEIGHT;
+
+
     const bool foregroundCardNeedsRoom = priceAlertVisible || marketMoveVisible;
     const int desiredLiteHeight =
         hasLiteStock ? LITE_GUI_STOCK_HEIGHT
@@ -502,7 +500,7 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
     ImGui::Begin("##LiteGuiSurface", nullptr, flags);
     ImGui::PopStyleVar(3);
 
-    // Lite controls stay monochrome; market colors remain semantic.
+
     const bool lightLitePalette = IsLightGuiTheme(state.config.themeModeIndex);
     const ImVec4 liteControl = lightLitePalette ? ImVec4(0.88f, 0.88f, 0.89f, 1.0f)
                                                 : ImVec4(0.12f, 0.12f, 0.14f, 1.0f);
@@ -530,10 +528,8 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
 
     const bool hasStock = hasLiteStock;
 
-    // Monitor mode is a pure stock surface. Do not spend vertical space on
-    // search/tab controls; this is what keeps the 2/4-tile Lite grid from
-    // clipping inside the fixed 900x620 window.
-    if (!liteMonitorActive) {
+
+if (!liteMonitorActive) {
         constexpr float topRowGap = 10.0f;
         constexpr float tabStepGap = 4.0f;
         constexpr float tickerButtonWidth = 112.0f;
@@ -546,11 +542,9 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
                                       : 0.0f;
         ImGui::BeginGroup();
         SearchBarOptions searchBarOptions;
-        // Keep the search-only native Lite host at its compact height. The
-        // History/Recommended surface becomes an owned platform viewport that
-        // hangs below the search box, so the outer LiteGUI border never grows
-        // and the result list does not need an internal scrollbar.
-        searchBarOptions.fixedDropdownHeight = hasStock;
+
+
+searchBarOptions.fixedDropdownHeight = hasStock;
         searchBarOptions.detachedDropdown = !hasStock;
         searchBarOptions.showNotificationCenter = hasStock;
         searchBarOptions.notificationCenterVisibleCardLimit = 2;
@@ -574,8 +568,8 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
             const bool priceAlertActive =
                 IsStockPriceAlertActive(state.alerts, *activeLiteStock);
             if (priceAlertActive) {
-                // Match the FullGUI alert-tab treatment without changing the
-                // Lite ticker block's normal 112x40 geometry.
+
+
                 ImGui::PushStyleColor(ImGuiCol_Button,
                                       ThemeVec(state.config.theme.danger));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
@@ -671,4 +665,4 @@ void RenderLiteGui(AppState& state, GLFWwindow* window) {
     SyncLiteGuiStockTabs(state);
 }
 
-} // namespace squarestar::shell
+}

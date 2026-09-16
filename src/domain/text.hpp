@@ -29,8 +29,8 @@ inline void LowercaseInPlace(std::string& value) {
 inline int ParseIntOr(std::string_view value, int fallback) noexcept {
     if (value.empty())
         return fallback;
-    // std::from_chars is allocation-free and, unlike std::stoi without an
-    // index parameter, lets us reject partially parsed values such as "12px".
+
+
     if (value.front() == '+') {
         value.remove_prefix(1);
         if (value.empty())
@@ -42,4 +42,4 @@ inline int ParseIntOr(std::string_view value, int fallback) noexcept {
     return error == std::errc{} && parsedEnd == end ? parsed : fallback;
 }
 
-} // namespace squarestar::text
+}

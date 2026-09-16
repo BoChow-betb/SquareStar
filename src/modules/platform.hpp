@@ -81,4 +81,4 @@ std::string SuggestedChartExportFilename(
     squarestar::presentation::ChartExportMethod method,
     const char* extension);
 
-} // namespace squarestar::shell
+}

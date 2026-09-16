@@ -15,4 +15,4 @@ std::size_t CountMonitorStockTiles(const AppMarketData& marketData) noexcept {
     return std::min(eligible, kMaxMonitorStockTiles);
 }
 
-} // namespace squarestar::application
+}

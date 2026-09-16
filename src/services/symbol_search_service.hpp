@@ -61,8 +61,8 @@ class SymbolSearchService {
     std::chrono::steady_clock::time_point providerCooldownUntil_{};
 };
 
-// Application entry points backed by the process-wide search service.
+
 SymbolSearchService::Results LookupSymbols(std::string_view query);
 void ClearSymbolSearchCache();
 
-} // namespace squarestar::search
+}

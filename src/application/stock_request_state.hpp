@@ -34,4 +34,4 @@ struct StockRequestState {
     int pendingFetchRangeIndex = 0;
 };
 
-} // namespace squarestar::application
+}

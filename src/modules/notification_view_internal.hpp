@@ -70,4 +70,4 @@ void RenderMonitorModeHint(squarestar::application::AppState& state,
                            ImGuiViewport* viewport,
                            squarestar::presentation::NotificationBlockStack& stack);
 
-} // namespace squarestar::shell
+}

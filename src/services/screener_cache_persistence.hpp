@@ -32,7 +32,7 @@ bool QueuePersistentScreenerCacheFile(
     std::chrono::system_clock::time_point fetchedAt,
     const std::vector<squarestar::application::ScreenerItem>& items);
 
-// Persist only the filtered Trending Now snapshot; other screeners stay memory-only.
+
 bool LoadPersistentScreenerCache(
     const std::string& cacheKey,
     std::chrono::system_clock::time_point& fetchedAt,
@@ -42,4 +42,4 @@ bool QueuePersistentScreenerCache(
     std::chrono::system_clock::time_point fetchedAt,
     const std::vector<squarestar::application::ScreenerItem>& items);
 
-} // namespace squarestar::providers
+}

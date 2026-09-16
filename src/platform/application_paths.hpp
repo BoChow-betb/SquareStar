@@ -5,8 +5,7 @@
 
 namespace squarestar::platform {
 
-// App-owned runtime files live under
-// a data directory beside the executable rather than under AppData or Temp.
+
 std::string GetExecutableDirectory();
 std::string GetApplicationDataDirectory();
 std::string GetDefaultExportDirectory();
@@ -18,4 +17,4 @@ std::string GetConfigPath();
 std::string GetScreenerCachePath();
 std::string GetDiagnosticLogPath();
 
-} // namespace squarestar::platform
+}

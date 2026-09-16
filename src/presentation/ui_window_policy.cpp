@@ -17,7 +17,7 @@ float Overlap(float firstMin, float firstLength, float secondMin, float secondLe
     return std::max(0.0f, std::min(firstMax, secondMax) - std::max(firstMin, secondMin));
 }
 
-} // namespace
+}
 
 UiPoint ClampWindowToBounds(UiPoint desired,
                             UiSize window,
@@ -83,4 +83,4 @@ std::size_t SelectOwningWorkArea(std::span<const UiRect> workAreas,
     return bestIndex;
 }
 
-} // namespace squarestar::presentation
+}

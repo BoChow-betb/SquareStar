@@ -59,7 +59,7 @@ void InsertCacheEntryLocked(
     entries.insert_or_assign(cacheKey, std::move(entry));
 }
 
-} // namespace
+}
 
 struct ScreenerCache::Impl {
     mutable std::mutex mutex;
@@ -258,4 +258,4 @@ void ScreenerCache::Clear() {
     std::unordered_map<std::string, ScreenerCacheEntry>().swap(impl_->entries);
 }
 
-} // namespace squarestar::application
+}

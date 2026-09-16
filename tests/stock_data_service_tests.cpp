@@ -21,7 +21,7 @@ bool NearlyEqual(double left, double right) {
     return std::abs(left - right) < 0.000001;
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::market::FetchKind;

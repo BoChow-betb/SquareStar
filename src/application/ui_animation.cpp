@@ -42,4 +42,4 @@ TransientNoticeAnimationStep AdvanceTransientNoticeAnimation(float current,
     return {clearExpired ? 0.0f : current, clearExpired};
 }
 
-} // namespace squarestar::application
+}

@@ -214,11 +214,8 @@ NotificationCenterCardResult RenderNotificationCenterCard(
 
     const NotificationCenterCardMetrics metrics = MeasureNotificationCenterCard(state);
 
-    // Hover focus is pointer-owned, not state-owned. Probe against the card's
-    // current animated bounds first, then animate toward the pointer state.
-    // This prevents a notification from remaining enlarged after the cursor
-    // leaves while still allowing the hover scale to ease smoothly.
-    const float previousFocus = std::clamp(entry.focusAnimation, 0.0f, 1.0f);
+
+const float previousFocus = std::clamp(entry.focusAnimation, 0.0f, 1.0f);
     const float probeCardWidth =
         std::max(220.0f,
                  availableWidth -
@@ -410,11 +407,8 @@ NotificationCenterCardResult RenderNotificationCenterCard(
                       detail.c_str());
     }
 
-    // The dismiss button is the last ImGui item submitted inside the card.
-    // Reset the cursor to the real bottom of the animated card so the next list
-    // item stacks below the full hover geometry. A zero-size item satisfies
-    // Dear ImGui's parent-boundary accounting without introducing extra gap.
-    ImGui::SetCursorScreenPos(ImVec2(cardMin.x, cardMax.y));
+
+ImGui::SetCursorScreenPos(ImVec2(cardMin.x, cardMax.y));
     const ImVec2 itemSpacing = ImGui::GetStyle().ItemSpacing;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(itemSpacing.x, 0.0f));
     ImGui::Dummy(ImVec2(0.0f, 0.0f));
@@ -437,9 +431,8 @@ std::string RenderNotificationCenterContents(
     std::string selectedTicker;
     constexpr float inset = 14.0f;
 
-    // Keep the full-size panel child transparent so the popup window's own
-    // rounded background remains visible at the outer edges.
-    ImGui::BeginChild("NotificationCenterPanel",
+
+ImGui::BeginChild("NotificationCenterPanel",
                       ImVec2(width, height),
                       false,
                       ImGuiWindowFlags_NoBackground |
@@ -514,10 +507,9 @@ std::string RenderNotificationCenterContents(
         ImGui::TextDisabled("%s", emptyText);
         center.ScrollToTop();
     } else {
-        // Keep a small clip guard above and below the stack so the animated
-        // border/glow never gets sliced by the child window, especially in
-        // the higher-contrast light theme.
-        ImGui::SetCursorPosY(kNotificationCenterListFocusGuard);
+
+
+ImGui::SetCursorPosY(kNotificationCenterListFocusGuard);
         const float contentWidth = ImGui::GetContentRegionAvail().x;
         std::uint64_t dismissedSerial = 0;
         for (auto it = center.entries.rbegin(); it != center.entries.rend(); ++it) {
@@ -581,7 +573,7 @@ std::string RenderNotificationCenterContents(
     return selectedTicker;
 }
 
-} // namespace
+}
 
 void RenderNotificationCenterMenu(
     AppState& state,
@@ -666,10 +658,8 @@ void RenderNotificationCenterMenu(
     const std::size_t visibleCards =
         std::min(center.entries.size(), maxVisibleCards);
 
-    // Size the panel from the active font metrics instead of a fixed card
-    // stride. Reserve the full hover growth plus clip guards, so every visible
-    // card remains completely contained even while it is zoomed/focused.
-    const NotificationCenterCardMetrics cardMetrics =
+
+const NotificationCenterCardMetrics cardMetrics =
         MeasureNotificationCenterCard(state);
     const float focusedCardHeight =
         cardMetrics.baseHeight + kNotificationCenterCardFocusHeightGrowth;
@@ -706,11 +696,8 @@ void RenderNotificationCenterMenu(
     const float panelEase = squarestar::application::EaseOutCubic(center.panelAnimation);
     const float panelYOffset = (1.0f - panelEase) * -8.0f;
 
-    // A real ImGui modal supplies the dim layer at render time, behind the
-    // notification panel but above every application window. The previous
-    // full-screen helper window was submitted too early in some layouts and
-    // could dim the wrong layer.
-    ImGui::SetNextWindowPos(ImVec2(menuPosition.x, menuPosition.y + panelYOffset),
+
+ImGui::SetNextWindowPos(ImVec2(menuPosition.x, menuPosition.y + panelYOffset),
                             ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
 #ifdef IMGUI_HAS_VIEWPORT
@@ -782,4 +769,4 @@ void RenderNotificationCenterMenu(
     }
 }
 
-} // namespace squarestar::shell
+}

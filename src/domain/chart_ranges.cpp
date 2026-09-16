@@ -10,4 +10,4 @@ const TimeRangeConfig TIME_RANGES[TIME_RANGE_COUNT] = {{"1D", "1d", "2m"},
                                                        {"5Y", "5y", "1wk"},
                                                        {"All", "max", "1mo"}};
 
-} // namespace squarestar::market
+}

@@ -17,8 +17,7 @@ struct YahooFuturesInstrument {
     std::string_view description;
 };
 
-// Common Yahoo continuous/front-month futures symbols. Direct entry also accepts
-// valid Yahoo-style alphanumeric *=F symbols that are not listed here.
+
 inline constexpr std::array<YahooFuturesInstrument, 48> kCommonYahooFutures{{
     {"ES=F", "E-mini S&P 500 (SP500) Futures"},
     {"NQ=F", "E-mini Nasdaq-100 Futures"},
@@ -122,4 +121,4 @@ inline std::vector<std::pair<std::string, std::string>> SearchCommonYahooFutures
     return SearchCommonYahooFutures(squarestar::search::ParseQuery(query), maxResults);
 }
 
-} // namespace squarestar::market
+}

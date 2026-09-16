@@ -27,14 +27,14 @@ enum class InstrumentNature : uint8_t {
 struct StockData {
     std::vector<double> timestamps, opens, highs, lows, closes, volumes;
     std::vector<NewsItem> news;
-    // Authoritative previous regular-session close used by session-level metrics.
+
     double previousClose = 0;
-    // Previous close for the displayed Yahoo chart range. Keep it separate from
-    // previousClose so range changes do not alter session metrics.
+
+
     double chartPreviousClose = 0;
     double currentPrice = 0, openPrice = 0, dayHigh = 0, dayLow = 0;
-    // Timestamp of the provider snapshot that actually supplied currentPrice.
-    // The UI uses this for the neutral "As of" label without inferring feed quality.
+
+
     std::time_t quoteTimestamp = 0;
     double peRatio = 0, avgVolume = 0, fiftyTwoWeekHigh = 0, fiftyTwoWeekLow = 0;
     double marketCap = 0, dividendYield = 0, beta = 0;
@@ -148,4 +148,4 @@ struct StockFetchResult {
     }
 };
 
-} // namespace squarestar::market
+}

@@ -352,4 +352,4 @@ void RenderStockChartContextMenu(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

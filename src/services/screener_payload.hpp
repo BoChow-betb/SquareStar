@@ -16,8 +16,7 @@ inline constexpr std::size_t kMaxScreenerSparklineSamples = 512;
 using ScreenerItem = squarestar::application::ScreenerItem;
 using ScreenerItemIndex = std::unordered_map<std::string, std::size_t>;
 
-// Keep Yahoo payload decoding separate from request scheduling so provider
-// schema changes do not reach the UI shell.
+
 std::size_t ApplyYahooQuoteResponsePayload(std::string payload,
                                            const ScreenerItemIndex& itemIndex,
                                            std::vector<ScreenerItem>& items);
@@ -37,4 +36,4 @@ void AppendYahooScreenerPayload(std::string payload,
 void MarkInactiveScreenerItems(std::vector<ScreenerItem>& items,
                                std::time_t now = std::time(nullptr)) noexcept;
 
-} // namespace squarestar::providers
+}

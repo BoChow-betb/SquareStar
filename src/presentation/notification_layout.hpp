@@ -40,4 +40,4 @@ inline constexpr float kNotificationViewportTopGap = 4.0f;
                     std::max(0.0f, naturalHeight));
 }
 
-} // namespace squarestar::presentation
+}

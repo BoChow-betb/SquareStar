@@ -11,4 +11,4 @@ namespace squarestar::shell {
 void RenderForegroundNotifications(squarestar::application::AppState& state,
                                    ImGuiViewport* viewport);
 
-} // namespace squarestar::shell
+}

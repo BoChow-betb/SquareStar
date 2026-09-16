@@ -17,9 +17,7 @@ struct NativeNotificationTimeline {
     std::uint32_t nextWakeMs = 0;
 };
 
-// Pure scheduling policy for the Win32 notification adapter. A non-zero
-// nextWakeMs is the only time the platform layer needs a timer. During Hold it
-// points directly at the exit deadline rather than requesting animation ticks.
+
 [[nodiscard]] NativeNotificationTimeline EvaluateNativeNotificationTimeline(
     std::uint64_t elapsedMs,
     std::uint64_t enterMs,
@@ -27,4 +25,4 @@ struct NativeNotificationTimeline {
     std::uint64_t exitMs,
     std::uint32_t animationTickMs) noexcept;
 
-} // namespace squarestar::application
+}

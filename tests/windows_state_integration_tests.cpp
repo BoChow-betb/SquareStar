@@ -195,9 +195,8 @@ int RunParent() {
         return EXIT_FAILURE;
     }
 
-    // Validation may run while SquareStar owns the production mutex. Use a unique
-    // sibling name so the test does not collide with the running app.
-    const std::wstring isolatedInstanceName =
+
+const std::wstring isolatedInstanceName =
         instanceName + L"-integration-" + std::to_wstring(GetCurrentProcessId()) +
         L"-" + std::to_wstring(suffix);
     const std::string isolatedInstanceNameUtf8 =
@@ -256,7 +255,7 @@ int RunParent() {
 
 #endif
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
 #ifdef _WIN32

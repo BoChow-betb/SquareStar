@@ -17,4 +17,4 @@ inline constexpr std::size_t kScreenerListRowLimit = 96;
 inline constexpr std::size_t kMaxWatchlistItems = 256;
 inline constexpr std::size_t kMaxPriceAlerts = 128;
 
-} // namespace squarestar::application
+}

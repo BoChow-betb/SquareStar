@@ -33,7 +33,7 @@ bool ReplaceFinnhubApiKeyIfRevision(std::uint64_t expectedRevision,
     return true;
 }
 
-} // namespace
+}
 
 std::string GetFinnhubApiKey() {
     std::lock_guard<std::mutex> lock(g_ApiKeyMutex);
@@ -73,7 +73,7 @@ ApiKeyCommitResult CommitFinnhubApiKeyChange(
     try {
         persisted = persist && persist(installedRevision);
     } catch (...) {
-        // A persistence exception is a failed transaction, never a partial success.
+
         persisted = false;
     }
     if (persisted) {
@@ -98,4 +98,4 @@ bool IsApiKeyRevisionCurrent(std::uint64_t revision) noexcept {
     return ApiKeyRevision() == revision;
 }
 
-} // namespace squarestar::secrets
+}

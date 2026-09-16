@@ -20,4 +20,4 @@ double GuiPassiveFrameTargetSeconds(int mode) noexcept;
 double SecondsUntilNextWallClockSecond(
     std::chrono::system_clock::time_point now) noexcept;
 
-} // namespace squarestar::application
+}

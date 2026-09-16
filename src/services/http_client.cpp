@@ -218,7 +218,7 @@ size_t MaximumHttpResponseBytes(const std::string& url) {
 
 constexpr auto kYahooSessionCrumbTtl = std::chrono::minutes(15);
 
-} // namespace
+}
 
 std::string UrlEncode(const std::string& value) {
     static constexpr char hex[] = "0123456789ABCDEF";
@@ -329,19 +329,17 @@ void ConfigureReusableConnectionOptions(CURL* curl, const std::string& url) {
 #else
     curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
 #endif
-    // The default runtime has one persistent HTTP lane. Keep DNS, TLS session,
-    // and connection reuse state on that worker's reusable easy handle instead
-    // of duplicating it in a process-wide CURLSH cache.
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+
+
+curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
     curl_easy_setopt(curl, CURLOPT_TCP_NODELAY, 1L);
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 300L);
-    // SquareStar normally talks to four origins (Finnhub, Yahoo query1/query2,
-    // and Yahoo's auth bootstrap). Keep a small bounded cache so switching
-    // providers does not evict the connection that was just warmed.
-    curl_easy_setopt(curl, CURLOPT_MAXCONNECTS, 4L);
+
+
+curl_easy_setopt(curl, CURLOPT_MAXCONNECTS, 4L);
 #if LIBCURL_VERSION_NUM >= 0x072F00
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
 #endif
@@ -350,7 +348,7 @@ void ConfigureReusableConnectionOptions(CURL* curl, const std::string& url) {
 #endif
 }
 
-} // namespace
+}
 
 bool InitializeHttpRuntimeWithoutNetwork() {
     return EnsureCurlGlobalRuntime() && ThreadCurl() != nullptr;
@@ -371,10 +369,9 @@ HttpResponse PerformYahooHttpTransfer(CURL* curl,
     HttpWriteContext writeContext{&response.body, maximumBytes};
     HttpProgressContext progressContext{&cancelled};
     ConfigureReusableConnectionOptions(curl, url);
-    // An empty cookie file enables libcurl's in-memory cookie engine. Cookies
-    // survive curl_easy_reset on this thread-local easy handle, so the Yahoo
-    // bootstrap, crumb request, and POST share the same session.
-    curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
+
+
+curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 2200L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 6500L);
@@ -415,10 +412,9 @@ HttpResponse PerformYahooHttpTransfer(CURL* curl,
     }
     if (result != CURLE_OK)
         response.body.clear();
-    // CURLOPT_URL and Yahoo's crumb URL are copied into the reusable easy
-    // handle. Reset immediately after transfer so credentials/crumbs do not
-    // remain resident until this thread happens to issue another request.
-    curl_easy_reset(curl);
+
+
+curl_easy_reset(curl);
     return response;
 }
 
@@ -459,11 +455,9 @@ bool AcquireYahooCrumb(CURL* curl,
     HttpResponse crumbResponse{{}, 0, HttpError::TransferFailure};
     std::string refreshedCrumb;
     try {
-        // The Yahoo cookie jar lives on the same thread-local easy handle as
-        // this crumb. Keeping both pieces of authentication state per worker
-        // lets authenticated requests run concurrently without pairing one
-        // worker's crumb with another worker's cookies.
-        (void)PerformYahooHttpTransfer(
+
+
+(void)PerformYahooHttpTransfer(
             curl, "https://fc.yahoo.com", nullptr, cancelled);
         crumbResponse = PerformYahooHttpTransfer(
             curl,
@@ -501,7 +495,7 @@ void InvalidateYahooCrumbIfCurrent(const std::string& crumb) {
         session.Reset();
 }
 
-} // namespace
+}
 
 
 HttpResponse PerformYahooAuthenticatedGet(const std::string& url,
@@ -558,11 +552,8 @@ HttpResponse PerformYahooScreenerPost(const std::string& jsonBody,
         if (lastResponse.IsSuccess())
             return lastResponse;
 
-        // A stale/invalid cookie or crumb is the common recoverable failure.
-        // Cookie and crumb are worker-local. Discard this worker's crumb and
-        // refresh its cookie jar in place on retry without disturbing another
-        // worker's authenticated session.
-        InvalidateYahooCrumbIfCurrent(crumb);
+
+InvalidateYahooCrumbIfCurrent(crumb);
     }
     return lastResponse;
 }
@@ -629,8 +620,8 @@ HttpResponse PerformHttpRequest(const std::string& url,
     }
     if (result != CURLE_OK)
         response.body.clear();
-    // Finnhub credentials are query parameters. Do not retain the copied URL
-    // inside this thread-local easy handle after the request has completed.
+
+
     curl_easy_reset(curl);
     return response;
 }
@@ -669,10 +660,9 @@ void ShutdownHttpClient() {
         std::lock_guard<std::mutex> lock(g_ProviderCooldownMutex);
         g_ProviderCooldownUntil = {};
     }
-    // Network worker threads are joined before this function is called, so
-    // their thread-local easy handles are already gone. Also release any easy
-    // handle owned by the calling thread before tearing down libcurl globally.
-    ResetCurrentThreadCurl();
+
+
+ResetCurrentThreadCurl();
     std::lock_guard<std::mutex> lock(g_CurlGlobalRuntimeMutex);
     if (!g_CurlGlobalInitSucceeded)
         return;
@@ -680,4 +670,4 @@ void ShutdownHttpClient() {
     g_CurlGlobalInitSucceeded = false;
 }
 
-} // namespace squarestar::http
+}

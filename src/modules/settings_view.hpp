@@ -8,4 +8,4 @@ namespace squarestar::shell {
 
 void RenderSettingsContent(squarestar::application::AppState& state);
 
-} // namespace squarestar::shell
+}

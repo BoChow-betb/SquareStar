@@ -184,10 +184,9 @@ static float RenderComparisonStockPicker(AppState& state,
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, UiRounding(state, 3.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 2.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 4.0f));
-        // ImGui 1.92 gives selected checkboxes their own background color.
-        // Clear that state as well as the ordinary frame colors so only
-        // the neutral check mark remains, with no blue fill or gradient.
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+
+
+ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_CheckboxSelectedBg, ImVec4(0, 0, 0, 0));
@@ -716,7 +715,7 @@ static void RenderComparisonCrosshair(AppState& state,
 }
 
 void RenderStockComparison(AppState& state, StockContext& primary, const ImVec2& stockCaptureMin) {
-    constexpr double comparisonSecondsPerUnit = 86400.0; // elapsed days on the plot axis
+    constexpr double comparisonSecondsPerUnit = 86400.0;
     PrepareStockComparisonMode(state, primary, false);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ThemeVec(state.config.theme.plotBg));
     ImGui::BeginChild("ComparisonRegion",
@@ -896,4 +895,4 @@ void RenderStockComparison(AppState& state, StockContext& primary, const ImVec2&
     ImGui::EndChild();
 }
 
-} // namespace squarestar::shell
+}

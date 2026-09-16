@@ -30,4 +30,4 @@ void DrawFadingXAxisLabels(const squarestar::application::AppState& state,
                            float widgetMaxX,
                            float alpha);
 
-} // namespace squarestar::shell
+}

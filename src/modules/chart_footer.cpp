@@ -120,8 +120,8 @@ static void RenderChartClockMenu(AppState& state,
                                  bool shortcutClock) {
     ImGui::PushID("ClockTimeText");
     if (state.navigation.liteGuiActive) {
-        // Match the adjacent controls exactly; the old hover underline
-        // made this block look one pixel taller than its neighbors.
+
+
         ImGui::Button(localClockText.c_str(), ImVec2(210.0f, 32.0f));
     } else {
         ImGui::TextDisabled("%s", desktopClockText.c_str());
@@ -130,8 +130,8 @@ static void RenderChartClockMenu(AppState& state,
     if (clockHovered) {
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
         if (state.navigation.liteGuiActive) {
-            // LiteGUI permits this one informational hover surface: the
-            // clock block shows the currently selected world-clock times.
+
+
             DrawSelectedWorldClockTooltip(state, currentTime);
         } else {
             const ImVec2 clockTextMin = ImGui::GetItemRectMin();
@@ -185,8 +185,8 @@ static void RenderChartClockMenu(AppState& state,
                  effectiveClockViewport->WorkPos.x +
                      effectiveClockViewport->WorkSize.x - clockPopupWidth -
                      clockPopupMargin));
-    // Anchor the popup by its bottom edge so it stays immediately above the
-    // clock label even when the auto-sized menu is shorter than its max height.
+
+
     const ImVec2 clockPopupAnchor(clockPopupX, clockMenuPosition.y - clockPopupGap);
     if (state.navigation.liteGuiActive) {
         if (toggleClockMenu)
@@ -422,9 +422,8 @@ static void RenderLiteQuoteSummary(AppState& state,
                         quoteMoveText);
     footerDraw->PopClipRect();
 
-    // Keep the existing price-alert hit target on the numeric quote only. The
-    // currency suffix is a separate control that opens the display-unit list.
-    const ImVec2 priceFocusMin = pricePosition;
+
+const ImVec2 priceFocusMin = pricePosition;
     const ImVec2 priceFocusMax(pricePosition.x + numberTextSize.x,
                                pricePosition.y + numberTextSize.y);
     const ImVec2 currencyFocusMin = currencyPosition;
@@ -539,4 +538,4 @@ void RenderStockChartFooter(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

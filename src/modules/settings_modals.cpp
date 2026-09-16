@@ -184,4 +184,4 @@ void RenderClearDataModal(AppState& state, bool openSavedDataModal) {
     }
 }
 
-} // namespace squarestar::shell
+}

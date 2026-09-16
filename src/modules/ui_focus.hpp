@@ -32,4 +32,4 @@ void RenderObjectFocusOverlay(squarestar::application::AppState& state,
                               ImVec2 viewportMin,
                               ImVec2 viewportMax);
 
-} // namespace squarestar::shell
+}

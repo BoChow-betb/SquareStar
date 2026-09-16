@@ -189,9 +189,8 @@ std::function<bool()> RunLifecycleTest() {
                 completed->items->front().symbol == "LATEST",
             "a cancelled request must never republish stale rows");
 
-    // A burst of selections leaves only one pending latest job. This exercises
-    // the generation guard and the executor's replacement path together.
-    for (int index = 0; index < 64; ++index)
+
+for (int index = 0; index < 64; ++index)
         StartScreenerFetch(state, "burst_" + std::to_string(index), dependencies);
     Require(WaitUntil([&] {
                 const auto snapshot = state.marketData.LoadScreenerSnapshot();
@@ -201,9 +200,8 @@ std::function<bool()> RunLifecycleTest() {
             }),
             "rapid switching should settle on the final route without a stale publish");
 
-    // A list refresh owns publication while it is active. Trend enrichment is
-    // deferred so the two workers cannot race to replace rows.
-    const auto latest = state.marketData.LoadScreenerSnapshot();
+
+const auto latest = state.marketData.LoadScreenerSnapshot();
     squarestar::application::ScreenerSnapshot refreshing;
     refreshing.generation = latest->generation;
     refreshing.screenerId = latest->screenerId;
@@ -313,8 +311,8 @@ std::function<bool()> RunLifecycleTest() {
     bool releaseFinal = false;
     std::atomic_int refreshFetchCalls{0};
     FakeScreenerDataSource liveRefreshDependencies;
-    // Force market-closed behavior here. Otherwise this cached-row test changes
-    // behavior with the real trading session.
+
+
     liveRefreshDependencies.marketOpenOverride = false;
     liveRefreshDependencies.fetchMarketScreener =
         [&](const std::string&,
@@ -422,9 +420,8 @@ std::function<bool()> RunLifecycleTest() {
             }),
             "even a fresh cache hit must revalidate and publish changed table data");
 
-    // A newly entered route during market hours waits for live data. Periodic
-    // refreshes keep the rows already on screen.
-    AppState marketOpenEntryState;
+
+AppState marketOpenEntryState;
     std::vector<ScreenerItem> staleEntryRows(1);
     staleEntryRows[0].symbol = "OLD";
     staleEntryRows[0].price = 77.0;
@@ -600,7 +597,7 @@ std::function<bool()> RunLifecycleTest() {
     return retainedCancellation;
 }
 
-} // namespace
+}
 
 int main() {
     const std::function<bool()> retainedCancellation = RunLifecycleTest();

@@ -145,4 +145,4 @@ inline bool RevealFileInFolder(std::string_view text) {
 #endif
 }
 
-} // namespace squarestar::platform
+}

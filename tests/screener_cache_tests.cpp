@@ -19,7 +19,7 @@ void Check(bool condition, const char* message) {
     }
 }
 
-} // namespace
+}
 
 int main() {
     squarestar::application::ScreenerCache cache;

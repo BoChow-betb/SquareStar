@@ -84,8 +84,8 @@ FetchStartResult TriggerFetch(AppState& state,
                               bool background,
                               FetchKind kind) {
     const std::time_t now = std::time(nullptr);
-    // A ready future still owns an unmerged result until the completion pump
-    // consumes it. Replacing it here would silently discard that result.
+
+
     if (ctx.requests.pendingRequest.valid())
         return FetchStartResult::Busy;
     if (!forceUpdate && background && kind == FetchKind::Full && (now - ctx.requests.lastFetchTime < 900) &&
@@ -176,10 +176,9 @@ void TriggerDetailsFetch(AppState& state,
         return;
     requestedMask &= StockFetchAll;
     if (yahooOnlyInstrument) {
-        // Futures do not have company-profile/company-news payloads. Mark those
-        // surfaces resolved immediately so the UI does not retry unsupported
-        // Finnhub endpoints, while still allowing Yahoo quote metrics to load.
-        const uint32_t unsupportedMask = requestedMask & (StockFetchProfile | StockFetchNews);
+
+
+const uint32_t unsupportedMask = requestedMask & (StockFetchProfile | StockFetchNews);
         StockData resolved = ctx.CopyRawData();
         resolved.resolvedDetailMask |= unsupportedMask;
         ctx.PublishRawData(std::move(resolved));
@@ -190,20 +189,15 @@ void TriggerDetailsFetch(AppState& state,
     if (requestedMask == 0)
         return;
 
-    // Optional provider calls occasionally time out or are rate-limited.
-    // Failed bits are allowed to retry after a short bounded backoff instead
-    // of becoming permanently stuck behind requestedDetailMask and showing N/A
-    // for the lifetime of the tab.
-    const std::time_t now = std::time(nullptr);
+
+const std::time_t now = std::time(nullptr);
     if (ctx.requests.nextDetailRetryTime > now)
         requestedMask &= ~ctx.requests.detailRetryMask;
     if (requestedMask == 0)
         return;
 
-    // Keep numeric metrics in the first detail phase and chain Profile after
-    // completion. This keeps optional profile traffic from delaying the
-    // metrics/Yahoo fallback on the shared HTTP worker pool.
-    const bool needsMetrics = (requestedMask & StockFetchMetrics) != 0;
+
+const bool needsMetrics = (requestedMask & StockFetchMetrics) != 0;
     const bool needsProfile = (requestedMask & StockFetchProfile) != 0;
     if (needsMetrics && needsProfile && !HasAnyMarketMetricData(ctx.RawData()))
         requestedMask = StockFetchMetrics;
@@ -328,10 +322,10 @@ void SelectChartRange(AppState& state, StockContext& ctx, int rangeIndex) {
     ctx.navigation.selectedTimeRangeIndex = rangeIndex;
     (void)ctx.requests.tracker.Request(StockRequestChannel::Chart);
     ctx.render.lockedAxisRangeIndex = -1;
-    ctx.render.chartRevealProgress = 1.0f; // keep the old chart stable until the replacement arrives
+    ctx.render.chartRevealProgress = 1.0f;
     TriggerFetch(state, ctx, true, true, FetchKind::Chart);
-    // Publish the pending range marker immediately even when the request must
-    // queue behind another operation owned by this same stock context.
+
+
     RequestGuiRedraw();
 }
 void SelectStockViewRange(AppState& state, StockContext& ctx, int rangeIndex) {
@@ -508,9 +502,8 @@ bool NeutralCheckbox(const char* label, bool& value, const AppState& state) {
     if (pressed)
         value = !value;
 
-    // Use the switch ID for animation state so clicking the label and clicking
-    // the track share the same animation state.
-    const ImGuiID id = ImGui::GetID("##toggle_anim");
+
+const ImGuiID id = ImGui::GetID("##toggle_anim");
     float* animated = ImGui::GetStateStorage()->GetFloatRef(id, value ? 1.0f : 0.0f);
     const float target = value ? 1.0f : 0.0f;
     if (state.UiAnimationsEnabled()) {
@@ -570,9 +563,8 @@ bool NeutralCheckbox(const char* label, bool& value, const AppState& state) {
                     1.5f);
     }
 
-    // Draw the label directly at the same geometric center as the switch.
-    // This avoids font-baseline/frame-padding offsets.
-    const ImVec2 labelPos(labelHitPos.x,
+
+const ImVec2 labelPos(labelHitPos.x,
                           pos.y + std::floor((height - labelSize.y) * 0.5f));
     dl->AddText(labelPos, ImGui::GetColorU32(ImGuiCol_Text), label);
 
@@ -620,4 +612,4 @@ bool RemoveTickerFromWatchlist(AppState& state, const std::string& ticker) {
     return true;
 }
 
-} // namespace squarestar::shell
+}

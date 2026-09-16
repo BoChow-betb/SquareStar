@@ -18,7 +18,7 @@ void Check(bool condition, const char* message) {
 constexpr const char* kYahooAppleResponse =
     R"({"quotes":[{"symbol":"AAPL","shortname":"Apple Inc.","longname":"Apple Inc.","quoteType":"EQUITY","exchange":"NMS"},{"symbol":"AAPL.L","shortname":"Apple London","quoteType":"EQUITY","exchange":"LSE"},{"symbol":"^GSPC","shortname":"S&P 500","quoteType":"INDEX","exchange":"SNP"}]})";
 
-} // namespace
+}
 
 int main() {
     using squarestar::search::SymbolSearchDependencies;

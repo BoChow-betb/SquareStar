@@ -6,4 +6,4 @@ namespace squarestar::providers {
 
 ScreenerFetchDependencies DefaultScreenerFetchDependencies();
 
-} // namespace squarestar::providers
+}

@@ -13,9 +13,7 @@
 
 namespace squarestar::application {
 
-// AppState is the ownership root for application-wide state. Persistent user
-// preferences stay in AppConfig; temporary interface-mode overrides are derived
-// from navigation state instead of rewriting those preferences.
+
 struct AppState {
     AppConfig config;
     AppNavigation navigation;
@@ -69,4 +67,4 @@ struct AppState {
     }
 };
 
-} // namespace squarestar::application
+}

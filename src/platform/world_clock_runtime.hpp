@@ -16,4 +16,4 @@ std::string FormatUtcOffset(int offsetMinutes);
 std::string FormatClockTime(const std::tm& calendar, bool includeSeconds = false);
 std::string FormatAsOfTime(std::time_t raw, bool marketTime);
 
-} // namespace squarestar::platform
+}

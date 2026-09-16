@@ -18,4 +18,4 @@ UnifiedYAxis CalculateUnifiedYAxis(double lowestValue,
                                    double paddingFraction = 0.06,
                                    bool nonNegative = false);
 
-} // namespace squarestar::presentation
+}

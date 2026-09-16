@@ -22,4 +22,4 @@ void ReapRetiredLiteContexts(AppState& state) {
     });
 }
 
-} // namespace squarestar::application
+}

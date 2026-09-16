@@ -114,7 +114,7 @@ std::optional<std::string> UnprotectDpapi(std::string_view protectedValue) {
     return plaintext;
 }
 
-} // namespace
+}
 #endif
 
 std::optional<std::string> ProtectApiKey(std::string_view key) {
@@ -161,4 +161,4 @@ std::optional<std::string> UnprotectLocalState(std::string_view protectedState) 
 #endif
 }
 
-} // namespace squarestar::secrets
+}

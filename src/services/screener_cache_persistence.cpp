@@ -142,7 +142,7 @@ bool DecodeRow(yyjson_val* object, ScreenerItem& item) {
     return true;
 }
 
-} // namespace
+}
 
 std::string EncodePersistentScreenerCache(
     const std::string& cacheKey,
@@ -322,4 +322,4 @@ bool QueuePersistentScreenerCache(
                items);
 }
 
-} // namespace squarestar::providers
+}

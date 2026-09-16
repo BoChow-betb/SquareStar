@@ -10,4 +10,4 @@ void InitializeDefaultKeybinds(AppConfig& config);
 const char* GetActionName(TerminalAction action) noexcept;
 std::string FormatKeyBind(const KeyBind& binding);
 
-} // namespace squarestar::application
+}

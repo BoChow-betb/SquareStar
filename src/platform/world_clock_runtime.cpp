@@ -44,7 +44,7 @@ const DYNAMIC_TIME_ZONE_INFORMATION* ResolveWorldClockZone(int zoneIndex) {
 }
 #endif
 
-} // namespace
+}
 
 std::tm SafeTimeTm(std::time_t raw, bool utc) noexcept {
     std::tm calendar{};
@@ -136,4 +136,4 @@ std::string FormatAsOfTime(std::time_t raw, bool marketTime) {
     return "As of " + FormatClockTime(shown) + (marketTime ? " ET" : " Local");
 }
 
-} // namespace squarestar::platform
+}

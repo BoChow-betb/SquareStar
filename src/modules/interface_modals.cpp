@@ -23,17 +23,16 @@ using squarestar::application::UiRounding;
 using squarestar::presentation::kDialogButtonHeight;
 using squarestar::application::AppState;
 
-// ============================================================================
+
 void RenderClosingModal(AppState& state, GLFWwindow* window) {
     constexpr const char* popupId = "CloseTerminalPopup";
     const bool liteGui = state.navigation.liteGuiActive;
     if (state.navigation.showExitModal) {
         if (!ImGui::IsPopupOpen(popupId)) {
             if (liteGui) {
-                // Do not leave a detached search-results viewport competing with
-                // the modal. Preserve the typed query, but collapse its transient
-                // UI while the exit decision owns focus.
-                auto& search = state.navigation.liteSearch;
+
+
+auto& search = state.navigation.liteSearch;
                 search.isDropdownOpen = false;
                 search.isHoveringDropdown = false;
                 search.dropdownBoundsValid = false;
@@ -42,10 +41,9 @@ void RenderClosingModal(AppState& state, GLFWwindow* window) {
                 search.focusRequested = false;
             }
             ImGui::OpenPopup(popupId);
-            // A detached platform viewport is created after ImGui::Render().
-            // Queue one more frame so an event-driven LiteGUI cannot go idle on
-            // the viewport-creation frame before its draw data is presented.
-            RequestGuiRedraw();
+
+
+RequestGuiRedraw();
             PlayUISound("transition.wav", state);
         }
     }
@@ -58,17 +56,16 @@ void RenderClosingModal(AppState& state, GLFWwindow* window) {
         liteGui && (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0;
     ImGuiWindowClass modalWindowClass;
     if (detachedLiteModal) {
-        // The compact LiteGUI client area is intentionally shorter than this
-        // dialog. Give the modal its own owned, borderless platform viewport so
-        // it can overlap/extend past LiteGUI without resizing the host border.
-        modalWindowClass.ParentViewportId = viewport->ID;
+
+
+modalWindowClass.ParentViewportId = viewport->ID;
         modalWindowClass.ViewportFlagsOverrideSet =
             ImGuiViewportFlags_NoAutoMerge |
             ImGuiViewportFlags_NoDecoration |
             ImGuiViewportFlags_NoTaskBarIcon;
     }
-    // Always apply the class so a popup previously opened in LiteGUI does not
-    // retain the detached viewport policy if it is later opened in FullGUI.
+
+
     ImGui::SetNextWindowClass(&modalWindowClass);
 #endif
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -86,10 +83,9 @@ void RenderClosingModal(AppState& state, GLFWwindow* window) {
         auto dismiss = [&] {
             state.navigation.showExitModal = false;
             ImGui::CloseCurrentPopup();
-            // Ensure a follow-up frame destroys the detached platform viewport
-            // immediately after Cancel/background/Exit instead of leaving a
-            // one-frame native ghost in an event-driven render loop.
-            RequestGuiRedraw();
+
+
+RequestGuiRedraw();
         };
         if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
             PlayUISound("click.wav", state);
@@ -159,10 +155,9 @@ void RenderInterfaceSavePrompt(AppState& state) {
     constexpr const char* popupId = "Save current tab(s)?";
     if (!state.navigation.showInterfaceSavePrompt)
         return;
-    // A tab can close between the mode-switch request and this render pass.
-    // Never surface a stale save prompt when no real live or parked stock tab
-    // remains, and clear every piece of the deferred decision atomically.
-    if (!HasActualStockTabs(state)) {
+
+
+if (!HasActualStockTabs(state)) {
         state.navigation.showInterfaceSavePrompt = false;
         state.navigation.pendingInterfaceSwitchTarget = -1;
         state.navigation.interfaceSwitchDecisionReady = false;
@@ -176,10 +171,9 @@ void RenderInterfaceSavePrompt(AppState& state) {
         return;
     }
     if (!ImGui::IsPopupOpen(popupId)) {
-        // The control/keybind that requested the interface switch already owns
-        // the transition cue. Opening this confirmation is a programmatic
-        // follow-up to that same action, so do not replay the sound here.
-        ImGui::OpenPopup(popupId);
+
+
+ImGui::OpenPopup(popupId);
     }
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(
@@ -206,8 +200,8 @@ void RenderInterfaceSavePrompt(AppState& state) {
                 static_cast<UiModeRequest>(state.navigation.pendingInterfaceSwitchTarget);
             state.navigation.interfaceSwitchSaveCurrentData = saveData;
             state.navigation.interfaceSwitchDecisionReady = true;
-            // Defer until ImGui has unwound this popup; switching immediately
-            // can invalidate the popup state.
+
+
             state.navigation.deferredInterfaceSwitchTarget = (int)target;
             state.navigation.showInterfaceSavePrompt = false;
             state.navigation.pendingInterfaceSwitchTarget = -1;
@@ -229,9 +223,8 @@ void RenderInterfaceSavePrompt(AppState& state) {
         else if (ImGui::IsKeyPressed(ImGuiKey_N, false))
             selection = 1;
 
-        // Make the two decisions visually distinct instead of presenting two
-        // identical neutral buttons. The labels also expose the keyboard shortcut.
-        ImGui::PushStyleColor(ImGuiCol_Text, ThemeVec(state.config.theme.text));
+
+ImGui::PushStyleColor(ImGuiCol_Text, ThemeVec(state.config.theme.text));
         ImGui::PushStyleColor(ImGuiCol_Button, ThemeVec(state.config.theme.positive, 0.32f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ThemeVec(state.config.theme.positive, 0.46f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ThemeVec(state.config.theme.positive, 0.58f));
@@ -257,4 +250,4 @@ void RenderInterfaceSavePrompt(AppState& state) {
     ImGui::PopStyleVar(3);
 }
 
-} // namespace squarestar::shell
+}

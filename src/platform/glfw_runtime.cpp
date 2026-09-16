@@ -8,7 +8,7 @@ namespace {
 bool g_GlfwRuntimeInitialized = false;
 double g_GlfwClockSeconds = 0.0;
 
-} // namespace
+}
 
 bool EnsureGlfwPlatformRuntimeInitialized() {
     if (g_GlfwRuntimeInitialized)
@@ -32,4 +32,4 @@ bool GlfwPlatformRuntimeInitialized() noexcept {
     return g_GlfwRuntimeInitialized;
 }
 
-} // namespace squarestar::platform
+}

@@ -80,7 +80,7 @@ using squarestar::platform::ApplyFixedGlfwWindowLayout;
 using squarestar::platform::ApplyResizableGlfwWindowLayout;
 using squarestar::platform::ShutdownAppAudio;
 
-// Release vector capacity that is not useful across GUI/LiteGUI transitions.
+
 template <typename T>
 static void ReleaseVectorStorage(std::vector<T>& values) {
     std::vector<T>().swap(values);
@@ -142,18 +142,15 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
         ShutdownGuiRuntime(window, state);
         return false;
     };
-    // GLFW owns Win32 window/input integration; Direct3D 11 owns rendering.
-    // Create the hidden host at its final startup size to avoid a first-frame
-    // swap-chain resize.
-    const bool startLiteGui = state.config.lastOpenMode == 2;
+
+
+const bool startLiteGui = state.config.lastOpenMode == 2;
     const int initialWindowWidth = startLiteGui ? LITE_GUI_WIDTH : GUI_WINDOW_WIDTH;
     const int initialWindowHeight =
         startLiteGui ? LITE_GUI_SEARCH_HEIGHT : GUI_WINDOW_HEIGHT;
 
-    // GLFW window hints are process-global and sticky. Build the host from a
-    // known default baseline, then clear every host-specific hint immediately
-    // after creation instead of leaking creation policy to later windows.
-    glfwDefaultWindowHints();
+
+glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -161,12 +158,9 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     window = glfwCreateWindow(
         initialWindowWidth, initialWindowHeight, "SquareStar", nullptr, nullptr);
     glfwDefaultWindowHints();
-    // Dear ImGui creates secondary platform windows later in the process.
-    // They are rendered by Direct3D 11 through native HWNDs, so keep GLFW's
-    // process-global client-API policy at NO_API after clearing the host-only
-    // hints above. Otherwise secondary viewports fall back to an OpenGL client
-    // API and can present as black owned windows.
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+
+glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     if (!window)
         return fail("The GLFW host window could not be created.");
 
@@ -202,7 +196,7 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     }
     squarestar::benchmark::RecordMemoryLayer("C", "+ D3D11 device/swap-chain/RTV");
     LONG_PTR nativeStyle = GetWindowLongPtr(Win32AppRuntime().MainWindow(), GWL_STYLE);
-    // Keep the primary SquareStar window fixed-size.
+
     nativeStyle = (nativeStyle | WS_MINIMIZEBOX) &
                   ~(WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZEBOX);
     SetWindowLongPtr(Win32AppRuntime().MainWindow(), GWL_STYLE, nativeStyle);
@@ -244,8 +238,8 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     ImGuiContext* imguiContext = ImGui::CreateContext();
     if (!imguiContext)
         return fail("The ImGui context could not be allocated.");
-    // SquareStar owns Ctrl+Tab / Ctrl+Shift+Tab for stock-tab cycling, so the
-    // built-in ImGui window switcher must not consume the same shortcuts.
+
+
     imguiContext->ConfigNavWindowingKeyNext = ImGuiKey_None;
     imguiContext->ConfigNavWindowingKeyPrev = ImGuiKey_None;
     SetGuiRendererContexts(imguiContext, nullptr);
@@ -260,25 +254,21 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     }
     ImGuiIO& io = ImGui::GetIO();
 #ifdef IMGUI_HAS_VIEWPORT
-    // LiteGUI's search suggestions can live in a small, owned platform
-    // viewport so the compact host window never has to grow just to show the
-    // History/Recommended list. Keep multi-viewport support available for
-    // that detached surface; ordinary SquareStar windows still stay merged
-    // into the main viewport unless they explicitly opt out.
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+
+io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     io.ConfigViewportsNoTaskBarIcon = true;
     io.ConfigViewportsNoDecoration = true;
 #endif
     io.ConfigMemoryCompactTimer = 5.0f;
-    // Text glyphs are coverage masks, not RGBA images. SquareStar's compact
-    // Direct3D 11 backend maps Alpha8 atlases to DXGI_FORMAT_R8_UNORM, keeping
-    // both the CPU atlas and GPU font texture at one byte per pixel.
-    io.Fonts->TexDesiredFormat = ImTextureFormat_Alpha8;
-    // The ImGui atlas supplies the transparent texel required by its bilinear
-    // sampler, so the default one-pixel glyph padding is sufficient.
+
+
+io.Fonts->TexDesiredFormat = ImTextureFormat_Alpha8;
+
+
     io.Fonts->TexGlyphPadding = 1;
     io.Fonts->Flags |= ImFontAtlasFlags_NoMouseCursors;
-    // Window placement is owned by SquareStar, so ImGui does not write an .ini file.
+
     io.IniFilename = nullptr;
     io.WantSaveIniSettings = false;
     const bool platformReady = ImGui_ImplGlfw_InitForOther(window, true);
@@ -308,10 +298,9 @@ bool InitializeGuiRuntime(GLFWwindow*& window,
     }
     squarestar::benchmark::RecordMemoryLayer("F", "+ ImPlot context");
     EnforceZeroGraphicsMode(state);
-    // A newly created ImGui context starts with Dear ImGui's default palette.
-    // Reapply SquareStar's theme before the renderer is primed so the first
-    // visible frame uses the configured palette.
-    ApplyTheme(state);
+
+
+ApplyTheme(state);
     state.render.appliedThemeModeIndex = state.config.themeModeIndex;
     state.render.appliedZeroGraphics = state.ZeroGraphicsEnabled();
     glfwPollEvents();
@@ -396,10 +385,9 @@ void EnterLiteGuiWorkspace(GLFWwindow* window, AppState& state) {
     state.navigation.guiWorkspace.lastActiveTab = state.navigation.lastActiveTab;
     if (!state.marketData.activeContexts.empty() || state.navigation.guiWorkspace.stockTabs.empty())
         CaptureOpenGuiStockTabs(state);
-    // In-flight futures remain valid in the retire list until their copied
-    // worker inputs finish. Their full-workspace render and result payloads are
-    // no longer needed while LiteGUI is active, so release those immediately.
-    state.marketData.RetireActiveContexts();
+
+
+state.marketData.RetireActiveContexts();
     ReapRetiredLiteContexts(state);
     for (auto& retired : state.marketData.retiredLiteContexts) {
         if (!retired)
@@ -411,30 +399,27 @@ void EnterLiteGuiWorkspace(GLFWwindow* window, AppState& state) {
     }
     squarestar::application::ResetScreenerFetch(state);
     ClearStockMemoryCache();
-    // Keep the bounded screener cache across in-process interface switches.
-    // Returning to Overview can then paint cached rows immediately instead of
-    // repeating the complete list fetch after every LiteGUI visit.
-    ShutdownAppAudio();
+
+
+ShutdownAppAudio();
     state.navigation.lastActiveTab.clear();
     state.navigation.activeSidebarTab = squarestar::application::SidebarTab::Stock;
     state.navigation.previousActiveSidebarTab = squarestar::application::SidebarTab::Stock;
     state.navigation.pureMonitorMode = false;
     state.navigation.liteMonitorMode = false;
     state.navigation.liteGuiActive = true;
-    // Drop FullGUI-only transient presentation state exactly at the mode
-    // boundary. The Lite renderer can then stay side-effect free and render
-    // only the two notification classes its policy allows.
-    state.render.notifications.ClearLiteGuiSuppressed();
+
+
+state.render.notifications.ClearLiteGuiSuppressed();
     state.navigation.lastActiveTab = state.navigation.guiWorkspace.lastActiveTab;
     if (!state.navigation.guiWorkspace.stockTabs.empty())
         RestoreSavedGuiStockTabs(state, true);
-    // Keep the compact mode-switch reminder visible in LiteGUI. It occupies a
-    // stable title-bar position and remains useful after the first launch.
+
+
     state.config.liteGuiHintShown = true;
-    // LiteGUI exposes two clock slots without rewriting the persistent list.
-    // Hidden desktop clocks stay canonical in AppConfig while Lite edits are
-    // merged back through AppState::SetWorldClockEnabled().
-    state.navigation.liteWorldClocks.assign(
+
+
+state.navigation.liteWorldClocks.assign(
         state.config.activeWorldClocks.begin(),
         state.config.activeWorldClocks.begin() +
             std::min<std::size_t>(2, state.config.activeWorldClocks.size()));
@@ -479,7 +464,7 @@ static void LeaveLiteGuiWorkspace(GLFWwindow* window,
         squarestar::application::StartScreenerFetch(
             state,
             std::string(kScreenerRoutes[state.navigation.activeScreenerIndex].guiId));
-    // The primary GUI is fixed-size, so do not restore a maximized state.
+
     if (state.navigation.guiWorkspace.wasFullscreen)
         ToggleApplicationFullscreen(window, state);
 }
@@ -490,8 +475,8 @@ static bool PumpDeferredInterfaceSwitch(AppState& state) {
         ApplicationRuntime().RequestUiMode(
             static_cast<UiModeRequest>(state.navigation.deferredInterfaceSwitchTarget));
         state.navigation.deferredInterfaceSwitchTarget = -1;
-        // Render one normal frame with the modal closed before changing the
-        // workspace state. The popup must finish its frame before the mode switch.
+
+
         RequestGuiRedraw();
         return true;
     } else if (state.navigation.deferredInterfaceSwitchTarget != -1 &&
@@ -757,4 +742,4 @@ void PumpPriceAlertMonitorRequests(AppState& state) {
     }
 }
 
-} // namespace squarestar::shell
+}

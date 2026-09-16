@@ -131,9 +131,7 @@ inline MarketMoveTriggerResult EvaluateMarketMoveTriggers(double before,
     return result;
 }
 
-// Owns alert configuration, presentation state, and background monitor
-// contexts. Containers stay private so threshold, silence, mute, queue-size,
-// and cleanup invariants cannot be bypassed by callers.
+
 class AlertService {
 public:
     using ThresholdMap = std::map<std::string, double, std::less<>>;
@@ -207,10 +205,9 @@ public:
     }
 
     void Silence(std::string ticker) {
-        // An untimed silence supersedes any older settlement mute. Otherwise
-        // ExpireMutes would later erase this newly requested silence as if it
-        // still belonged to the timed entry.
-        priceAlertMutedUntil_.erase(ticker);
+
+
+priceAlertMutedUntil_.erase(ticker);
         silencedPriceAlerts_.insert(std::move(ticker));
     }
 
@@ -421,4 +418,4 @@ private:
     MonitorContexts priceAlertContexts_;
 };
 
-} // namespace squarestar::alerts
+}

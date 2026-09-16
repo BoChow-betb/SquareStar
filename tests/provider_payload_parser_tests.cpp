@@ -61,7 +61,7 @@ constexpr std::string_view kYahooVolumePayload = R"json(
 }
 )json";
 
-} // namespace
+}
 
 int main() {
     using squarestar::market::StockData;

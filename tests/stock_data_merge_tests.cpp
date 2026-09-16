@@ -15,7 +15,7 @@ void Require(bool condition, const char* message) {
     std::exit(EXIT_FAILURE);
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::application::MergeStockFetchPatch;

@@ -73,4 +73,4 @@ ApplicationRuntimeState& ApplicationRuntime() noexcept {
     return runtime;
 }
 
-} // namespace squarestar::application
+}

@@ -37,4 +37,4 @@ std::string CleanCompanyDisplayName(std::string_view raw) {
 }
 
 
-} // namespace squarestar::presentation
+}

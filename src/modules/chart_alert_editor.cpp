@@ -188,4 +188,4 @@ void RenderPriceAlertEditor(AppState& state,
     }
 }
 
-} // namespace squarestar::shell
+}

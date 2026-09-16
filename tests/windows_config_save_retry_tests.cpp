@@ -34,7 +34,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    // Make the config filename a directory so the atomic file replacement fails.
+
     fs::create_directories(configPath, error);
     if (error) {
         std::cerr << "could not create blocked config destination\n";
@@ -77,7 +77,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    // Remove the blocked destination and force the pending retry.
+
     fs::remove_all(configPath, error);
     if (error) {
         std::cerr << "could not unblock config destination\n";

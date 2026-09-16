@@ -39,7 +39,7 @@ int EvidenceStrength(CorporateActionStatus status) {
     return 0;
 }
 
-} // namespace
+}
 
 CorporateActionStatus ClassifyCorporateActionNews(
     const std::vector<NewsItem>& news,
@@ -101,4 +101,4 @@ std::string TradingStatusExchangeLabel(std::string_view exchange,
     return label;
 }
 
-} // namespace squarestar::market
+}

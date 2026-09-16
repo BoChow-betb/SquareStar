@@ -3,10 +3,9 @@
 namespace squarestar::application {
 
 UserFeedbackRoute ResolveUserFeedbackRoute(const UserFeedback& feedback) noexcept {
-    // Notification blocks use a simple UI cue convention:
-    // normal/informational feedback -> key, warning/error feedback -> decline.
-    // error.wav stays available for explicit high-priority alert sounds.
-    const UserFeedbackSound sound =
+
+
+const UserFeedbackSound sound =
         feedback.sound != UserFeedbackSound::Automatic
             ? feedback.sound
         : feedback.type == UserFeedbackType::Warning ||
@@ -34,4 +33,4 @@ UserFeedbackRoute ResolveUserFeedbackRoute(const UserFeedback& feedback) noexcep
     return route;
 }
 
-} // namespace squarestar::application
+}

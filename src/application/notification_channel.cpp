@@ -113,11 +113,8 @@ NativeNotificationChannel::TakeReadyPriceMoveNotifications(
             batch.lastQueuedAt == std::chrono::steady_clock::time_point{} ||
             now - batch.lastQueuedAt >= kNotificationGroupingWindow;
 
-        // Publish a new/changed batch immediately. The Win32 adapter uses the
-        // stable group id to update an already-visible card in place, so the
-        // first stock never waits 1.5 s just to discover whether companions
-        // will arrive.
-        if (dirty) {
+
+if (dirty) {
             auto text = FormatBackgroundStockMoves(batch.rows);
             std::string actionTicker;
             if (batch.rows.size() == 1)
@@ -136,8 +133,8 @@ NativeNotificationChannel::TakeReadyPriceMoveNotifications(
             priceMoveBatches_.pop_front();
             continue;
         }
-        // A collecting front batch is necessarily the newest open group. Later
-        // batches can only exist after this one is ready, so stop here.
+
+
         break;
     }
     return ready;
@@ -165,4 +162,4 @@ double NativeNotificationChannel::SecondsUntilPriceMoveFlush() const {
 }
 
 
-} // namespace squarestar::application
+}

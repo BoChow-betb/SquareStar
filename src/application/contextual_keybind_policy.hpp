@@ -25,4 +25,4 @@ ContextualKeybindSurface ResolveContextualKeybindSurface(
     ContextualKeybindSurfaceInputs inputs) noexcept;
 bool HasContextualKeybindHint(ContextualKeybindSurface surface) noexcept;
 
-} // namespace squarestar::application
+}

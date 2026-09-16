@@ -73,4 +73,4 @@ std::string FormatKeyBind(const KeyBind& binding) {
     return result;
 }
 
-} // namespace squarestar::application
+}

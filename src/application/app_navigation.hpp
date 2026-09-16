@@ -54,4 +54,4 @@ struct AppNavigation {
     TerminalAction ActionBeingRebound = TerminalAction::CloseTab;
 };
 
-} // namespace squarestar::application
+}

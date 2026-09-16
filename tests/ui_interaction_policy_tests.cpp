@@ -29,7 +29,7 @@ bool Near(float actual, float expected, float tolerance = 0.000001f) {
     return std::abs(actual - expected) <= tolerance;
 }
 
-} // namespace
+}
 
 int main() {
     using namespace squarestar::presentation;

@@ -282,4 +282,4 @@ void RenderMonitorExitButton(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

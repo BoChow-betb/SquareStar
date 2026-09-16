@@ -153,8 +153,8 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
             }
         }
         if (IsActionPressed(state.config, TerminalAction::FocusSearch)) {
-            // Settings owns keyboard focus for controls and keybind editing.
-            // Keep the global search shortcut from moving focus away from it.
+
+
             if (state.navigation.activeSidebarTab != squarestar::application::SidebarTab::Settings) {
                 normalMode();
                 if (state.navigation.activeSidebarTab != squarestar::application::SidebarTab::Stock ||
@@ -250,4 +250,4 @@ void HandleTerminalKeyboardShortcuts(AppState& state, GLFWwindow* window) {
 }
 
 
-} // namespace squarestar::shell
+}

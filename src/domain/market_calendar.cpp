@@ -35,8 +35,7 @@ struct OneOffMarketClosure {
     const char* reason;
 };
 
-// Exceptional closures are facts, not recurring holiday rules. Keep them as a
-// short table: when another one occurs, add one row.
+
 constexpr std::array<OneOffMarketClosure, 9> kOneOffMarketClosures = {{
     {{2001, 9, 11}, "September 11 market closure"},
     {{2001, 9, 12}, "September 11 market closure"},
@@ -68,7 +67,7 @@ std::time_t EasternDstStartUtc(int year) noexcept {
         transition.tm_mon = 3;
         transition.tm_mday = LastWeekdayOfMonth(year, 4, 0);
     }
-    transition.tm_hour = 7; // 02:00 EST
+    transition.tm_hour = 7;
     return UtcTmToTimeT(transition);
 }
 
@@ -82,11 +81,11 @@ std::time_t EasternDstEndUtc(int year) noexcept {
         transition.tm_mon = 9;
         transition.tm_mday = LastWeekdayOfMonth(year, 10, 0);
     }
-    transition.tm_hour = 6; // 02:00 EDT
+    transition.tm_hour = 6;
     return UtcTmToTimeT(transition);
 }
 
-} // namespace
+}
 
 int GregorianWeekday(int year, int month, int day) noexcept {
     static constexpr std::array<int, 12> offsets = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
@@ -183,11 +182,8 @@ int MarketCloseMinutesForDate(int year, int month, int day) {
     if (!IsMarketTradingDay(year, month, day))
         return 0;
 
-    // Current NYSE recurring early-close pattern for the core equities session:
-    // July 3 when it is itself a trading day, the Friday after Thanksgiving,
-    // and Christmas Eve when it is itself a trading day. A holiday/weekend
-    // check above takes precedence (for example July 3, 2026 is fully closed).
-    const int weekday = GregorianWeekday(year, month, day);
+
+const int weekday = GregorianWeekday(year, month, day);
     const int thanksgiving = NthWeekdayOfMonth(year, 11, 4, 4);
     const bool dayBeforeIndependenceDay = month == 7 && day == 3;
     const bool dayAfterThanksgiving =
@@ -359,4 +355,4 @@ std::string MarketSettlementTimeLabel(std::time_t utcTime) {
     return label;
 }
 
-} // namespace squarestar::market
+}

@@ -317,8 +317,8 @@ static StockPublicationResult PublishStockCompletion(
         ctx.navigation.displayedTimeRangeIndex = completion.rangeIndex;
     if (completion.kind == FetchKind::Full &&
         ctx.navigation.selectedTimeRangeIndex != completion.rangeIndex) {
-        // Full-load progressive fallback is authoritative for both the normal
-        // terminal and LiteGUI because both surfaces share this context.
+
+
         ctx.navigation.selectedTimeRangeIndex = completion.rangeIndex;
         ctx.requests.pendingFetchRangeIndex = completion.rangeIndex;
         ctx.render.lockedAxisRangeIndex = -1;
@@ -492,4 +492,4 @@ void PumpCompletedStockRequests(AppState& state, bool windowSuspended) {
 }
 
 
-} // namespace squarestar::shell
+}

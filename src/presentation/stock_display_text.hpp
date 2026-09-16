@@ -17,4 +17,4 @@ void DrawStablePrevCloseLine(ImDrawList* drawList,
                              float thickness);
 std::string EllipsizeTextBinary(const std::string& text, float maxWidth);
 
-} // namespace squarestar::presentation
+}

@@ -14,4 +14,4 @@ void StoreStockMemoryCache(
     std::string_view key,
     const squarestar::market::StockFetchResult& result);
 
-} // namespace squarestar::marketdata
+}

@@ -62,10 +62,9 @@ void RenderMarketMoveNotices(AppState& state,
     auto& notices = state.render.notifications.marketMoves.notices;
     for (auto it = notices.begin(); it != notices.end();) {
         if (state.navigation.liteGuiActive && !stack.HasBlockCapacity()) {
-            // Pause already-visible cards while higher-priority alerts occupy
-            // LiteGUI's two-card tower. Cards that have never been visible keep
-            // presentationStarted=false and therefore have no lifetime to burn.
-            for (auto queued = it; queued != notices.end(); ++queued)
+
+
+for (auto queued = it; queued != notices.end(); ++queued)
                 queued->RefreshVisibleHold(now);
             break;
         }
@@ -112,11 +111,9 @@ void RenderMarketMoveNotices(AppState& state,
                  .accentText = it->deltaText.c_str(),
                  .accentDirection = it->direction,
                  .groupedStockRows = it->rows.size() > 1 ? &it->rows : nullptr,
-                 // A LiteGUI market update can land during the same pointer
-                 // gesture that caused a refresh/range action. Do not arm the
-                 // whole-card dismiss target until one complete visible frame
-                 // has passed, so the trigger gesture cannot erase the card.
-                 .pointerInteractionEnabled =
+
+
+.pointerInteractionEnabled =
                      !state.navigation.liteGuiActive || it->pointerDismissArmed});
             if (!requestedTicker.empty())
                 (void)OpenNotificationStock(state, requestedTicker);
@@ -127,8 +124,8 @@ void RenderMarketMoveNotices(AppState& state,
                 if (firstVisibleFrame)
                     RequestGuiWakeAt(it->until);
             } else if (cardResult == NotificationCardRenderResult::Deferred) {
-                // If an already-visible card is temporarily displaced, pause it
-                // rather than letting the hold deadline expire off-screen.
+
+
                 it->RefreshVisibleHold(now);
             } else {
                 it->Dismiss();
@@ -180,8 +177,8 @@ void RenderInteractionNotice(AppState& state,
          .actionUrl = notice.actionUrl.c_str(),
          .actionPath = notice.actionPath.c_str(),
          .pointerInteractionEnabled = notice.pointerDismissArmed});
-    // A deferred frame is not a presentation frame. Arming only after a real
-    // visible frame prevents the click that created a notice from dismissing it.
+
+
     notice.pointerDismissArmed = cardResult == NotificationCardRenderResult::Visible;
     if (cardResult == NotificationCardRenderResult::Dismissed)
         notice.Dismiss();
@@ -295,4 +292,4 @@ void RenderMarketOpenNotice(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

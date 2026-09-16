@@ -160,10 +160,9 @@ void RenderStockTabStrip(AppState& state) {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     const bool lightPalette =
         squarestar::application::IsLightGuiTheme(state.config.themeModeIndex);
-    // Inactive/delisted symbols get their own neutral semantic treatment.
-    // Keep price-alert red as the highest-priority state, but otherwise make a
-    // stopped-trading tab visibly different from an ordinary active symbol.
-    const ImVec4 stoppedTabInactive =
+
+
+const ImVec4 stoppedTabInactive =
         lightPalette ? ImVec4(0.80f, 0.84f, 0.88f, 1.0f)
                      : ImVec4(0.19f, 0.22f, 0.28f, 1.0f);
     const ImVec4 stoppedTabActive =
@@ -396,7 +395,7 @@ void RenderMonitorStocks(AppState& state) {
     ImGui::Dummy(ImVec2(width, height));
 }
 
-} // namespace
+}
 
 void RenderTerminalStockSurface(AppState& state) {
     for (auto& context : state.marketData.activeContexts) {
@@ -427,4 +426,4 @@ void RenderTerminalStockSurface(AppState& state) {
     RenderActiveStock(state);
 }
 
-} // namespace squarestar::shell
+}

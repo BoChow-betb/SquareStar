@@ -27,8 +27,8 @@ namespace squarestar::platform {
 namespace {
 
 struct AppSoundClip {
-    // Embedded RCDATA is process-lifetime, file-backed memory. Keep only a view
-    // for the normal path instead of duplicating every cue into the CRT heap.
+
+
     const unsigned char* bytes = nullptr;
     std::size_t byteCount = 0;
     std::vector<unsigned char> ownedBytes;
@@ -299,8 +299,8 @@ std::shared_ptr<const AppSoundClip> CachedAppSound(const char* filename) {
             g_AppSoundCache.emplace(cacheKey, nullptr);
             return {};
         }
-        // ParsePcmWave stores the vector's stable backing pointer. The vector is
-        // never mutated after this point while the clip is cached/in playback.
+
+
     }
 
     std::lock_guard<std::mutex> lock(g_AppSoundCacheMutex);
@@ -317,7 +317,7 @@ std::shared_ptr<const AppSoundClip> CachedAppSound(const char* filename) {
 #endif
 }
 
-} // namespace
+}
 
 double AppSoundDurationSeconds(const char* filename) {
     const std::shared_ptr<const AppSoundClip> clip = CachedAppSound(filename);
@@ -382,4 +382,4 @@ bool PlayAppSoundRuntime(const char* filename) {
 #endif
 }
 
-} // namespace squarestar::platform
+}

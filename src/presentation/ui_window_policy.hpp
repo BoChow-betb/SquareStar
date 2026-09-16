@@ -30,10 +30,8 @@ UiSize FitWindowToBounds(UiSize desired,
                          UiRect bounds,
                          float margin) noexcept;
 
-// Selects the work area with the largest overlap with the owning window. If
-// there is no overlap, the closest work-area center wins. This keeps the
-// decision deterministic for negative-coordinate and mixed-DPI monitor grids.
+
 std::size_t SelectOwningWorkArea(std::span<const UiRect> workAreas,
                                  UiRect owner) noexcept;
 
-} // namespace squarestar::presentation
+}

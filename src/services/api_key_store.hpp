@@ -30,4 +30,4 @@ ApiKeyCommitResult CommitFinnhubApiKeyChange(
 std::uint64_t ApiKeyRevision() noexcept;
 bool IsApiKeyRevisionCurrent(std::uint64_t revision) noexcept;
 
-} // namespace squarestar::secrets
+}

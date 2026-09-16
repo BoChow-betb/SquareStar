@@ -36,9 +36,9 @@ StockAutoRefreshAction SelectStockRefreshAction(float autoRefreshTimer,
 bool AlertContextRefreshDue(float autoRefreshTimer, bool currentDataSuccess) noexcept;
 float ClampStockRefreshElapsed(double elapsedSeconds) noexcept;
 bool ShouldWatchHiddenStockSurface(const HiddenStockSurfaceInputs& inputs) noexcept;
-// US equities follow the regular NYSE session. Continuous futures do not;
-// Yahoo decides whether a request currently has a fresh quote.
+
+
 bool StockAutoRefreshSessionEligible(std::string_view ticker,
                                      bool regularEquityMarketOpen);
 
-} // namespace squarestar::application
+}

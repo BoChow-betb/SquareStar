@@ -1,10 +1,7 @@
 #ifndef SQUARESTAR_EMBEDDED_RESOURCE_IDS_H
 #define SQUARESTAR_EMBEDDED_RESOURCE_IDS_H
 
-// Numeric identifiers are shared by the resource compiler and the runtime
-// lookup code. GNU windres treats adjacent quoted resource names as continued
-// filename strings, so the embedded assets must not use quoted filenames as
-// their resource identifiers.
+
 #define SQUARESTAR_RESOURCE_KEY_WAV 201
 #define SQUARESTAR_RESOURCE_CLICK_WAV 202
 #define SQUARESTAR_RESOURCE_DECLINE_WAV 203
@@ -23,7 +20,7 @@
 #define SQUARESTAR_RESOURCE_OUTFIT_REGULAR_TTF 216
 #define SQUARESTAR_RESOURCE_OUTFIT_SEMIBOLD_TTF 217
 
-// Notices and license texts shown in the in-app Credits & Licenses view.
+
 #define SQUARESTAR_RESOURCE_PROJECT_LICENSE 301
 #define SQUARESTAR_RESOURCE_THIRD_PARTY_NOTICES 302
 #define SQUARESTAR_RESOURCE_ASSET_CREDITS 303

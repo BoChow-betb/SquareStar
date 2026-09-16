@@ -47,4 +47,4 @@ struct ChartFallbackDecision {
     std::string_view exchange,
     const TradingStatus& status);
 
-} // namespace squarestar::market
+}

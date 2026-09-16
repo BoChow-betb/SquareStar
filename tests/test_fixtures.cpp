@@ -107,4 +107,4 @@ std::vector<squarestar::market::ScreenerData> BuildTestScreenerData(
     return items;
 }
 
-} // namespace squarestar::test
+}

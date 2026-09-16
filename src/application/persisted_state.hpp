@@ -32,4 +32,4 @@ PersistedStateConstView PersistedStateOf(const State& state) noexcept {
     return {state.config, state.navigation, state.alerts};
 }
 
-} // namespace squarestar::application
+}

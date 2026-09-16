@@ -19,4 +19,4 @@ struct AppRequestState {
     bool priceAlertMonitorTopologyInitialized = false;
 };
 
-} // namespace squarestar::application
+}

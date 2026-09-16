@@ -111,10 +111,9 @@ int main() {
     std::vector<std::future<squarestar::http::HttpResponse>> backlog;
     squarestar::http::HttpResponse rejectedResponse;
     bool observedRejection = false;
-    // Keep submitting while the sole worker is blocked. The exact queue capacity is an
-    // implementation detail; this test verifies only the externally observable behavior:
-    // a bounded queue eventually rejects immediately and reports an unambiguous error.
-    for (std::size_t index = 0; index < 4096; ++index) {
+
+
+for (std::size_t index = 0; index < 4096; ++index) {
         auto candidate = saturated.Submit([] {
             return squarestar::http::HttpResponse{
                 "queued", 200, squarestar::http::HttpError::None};
@@ -141,10 +140,8 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    // Priority is a latency hint, not permission to starve background work.
-    // One worker fixes the execution order after the blocker releases and
-    // exercises the burst selector directly.
-    PersistentExecutor fair(1, "priority-fairness-test");
+
+PersistentExecutor fair(1, "priority-fairness-test");
     std::promise<void> fairnessStarted;
     std::promise<void> releaseFairness;
     const auto fairnessRelease = releaseFairness.get_future().share();
@@ -189,10 +186,8 @@ int main() {
     }
     fair.Shutdown();
 
-    // Two lanes keep an interactive/high-priority task runnable while a slow
-    // normal-priority task is already in flight on the other lane. This is the
-    // executor shape used by the default HTTP and background pools.
-    PersistentExecutor twoLane(2, "two-lane-latency-test", std::nullopt);
+
+PersistentExecutor twoLane(2, "two-lane-latency-test", std::nullopt);
     std::promise<void> slowStarted;
     std::promise<void> releaseSlow;
     const auto slowRelease = releaseSlow.get_future().share();
@@ -220,10 +215,8 @@ int main() {
     }
     twoLane.Shutdown();
 
-    // A latency-sensitive executor can disable idle retirement entirely. It
-    // must keep the same worker thread parked across an idle interval instead
-    // of destroying and recreating its TLS/thread-local state.
-    PersistentExecutor persistent(1, "persistent-idle-test", std::nullopt);
+
+PersistentExecutor persistent(1, "persistent-idle-test", std::nullopt);
     std::atomic_uint workerEpochs{0};
     const auto captureWorkerEpoch = [&workerEpochs] {
         thread_local const unsigned epoch =
@@ -248,7 +241,7 @@ int main() {
         std::cerr << "stopped executor returned an ambiguous default value\n";
         return EXIT_FAILURE;
     } catch (const ExecutorRejected&) {
-        // The generic executor path reports an explicit typed exception.
+
     }
 
     std::cout << "Network executor cancellation and rejection semantics passed\n";

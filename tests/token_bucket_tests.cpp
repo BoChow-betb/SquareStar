@@ -11,7 +11,7 @@ void Check(bool condition, const char* message) {
         std::exit(EXIT_FAILURE);
     }
 }
-} // namespace
+}
 
 int main() {
     using namespace std::chrono_literals;

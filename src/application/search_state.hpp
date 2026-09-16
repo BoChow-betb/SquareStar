@@ -48,4 +48,4 @@ struct SearchState {
     }
 };
 
-} // namespace squarestar::application
+}

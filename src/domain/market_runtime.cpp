@@ -23,4 +23,4 @@ bool IsMarketOpeningWindow() {
     return IsMarketOpeningWindowAt(std::time(nullptr));
 }
 
-} // namespace squarestar::market
+}

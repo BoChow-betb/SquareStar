@@ -36,7 +36,7 @@ void BuildComparisonPlotDecimation(application::ComparisonSeries& item) {
     BuildLttbSeries(item.x, item.percent, targetPoints, item.plotX, item.plotPercent);
 }
 
-} // namespace
+}
 
 const std::vector<application::ComparisonSeries>&
 BuildComparisonSeries(const application::AppState& state,
@@ -226,4 +226,4 @@ void EnsureComparisonYAxisTicks(application::StockContext& primary,
     }
 }
 
-} // namespace squarestar::presentation
+}

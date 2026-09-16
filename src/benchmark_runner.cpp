@@ -199,9 +199,8 @@ std::string WindowsVersion() {
     const std::string build =
         RegistryString(HKEY_LOCAL_MACHINE, key, "CurrentBuildNumber");
 
-    // ProductName can still say "Windows 10" on Windows 11.
-    // Build 22000+ is Windows 11.
-    constexpr std::string_view reportedWindows10Prefix = "Windows 10";
+
+constexpr std::string_view reportedWindows10Prefix = "Windows 10";
     if (WindowsBuildNumber(build) >= 22000 &&
         product.rfind(reportedWindows10Prefix, 0) == 0) {
         product.replace(0, reportedWindows10Prefix.size(), "Windows 11");
@@ -957,7 +956,7 @@ bool WriteIdleSample(double wallSeconds,
         row.str());
 }
 
-} // namespace
+}
 
 CommandLineDispatch HandleBenchmarkCommandLine(
     int argc,
@@ -1173,4 +1172,4 @@ bool PollGuiProbe() {
     return true;
 }
 
-} // namespace squarestar::benchmark
+}

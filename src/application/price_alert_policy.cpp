@@ -123,4 +123,4 @@ bool ResumeConfiguredPriceAlert(AppState& state, std::string_view ticker) {
     return true;
 }
 
-} // namespace squarestar::application
+}

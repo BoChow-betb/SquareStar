@@ -7,4 +7,4 @@ void StopAllAppAudio();
 void ShutdownAppAudio();
 bool PlayAppSoundRuntime(const char* filename);
 
-} // namespace squarestar::platform
+}

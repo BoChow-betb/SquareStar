@@ -28,7 +28,7 @@ std::tm SafeUtcTm(std::time_t raw) noexcept {
     return tm;
 }
 
-} // namespace
+}
 
 ChartCanvasModel BuildChartCanvasModel(
     const squarestar::market::StockData& data,
@@ -196,7 +196,7 @@ std::string NormalizeSpreadsheetText(std::string_view value) {
     return normalized;
 }
 
-} // namespace
+}
 
 std::string EscapeSpreadsheetCsvField(std::string_view value) {
     return EscapeCsvField(NormalizeSpreadsheetText(value));
@@ -266,4 +266,4 @@ bool ExportComparisonData(
     return out.good();
 }
 
-} // namespace squarestar::presentation
+}

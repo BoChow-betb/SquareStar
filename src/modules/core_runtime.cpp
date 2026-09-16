@@ -89,10 +89,9 @@ HICON LoadSquareStarIcon() {
         if (!h)
             h = (HICON)LoadImageW(
                 nullptr, L"squarestar.ico", IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
-        // IDI_APPLICATION follows the build's generic ANSI/Unicode setting.
-        // This call is explicitly wide, so keep its integer resource pointer
-        // explicitly wide as well (MinGW rejects LPSTR -> LPCWSTR).
-        return h ? h : LoadIconW(nullptr, MAKEINTRESOURCEW(32512));
+
+
+return h ? h : LoadIconW(nullptr, MAKEINTRESOURCEW(32512));
     }();
     return icon;
 }
@@ -115,7 +114,7 @@ bool IsAppWindowForeground() {
 void ApplyRoundedWindowCorners(HWND hwnd) {
     if (!hwnd)
         return;
-    const DWORD roundPreference = 2; // DWMWCP_ROUND
+    const DWORD roundPreference = 2;
     if (SUCCEEDED(DwmSetWindowAttribute(hwnd, 33, &roundPreference, sizeof(roundPreference)))) {
         SetWindowRgn(hwnd, NULL, TRUE);
         return;
@@ -129,7 +128,7 @@ void ApplyRoundedWindowCorners(HWND hwnd) {
         const int width = rect.right - rect.left;
         const int height = rect.bottom - rect.top;
         HRGN region = CreateRoundRectRgn(0, 0, width + 1, height + 1, 18, 18);
-        SetWindowRgn(hwnd, region, TRUE); // The system owns region after success.
+        SetWindowRgn(hwnd, region, TRUE);
     }
 }
 static LRESULT BorderlessWindowHitTest(HWND hwnd, LPARAM lParam) {
@@ -140,7 +139,7 @@ static LRESULT BorderlessWindowHitTest(HWND hwnd, LPARAM lParam) {
     const bool liteGui = ApplicationRuntime().CurrentUiMode() ==
                          squarestar::application::AppUiMode::LiteGui;
 
-    // The primary HWND has no resize hit-test zones.
+
     POINT clientPoint = p;
     RECT clientRect{};
     if (!ScreenToClient(hwnd, &clientPoint) || !GetClientRect(hwnd, &clientRect))
@@ -176,10 +175,9 @@ LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
     if (msg == WM_NCCALCSIZE && wParam)
         return 0;
     if (msg == WM_DPICHANGED && lParam) {
-        // GLFW owns its HWND bookkeeping and content-scale callbacks. Let its
-        // original WndProc consume the suggested DPI rect first, then refresh
-        // SquareStar's borderless corner region using the resulting native size.
-        const LRESULT result = CallWindowProc(
+
+
+const LRESULT result = CallWindowProc(
             Win32AppRuntime().OriginalWindowProc(), hwnd, msg, wParam, lParam);
         ApplyRoundedWindowCorners(hwnd);
         return result;
@@ -204,10 +202,9 @@ LRESULT CALLBACK TrayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
         } else if (wParam == SIZE_RESTORED || wParam == SIZE_MAXIMIZED) {
             HandleTaskbarRestore();
             ApplicationRuntime().RequestGuiFrameDeltaReset();
-            // A native taskbar restore may arrive after the render loop has
-            // spent hours inside glfwWaitEventsTimeout. Wake it immediately so
-            // the first restored frame and first click are both actionable.
-            RedrawWindow(hwnd,
+
+
+RedrawWindow(hwnd,
                          nullptr,
                          nullptr,
                          RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN);
@@ -253,10 +250,9 @@ bool IsAppMinimizedForNotifications() {
     return Win32AppRuntime().MinimizedForNotifications();
 }
 bool UseBackgroundNotificationBlock() {
-    // Native cards are reserved for genuinely hidden/minimized operation.
-    // Foreground LiteGUI keeps ordinary feedback audio-only; its two allowed
-    // visual notification classes are rendered by the GUI itself.
-    return IsAppMinimizedForNotifications();
+
+
+return IsAppMinimizedForNotifications();
 }
 bool UseForegroundNotificationBlocks() {
     if (IsAppMinimizedForNotifications())
@@ -294,7 +290,7 @@ void ShowForegroundInteractionNotice(AppState& state,
     RequestGuiRedraw();
 }
 
-} // namespace
+}
 
 void PublishUserFeedback(AppState& state,
                          UserFeedback feedback) {
@@ -413,9 +409,8 @@ void MinimizeToTray(HWND hwnd) {
         "SquareStar",
         "Price alerts and market-move notices are active in the background.");
 }
-// Background notices use SquareStar's own non-activating Win32 card. It keeps
-// the foreground notification palette and motion instead of inheriting the
-// operating system's unrelated shell-balloon appearance.
+
+
 static void ShowPendingNativeNotification() {
     std::optional<NativeNotificationRequest> pending = NotificationChannel().Take();
     if (!pending)
@@ -553,8 +548,8 @@ void PublishForegroundStockMove(AppState& state,
             return item.ticker == row.ticker;
         });
         if (existing != latest.rows.end()) {
-            // Preserve the first observed price so a burst for one ticker reads
-            // as one coherent move instead of repeatedly resetting its baseline.
+
+
             if (!std::isfinite(existing->before) || existing->before <= 0.0)
                 existing->before = row.before;
             existing->after = row.after;
@@ -566,8 +561,8 @@ void PublishForegroundStockMove(AppState& state,
             mergedIntoLatestBlock = true;
         }
         if (mergedIntoLatestBlock) {
-            // A queued/deferred LiteGUI card has no running deadline yet. Only
-            // refresh a hold window that has actually started on screen.
+
+
             latest.RefreshVisibleHold(now);
             RefreshForegroundMarketMoveNoticeText(latest);
         }
@@ -579,8 +574,8 @@ void PublishForegroundStockMove(AppState& state,
 
         squarestar::application::MarketMoveNotice notice;
         notice.rows.push_back(std::move(row));
-        // The renderer owns the presentation deadline. Compact LiteGUI may need
-        // one frame to grow before this full card can be presented.
+
+
         notice.animation = state.UiAnimationsEnabled() ? 0.0f : 1.0f;
         notice.serial = ++moves.nextSerial;
         RefreshForegroundMarketMoveNoticeText(notice);
@@ -650,4 +645,4 @@ double SecondsUntilPendingTrayPriceMoveFlush() {
     return NotificationChannel().SecondsUntilPriceMoveFlush();
 }
 
-} // namespace squarestar::shell
+}

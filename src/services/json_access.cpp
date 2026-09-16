@@ -137,4 +137,4 @@ bool JsonString(yyjson_val* object,
     return true;
 }
 
-} // namespace squarestar::json
+}

@@ -149,10 +149,8 @@ void RenderSettingsContent(AppState& state) {
     bool openSavedDataModal = false;
     bool openCreditsModal = false;
 
-    // Keep the footer fixed and give the cards a measured reading region.
-    // Settings lives inside the non-scrolling sidebar overlay, so this nested
-    // body follows the same behavior: no scrollbar and no scrolling input.
-    const float footerHeight = 32.0f;
+
+const float footerHeight = 32.0f;
     const float footerGapY = 10.0f;
     const float settingsStartX = ImGui::GetCursorPosX();
     const float settingsStartY = ImGui::GetCursorPosY();
@@ -166,13 +164,13 @@ void RenderSettingsContent(AppState& state) {
                       ImGuiWindowFlags_NoSavedSettings |
                           ImGuiWindowFlags_NoScrollbar |
                           ImGuiWindowFlags_NoScrollWithMouse);
-    // Pin the child to its origin so navigation/programmatic scroll state cannot
-    // turn this fixed settings layout into a hidden scrolling region.
+
+
     ImGui::SetScrollY(0.0f);
     const float bodyInnerStartX = ImGui::GetCursorPosX();
     const float bodyInnerWidth = std::max(1.0f, ImGui::GetContentRegionAvail().x);
-    // Give the bordered settings sheet a little more breathing room so its
-    // right edge stays inside the overlay while the sidebar is expanding.
+
+
     const float bodySideGutter = std::clamp(bodyInnerWidth * 0.060f, 24.0f, 76.0f);
     const float bodyContentWidth =
         std::min(1320.0f, std::max(1.0f, bodyInnerWidth - bodySideGutter * 2.0f));
@@ -195,4 +193,4 @@ void RenderSettingsContent(AppState& state) {
 }
 
 
-} // namespace squarestar::shell
+}

@@ -9,10 +9,9 @@ namespace squarestar::application {
 
 struct AppRenderCache {
     float sidebarAnim = 64.0f;
-    // Screener rows animate independently from network/sparkline completion.
-    // Keeping only the current visible batch avoids request-lifetime coupling
-    // while preserving the top-to-bottom reveal when a route/page changes.
-    int overviewRowsRevealScreenerIndex = -1;
+
+
+int overviewRowsRevealScreenerIndex = -1;
     int overviewRowsRevealPage = -1;
     std::size_t overviewRowsRevealStartIndex = 0;
     std::size_t overviewRowsRevealFirstIndex = 0;
@@ -32,4 +31,4 @@ struct AppRenderCache {
 
 };
 
-} // namespace squarestar::application
+}

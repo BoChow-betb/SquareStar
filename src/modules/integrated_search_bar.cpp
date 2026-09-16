@@ -517,10 +517,9 @@ bool UpdateDropdownState(AppState& state,
         (hasInput || !state.config.searchHistory.empty() ||
          state.navigation.liteGuiActive);
     searchState.isDropdownOpen = show;
-    // LiteGUI can resize its native host around this popup. Always schedule a
-    // follow-up frame when the open state flips, even in zero-graphics mode
-    // where the animation branch below is intentionally disabled.
-    if (wasOpen != show)
+
+
+if (wasOpen != show)
         RequestGuiRedraw();
     if (state.UiAnimationsEnabled()) {
         if (show && searchState.dropdownShowsRecommendations != hasInput) {
@@ -736,11 +735,8 @@ std::string RenderContainedSearchDropdown(AppState& state,
     ImVec2 position(geometry.searchMin.x, geometry.searchMax.y + 4.0f);
     position.y += (1.0f - searchState.dropdownAnim) * 8.0f;
 
-    // This path is for compact LiteGUI. A child window is clipped by its owner,
-    // so derive the height from the actual owner rectangle rather than the main
-    // viewport. That keeps the list visible and clickable even on the frame
-    // immediately after the native Lite host changes height.
-    const float ownerBottom =
+
+const float ownerBottom =
         ImGui::GetWindowPos().y + ImGui::GetWindowHeight() -
         ImGui::GetStyle().WindowPadding.y;
     const float dropdownHeight = std::max(0.0f, ownerBottom - position.y);
@@ -783,7 +779,7 @@ void ResetAfterExecute(SearchState& searchState) {
     ImGui::SetWindowFocus(nullptr);
 }
 
-} // namespace
+}
 
 void RenderIntegratedSearchBar(
     AppState& state,
@@ -863,4 +859,4 @@ void RenderIntegratedSearchBar(
     }
 }
 
-} // namespace squarestar::shell
+}

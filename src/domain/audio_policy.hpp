@@ -13,4 +13,4 @@ struct AppSoundPolicy {
 
 AppSoundPolicy AppSoundPolicyFor(std::string_view filename) noexcept;
 
-} // namespace squarestar::audio
+}

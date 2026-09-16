@@ -42,4 +42,4 @@ bool ExportComparisonData(const std::vector<squarestar::application::ComparisonS
                           const std::string& range,
                           const std::string& filename);
 
-} // namespace squarestar::presentation
+}

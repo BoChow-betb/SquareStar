@@ -8,7 +8,7 @@ namespace {
 
 std::atomic<BackgroundFailureReporter> g_backgroundFailureReporter{nullptr};
 
-} // namespace
+}
 
 void SetBackgroundFailureReporter(BackgroundFailureReporter reporter) noexcept {
     g_backgroundFailureReporter.store(reporter, std::memory_order_release);
@@ -31,4 +31,4 @@ void ReportBackgroundFailure(const char* boundary) noexcept {
 #endif
 }
 
-} // namespace squarestar::application
+}

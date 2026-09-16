@@ -14,4 +14,4 @@ void RenderMonitorStockWindows(squarestar::application::AppState& state,
                                const ImVec2& workPosition,
                                const ImVec2& workSize);
 
-} // namespace squarestar::shell
+}

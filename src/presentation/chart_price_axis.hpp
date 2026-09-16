@@ -10,8 +10,7 @@ bool ShouldIncludeReferencePriceInVisibleAxis(double visibleMinPrice,
                                               double visibleMaxPrice,
                                               double referencePrice);
 
-// Keep an off-screen reference line visible beside its edge-pinned label.
-// In-range lines retain their exact projected position.
+
 double ResolveVisibleReferenceLineY(double projectedY,
                                     double plotTop,
                                     double plotBottom,
@@ -24,4 +23,4 @@ void EnsureVisiblePriceTicks(application::StockContext& context,
                              double requiredPrice,
                              double axisPaddingFraction = 0.06);
 
-} // namespace squarestar::presentation
+}

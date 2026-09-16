@@ -16,7 +16,7 @@ void Require(bool condition, const char* message) {
     }
 }
 
-} // namespace
+}
 
 int main() {
     using namespace std::chrono_literals;
@@ -39,7 +39,7 @@ int main() {
     Require(std::isfinite(firstRemaining) && firstRemaining > 0.0 && firstRemaining <= 0.10,
             "the registered GUI deadline should be visible to the scheduler");
 
-    // A later deadline must not replace the earlier one or cause another wake.
+
     RequestGuiWakeAt(now + 250ms);
     Require(wakeCount.load(std::memory_order_relaxed) == 1,
             "a later deadline should not disturb the current nearest deadline");

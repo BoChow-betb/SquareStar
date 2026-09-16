@@ -13,4 +13,4 @@ const WorldClockZone WORLD_ZONES[WORLD_ZONE_COUNT] = {
     {"Sydney (AET)", L"AUS Eastern Standard Time", 600},
 };
 
-} // namespace squarestar::market
+}

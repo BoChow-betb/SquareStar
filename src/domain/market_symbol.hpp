@@ -32,9 +32,7 @@ inline std::string FinnhubSymbolKey(std::string symbol) {
     return symbol;
 }
 
-// Providers usually stop serving historical data under an old ticker as soon
-// as a corporate rename becomes effective. Keep confirmed changes here so every
-// caller uses the same current symbol.
+
 inline std::string_view CurrentTickerFor(std::string_view canonical) noexcept {
     static constexpr std::array<std::pair<std::string_view, std::string_view>, 1>
         confirmedRenames{{{"AXIA", "AXIAY"}}};
@@ -45,8 +43,7 @@ inline std::string_view CurrentTickerFor(std::string_view canonical) noexcept {
     return found == confirmedRenames.end() ? canonical : found->second;
 }
 
-// One validated, canonical representation keeps provider-specific symbol rules
-// out of the GUI, LiteGUI, cache, and request-building code.
+
 class MarketSymbol {
   public:
     static std::optional<MarketSymbol> Parse(std::string_view raw) {
@@ -56,10 +53,8 @@ class MarketSymbol {
         std::string canonical(raw);
         text::UppercaseInPlace(canonical);
 
-        // Yahoo Finance futures use compact continuous symbols such as GC=F,
-        // ES=F, and 6E=F. Futures may start with a digit, unlike US equities,
-        // so validate the futures grammar before applying equity-only rules.
-        const size_t futuresSuffix = canonical.find("=F");
+
+const size_t futuresSuffix = canonical.find("=F");
         if (futuresSuffix != std::string::npos) {
             if (futuresSuffix + 2 != canonical.size() || futuresSuffix == 0 ||
                 futuresSuffix > 5)
@@ -127,4 +122,4 @@ class MarketSymbol {
     std::string canonical_;
 };
 
-} // namespace squarestar::market
+}

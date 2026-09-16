@@ -138,7 +138,7 @@ std::optional<SymbolSearchService::Results> ParseYahooSearchPayload(
     return FinalizeRankedResults(query.text, std::move(ranked));
 }
 
-} // namespace
+}
 
 SymbolSearchService::SymbolSearchService(SymbolSearchDependencies dependencies)
     : dependencies_(std::move(dependencies)) {}
@@ -253,10 +253,9 @@ SymbolSearchService::Results SymbolSearchService::Lookup(std::string_view query,
             JsonString(item, "displaySymbol", display);
             JsonString(item, "description", description);
             JsonString(item, "type", type);
-            // Eligibility is decided from the provider symbol before applying
-            // its display alias. Otherwise an international row such as AAPL.L
-            // can masquerade as the unsupported US-looking display value AAPL.
-            const std::string providerSymbol = symbol;
+
+
+const std::string providerSymbol = symbol;
             if (providerSymbol.empty() || providerSymbol.find(':') != std::string::npos)
                 continue;
             const size_t dot = providerSymbol.find('.');
@@ -290,8 +289,8 @@ SymbolSearchService::Results SymbolSearchService::Lookup(std::string_view query,
         return results;
     } catch (...) {
         squarestar::application::ReportBackgroundFailure("symbol search payload");
-        // Search is a core navigation surface. If Finnhub returns malformed data,
-        // keep recommendations useful through the keyless Yahoo lookup path.
+
+
         return yahooFallback();
     }
 }
@@ -358,4 +357,4 @@ void SymbolSearchService::PruneExpired(std::chrono::steady_clock::time_point now
     }
 }
 
-} // namespace squarestar::search
+}

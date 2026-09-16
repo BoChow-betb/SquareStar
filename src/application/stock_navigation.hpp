@@ -11,10 +11,9 @@ namespace squarestar::application {
 struct StockNavigationState {
     char ticker[16] = "";
     SearchState headerSearch;
-    // A newly opened stock can fail before it has ever published usable data.
-    // Preserve the exact surface that launched it so the failure path can put
-    // the user back where they were instead of guessing a replacement tab.
-    std::string failureReturnTicker;
+
+
+std::string failureReturnTicker;
     SidebarTab failureReturnSidebarTab = SidebarTab::Stock;
     bool hasSearched = false;
     bool open = true;
@@ -30,4 +29,4 @@ struct StockNavigationState {
     bool comparisonPickerRequested = false;
 };
 
-} // namespace squarestar::application
+}

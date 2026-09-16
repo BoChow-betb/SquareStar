@@ -9,8 +9,7 @@ namespace squarestar::application {
 enum class AppUiMode { Gui, LiteGui };
 enum class UiModeRequest { None, Gui, LiteGui };
 
-// Process-lifetime application coordination. Storage stays private so callers
-// express requests and observations without choosing their own atomic protocol.
+
 class ApplicationRuntimeState final {
   public:
     [[nodiscard]] bool QuitRequested() const noexcept;
@@ -28,10 +27,8 @@ class ApplicationRuntimeState final {
     void RequestUiMode(UiModeRequest request) noexcept;
     void ClearUiModeRequest() noexcept;
 
-    // Native Win32 notification cards can be clicked while the GUI thread is
-    // sleeping. Hand the requested ticker back to the main thread instead of
-    // mutating application navigation from the platform window procedure.
-    void RequestNotificationStockOpen(std::string ticker);
+
+void RequestNotificationStockOpen(std::string ticker);
     [[nodiscard]] std::string ConsumeNotificationStockOpen();
 
     [[nodiscard]] bool GuiFullscreenSizeOverride() const noexcept;
@@ -51,4 +48,4 @@ class ApplicationRuntimeState final {
 
 ApplicationRuntimeState& ApplicationRuntime() noexcept;
 
-} // namespace squarestar::application
+}

@@ -19,7 +19,7 @@ std::int64_t SteadyNanoseconds(std::chrono::steady_clock::time_point point) noex
         .count();
 }
 
-} // namespace
+}
 
 void SetMainLoopWakeNotifier(MainLoopWakeNotifier notifier) {
     std::lock_guard<std::mutex> lock(g_MainLoopWakeNotifierMutex);

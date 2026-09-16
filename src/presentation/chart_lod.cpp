@@ -88,7 +88,7 @@ void BuildLttbSeriesAs(const std::vector<double>& sourceX,
     outputY.push_back(static_cast<Output>(sourceY[count - 1]));
 }
 
-} // namespace
+}
 
 void BuildLttbSeries(const std::vector<double>& sourceX,
                      const std::vector<double>& sourceY,
@@ -148,10 +148,9 @@ void BuildChartRenderLod(squarestar::application::StockContext& ctx,
                          float pixelWidth,
                          float framebufferScale) {
     const std::size_t count = std::min(ctx.marketData.plot_sX.size(), ctx.marketData.plot_sC.size());
-    // Normal provider ranges contain only hundreds of points. Downsampling
-    // those small histories saves essentially nothing and adds another data
-    // path. Keep LOD only as a safety valve for genuinely large inputs.
-    constexpr std::size_t kMinSourcePointsForLod = 4096;
+
+
+constexpr std::size_t kMinSourcePointsForLod = 4096;
     if (count <= kMinSourcePointsForLod) {
         if (ctx.render.renderLodSourceCount != count ||
             ctx.render.renderLodLineType != lineType) {
@@ -207,4 +206,4 @@ void BuildChartRenderLod(squarestar::application::StockContext& ctx,
     }
 }
 
-} // namespace squarestar::presentation
+}

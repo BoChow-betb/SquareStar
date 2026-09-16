@@ -26,4 +26,4 @@ void RenderIntegratedSearchBar(
     const std::function<void(const std::string&)>& onExecute,
     SearchBarOptions options = {});
 
-} // namespace squarestar::shell
+}

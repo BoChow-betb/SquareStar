@@ -75,7 +75,7 @@ HANDLE RegisterEmbeddedNotificationFont(std::string_view resourceName) {
         &fontCount);
 }
 
-} // namespace
+}
 
 HWND Win32AppRuntimeState::MainWindow() const noexcept {
     return mainWindow_;
@@ -210,7 +210,7 @@ bool Win32AppRuntimeState::EnsureNotificationWindow(NotificationCardState& card)
         this);
     if (!card.window)
         return false;
-    const DWORD roundPreference = 2; // DWMWCP_ROUND
+    const DWORD roundPreference = 2;
     DwmSetWindowAttribute(card.window, 33, &roundPreference, sizeof(roundPreference));
     SetLayeredWindowAttributes(card.window, 0, 0, LWA_ALPHA);
     return true;
@@ -268,8 +268,8 @@ void Win32AppRuntimeState::EnsureNotificationFonts(UINT dpi) {
     const wchar_t* family =
         notificationRegularFontResource_ || notificationMediumFontResource_ ? L"Outfit"
                                                                             : L"Segoe UI";
-    // Match the in-app card: fontData (26 px, medium) for the title and
-    // fontNormal (21 px, regular) for the body at 100% interface scale.
+
+
     notificationTitleFont_ = CreateNotificationFont(dpi, 26, FW_MEDIUM, family);
     notificationBodyFont_ = CreateNotificationFont(dpi, 21, FW_NORMAL, family);
     notificationFontDpi_ = dpi;
@@ -448,10 +448,8 @@ bool Win32AppRuntimeState::ShowNotificationToast(const char* title,
         card.actionTicker = actionTicker ? actionTicker : "";
     };
 
-    // Price-move batches carry a stable id. If another stock lands inside the
-    // 1.5 s grouping window, update the already-visible card immediately rather
-    // than creating a second card or delaying the first notification.
-    if (groupId != 0) {
+
+if (groupId != 0) {
         for (std::size_t position = 0; position < notificationOrderCount_; ++position) {
             const auto existingIndex = notificationOrder_[position];
             if (existingIndex >= notificationCards_.size())
@@ -553,10 +551,8 @@ void Win32AppRuntimeState::UpdateNotificationWindow(HWND window) {
         return;
     }
 
-    // Enter/exit receive 16 ms animation ticks. The 5 second static hold uses
-    // one deadline wake, so up to five visible cards still add no hold-phase
-    // polling/GDI loop.
-    SetTimer(card->window, kNotificationTimerId, timeline.nextWakeMs, nullptr);
+
+SetTimer(card->window, kNotificationTimerId, timeline.nextWakeMs, nullptr);
 
     const HWND dpiWindow = mainWindow_ ? mainWindow_ : card->window;
     const UINT dpi = std::max<UINT>(96, GetDpiForWindow(dpiWindow));
@@ -813,4 +809,4 @@ int ReportConfigPersistenceFailure() {
     return 1;
 }
 
-} // namespace squarestar::platform
+}

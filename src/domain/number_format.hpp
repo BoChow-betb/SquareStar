@@ -33,10 +33,9 @@ inline std::string FormatCompactNumber(double number, int smallPrecision = 2) {
     const int precision =
         suffix[0] ? (std::abs(scaled) >= 100.0 ? 0 : (std::abs(scaled) >= 10.0 ? 1 : 2))
                   : std::clamp(smallPrecision, 0, 15);
-    // A stack buffer avoids constructing a locale-aware stream in this hot
-    // formatting path. The largest finite double needs at most 309 integer
-    // digits, plus sign, decimal places, and suffix.
-    std::array<char, 384> buffer{};
+
+
+std::array<char, 384> buffer{};
     const auto [end, error] = std::to_chars(buffer.data(),
                                             buffer.data() + buffer.size(),
                                             scaled,
@@ -80,4 +79,4 @@ inline bool PriceChangedAtDisplayPrecision(double previousPrice,
     return std::abs(previousCents - currentCents) >= 1.0;
 }
 
-} // namespace squarestar::format
+}

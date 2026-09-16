@@ -56,4 +56,4 @@ void EnsureConfiguredTimeAxisTicks(application::TimeAxisTickCache& cache,
                                    double axisOrigin = 0.0,
                                    double axisSecondsPerUnit = 1.0);
 
-} // namespace squarestar::presentation
+}

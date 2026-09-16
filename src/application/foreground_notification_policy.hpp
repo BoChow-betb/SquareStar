@@ -20,10 +20,9 @@ enum class ForegroundNotificationKind {
     if (mode == AppUiMode::Gui)
         return true;
 
-    // Keep LiteGUI quiet: only price alerts and market moves get cards.
-    // Other feedback stays audio-only.
-    return kind == ForegroundNotificationKind::PriceAlert ||
+
+return kind == ForegroundNotificationKind::PriceAlert ||
            kind == ForegroundNotificationKind::MarketMove;
 }
 
-} // namespace squarestar::application
+}

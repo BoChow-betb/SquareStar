@@ -205,9 +205,8 @@ static StockPlotGeometry ConfigureStockPlot(AppState& state,
                                false);
     }
 
-    // ImPlot getter and drawing calls lock plot setup, so the LOD query stays
-    // after every Setup* call while still using the actual rendered plot width.
-    const float chartFramebufferScale =
+
+const float chartFramebufferScale =
         chartViewport ? chartViewport->DpiScale
                       : ImGui::GetIO().DisplayFramebufferScale.x;
     BuildChartRenderLod(ctx,
@@ -734,10 +733,9 @@ void RenderStockChart(AppState& state,
         } else {
             ctx.render.chartRevealProgress = 1.0f;
         }
-        // Monitor mode still needs enough room for the left price labels and a
-        // visibly separate time row. The extra label Y padding moves the time
-        // axis down so its first label no longer collides with the Y axis.
-        const bool denseMonitorChart =
+
+
+const bool denseMonitorChart =
             state.navigation.pureMonitorMode && (ImGui::GetWindowHeight() < 310.0f ||
                                       ImGui::GetWindowWidth() < 360.0f);
         ImPlot::PushStyleVar(
@@ -756,15 +754,14 @@ void RenderStockChart(AppState& state,
         ImPlot::PushStyleColor(ImPlotCol_AxisGrid, ThemeVec(state.config.theme.grid));
         ImVec2 chartTotalSize = ImGui::GetContentRegionAvail();
         chartTotalSize.x = std::max(1.0f, chartTotalSize.x);
-        // Keep export geometry identical to the live frame even though the clock
-        // strip itself is omitted from the clean HD image.
+
+
         const float clockStripHeight = !state.navigation.pureMonitorMode ? 48.0f : 0.0f;
         const float monitorBottomBreathingRoom = denseMonitorChart ? 24.0f : 18.0f;
         if (state.navigation.pureMonitorMode) {
-            // Never force an oversized graph into a short monitor tile. The old
-            // 110px minimum made the plot extend past the tile and clipped its
-            // price/time labels in dense 3-row layouts.
-            chartTotalSize.y = std::max(1.0f, chartTotalSize.y - monitorBottomBreathingRoom);
+
+
+chartTotalSize.y = std::max(1.0f, chartTotalSize.y - monitorBottomBreathingRoom);
         } else {
             chartTotalSize.y = std::max(110.0f, chartTotalSize.y - clockStripHeight);
         }
@@ -773,7 +770,7 @@ void RenderStockChart(AppState& state,
         const ImVec2 chartCaptureMax(chartCaptureMin.x + chartTotalSize.x,
                                      chartCaptureMin.y + chartTotalSize.y);
         ImGuiViewport* chartViewport = ImGui::GetWindowViewport();
-        // Monitor tiles still need hover feedback even though they have no chart menu.
+
         const bool hoverInteractive = !cleanGuiCapture;
         const bool contextMenuInteractive = hoverInteractive && !state.navigation.pureMonitorMode;
         RenderStockPlot(state,
@@ -812,4 +809,4 @@ void RenderStockChart(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

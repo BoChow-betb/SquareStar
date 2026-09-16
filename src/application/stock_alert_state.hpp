@@ -14,4 +14,4 @@ struct StockAlertState {
     std::string priceAlertEditorCurrency = "USD";
 };
 
-} // namespace squarestar::application
+}

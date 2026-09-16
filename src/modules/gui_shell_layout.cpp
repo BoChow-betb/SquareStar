@@ -45,11 +45,9 @@ void SynchronizeTerminalNavigationState(AppState& state, size_t openStockTabs) {
             state.navigation.activeSidebarTab == squarestar::application::SidebarTab::Overview &&
             state.navigation.previousActiveSidebarTab != squarestar::application::SidebarTab::Overview;
         if (enteringOverview) {
-            // Treat every explicit Overview entry as a fresh presentation
-            // session. In-market entry must not briefly resurrect an older
-            // screener snapshot before the live request completes. Periodic
-            // refreshes while Overview stays open still preserve visible rows.
-            squarestar::application::ResetScreenerFetch(state);
+
+
+squarestar::application::ResetScreenerFetch(state);
         }
         state.navigation.mainSearch.ResetUi();
         for (auto& context : state.marketData.activeContexts) {
@@ -273,4 +271,4 @@ void RenderTerminalMainContent(AppState& state,
     ImGui::EndChild();
 }
 
-} // namespace squarestar::shell
+}

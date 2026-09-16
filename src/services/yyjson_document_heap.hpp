@@ -8,14 +8,7 @@
 
 namespace squarestar::json_memory {
 
-// yyjson documents are short-lived and can allocate many small nodes while a
-// provider response is being parsed. On Windows, isolate those allocations in
-// a document-private heap. Destroying the heap after the document is consumed
-// returns its committed pages to the OS instead of leaving them available in
-// the long-lived CRT/process heap.
-//
-// Each allocator instance belongs to exactly one parse on one thread, so the
-// Windows private heap can safely skip heap serialization.
+
 struct AllocatorOwner {
     void* handle = nullptr;
 };
@@ -72,8 +65,8 @@ inline void Release(AllocatorOwner& owner) noexcept {
 
 inline const yyjson_alc* Initialize(yyjson_alc&,
                                     AllocatorOwner&) noexcept {
-    // Portable tests keep yyjson's default allocator. The production Windows
-    // build is where Private Bytes/heap retention is relevant.
+
+
     return nullptr;
 }
 
@@ -81,4 +74,4 @@ inline void Release(AllocatorOwner&) noexcept {}
 
 #endif
 
-} // namespace squarestar::json_memory
+}

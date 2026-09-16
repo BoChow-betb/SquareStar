@@ -15,4 +15,4 @@ enum class OutfitWeight {
 bool FileExistsForFont(std::string_view path);
 std::string ResolveOutfitFontPath(OutfitWeight weight);
 
-} // namespace squarestar::platform
+}

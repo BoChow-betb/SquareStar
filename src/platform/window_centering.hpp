@@ -33,4 +33,4 @@ inline NativeWindowPosition CenterVisualWindowBounds(
     return {centeredVisualX - visualOffsetX, centeredVisualY - visualOffsetY};
 }
 
-} // namespace squarestar::platform
+}

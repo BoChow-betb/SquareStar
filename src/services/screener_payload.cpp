@@ -42,8 +42,8 @@ void ExtractFiveDaySparkline(yyjson_val* response, std::vector<float>& out) {
             }
         }
     }
-    // Preserve the provider series. Overview uses daily closes; other chart
-    // callers may provide denser points.
+
+
 }
 
 void ReadYahooName(yyjson_val* object, ScreenerItem& item, bool preferLongName) {
@@ -116,7 +116,7 @@ void ApplyYahooQuote(yyjson_val* quote, ScreenerItem& item, bool preferLongName)
         item.lastMarketTime = static_cast<std::time_t>(whole);
 }
 
-} // namespace
+}
 
 namespace {
 
@@ -156,7 +156,7 @@ std::size_t ApplyYahooQuoteResponsePayloadImpl(
     return applied;
 }
 
-} // namespace
+}
 
 std::size_t ApplyYahooQuoteResponsePayload(std::string payload,
                                            const ScreenerItemIndex& itemIndex,
@@ -303,4 +303,4 @@ void MarkInactiveScreenerItems(std::vector<ScreenerItem>& items, std::time_t now
     }
 }
 
-} // namespace squarestar::providers
+}

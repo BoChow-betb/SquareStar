@@ -18,11 +18,11 @@ struct StockCacheEntry {
 };
 
 std::mutex g_stockCacheMutex;
-// Cache one immediate duplicate open. Large history vectors otherwise stay
-// with their active context.
+
+
 std::optional<StockCacheEntry> g_stockCache;
 
-} // namespace
+}
 
 std::optional<squarestar::market::StockFetchResult> ConsumeStockMemoryCache(
     std::string_view key,
@@ -57,4 +57,4 @@ void ClearStockMemoryCache() {
     g_stockCache.reset();
 }
 
-} // namespace squarestar::marketdata
+}

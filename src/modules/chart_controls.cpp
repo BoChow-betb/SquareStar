@@ -69,8 +69,8 @@ void DrawFadingXAxisLabels(const AppState& state,
         float x = 0.0f;
         float width = 0.0f;
     };
-    // Every time-axis builder emits at most five labels. Fixed storage keeps
-    // this per-frame drawing path free of heap allocations.
+
+
     constexpr size_t maxLabels = 5;
     std::array<LabelPlacement, maxLabels> rawPlacements{};
     const size_t rawCount = std::min(ticks.size(), maxLabels);
@@ -78,10 +78,9 @@ void DrawFadingXAxisLabels(const AppState& state,
         const float fraction = (float)std::clamp((ticks[i] - axisMin) / (axisMax - axisMin), 0.0, 1.0);
         const float centerX = plotPos.x + plotSize.x * fraction;
         const ImVec2 textSize = ImGui::CalcTextSize(labels[i].c_str());
-        // Endpoint labels extend inward instead of being centered across the
-        // plot boundary. This keeps both strings fully visible at narrow widths
-        // and high DPI without moving their corresponding time positions.
-        const bool first = i == 0;
+
+
+const bool first = i == 0;
         const bool last = i + 1 == ticks.size();
         const float naturalX = first   ? centerX
                                : last  ? centerX - textSize.x
@@ -92,10 +91,8 @@ void DrawFadingXAxisLabels(const AppState& state,
         rawPlacements[i] = {i, x, textSize.x};
     }
 
-    // Keep the latest occurrence of a repeated date, then reject labels whose
-    // clamped boxes would overlap. This is especially important for short 5D
-    // datasets whose final intraday ticks can all land against the right edge.
-    std::array<LabelPlacement, maxLabels> reversePlacements{};
+
+std::array<LabelPlacement, maxLabels> reversePlacements{};
     size_t placementCount = 0;
     for (size_t i = rawCount; i-- > 0;) {
         const LabelPlacement& placement = rawPlacements[i];
@@ -143,4 +140,4 @@ void DrawFadingXAxisLabels(const AppState& state,
     }
 }
 
-} // namespace squarestar::shell
+}

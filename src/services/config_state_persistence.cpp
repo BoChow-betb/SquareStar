@@ -229,8 +229,8 @@ static ProtectedApiKeySnapshot ProtectedApiKeyForConfig(
             if (requiredRevision)
                 return {};
             std::lock_guard<std::mutex> lock(cache.mutex);
-            // Keep the previous ciphertext when DPAPI is temporarily unavailable so
-            // unrelated settings still persist without destroying the saved key.
+
+
             return {cache.value.value_or(std::string{}),
                     cache.revision,
                     false,
@@ -249,8 +249,8 @@ static ProtectedApiKeySnapshot ProtectedApiKeyForConfig(
             return {*protectedApiKey, apiKey.revision, true, true};
         }
     }
-    // A rapidly changing key cannot be represented by a coherent snapshot.
-    // Fail closed instead of queueing ciphertext for a revision that no longer exists.
+
+
     return {};
 }
 
@@ -280,13 +280,13 @@ bool DeletePortableRuntimeDataExceptExports() {
     if (error)
         return false;
 
-    // If no user-created exports remain, remove the empty data directory too.
+
     error.clear();
     if (std::filesystem::is_empty(root, error) && !error)
         std::filesystem::remove(root, error);
     return !error;
 }
-} // namespace
+}
 
 bool HasPersistedConfig() noexcept {
     try {
@@ -358,7 +358,7 @@ TemporaryDataCleanupResult ClearSquareStarTemporaryData() {
             ++result.filesInUse;
     }
 
-    // SquareStar-owned temporary data lives exclusively inside data/temp.
+
     const std::string portableTemporaryPath =
         squarestar::platform::GetTemporaryDataDirectory();
     if (!portableTemporaryPath.empty()) {
@@ -492,4 +492,4 @@ ConfigLoadStatus LoadConfig(
     return ConfigLoadStatus::Loaded;
 }
 
-} // namespace squarestar::config
+}

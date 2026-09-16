@@ -20,8 +20,7 @@ ImPlotContext* MainGuiImPlotContext() noexcept;
 bool EnsureGuiRendererContext(GLFWwindow* window);
 bool PrimeGuiRendererForStartup(GLFWwindow* window, std::string* failureReason = nullptr);
 
-// Single-device Direct3D 11 runtime shared by the main GLFW window and
-// offscreen GUI export.
+
 bool InitializeGuiD3D11(HWND hwnd,
                         int framebufferWidth,
                         int framebufferHeight,
@@ -37,4 +36,4 @@ ID3D11DeviceContext* GuiD3D11DeviceContext() noexcept;
 std::string GuiD3D11AdapterName();
 std::string GuiD3D11FeatureLevelName();
 
-} // namespace squarestar::presentation
+}

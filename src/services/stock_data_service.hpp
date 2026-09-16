@@ -46,4 +46,4 @@ squarestar::market::StockFetchResult FetchStockData(
     std::uint32_t detailMask,
     squarestar::market::FetchKind kind = squarestar::market::FetchKind::Full);
 
-} // namespace squarestar::marketdata
+}

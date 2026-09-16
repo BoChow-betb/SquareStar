@@ -89,4 +89,4 @@ void RenderForegroundNotifications(AppState& state, ImGuiViewport* viewport) {
 }
 
 
-} // namespace squarestar::shell
+}

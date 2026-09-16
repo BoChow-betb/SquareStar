@@ -19,4 +19,4 @@ double GuiSettledWaitSeconds(squarestar::application::AppState& state,
                              bool windowSuspended,
                              bool priceAlertAudioPending);
 
-} // namespace squarestar::shell
+}

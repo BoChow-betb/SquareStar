@@ -12,4 +12,4 @@ void ApplyResizableGlfwWindowLayout(GLFWwindow* window,
                                     int minimumWidth,
                                     int minimumHeight);
 
-} // namespace squarestar::platform
+}

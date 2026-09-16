@@ -74,7 +74,7 @@ bool BuildVisiblePriceTicks(const application::StockContext& context,
     return true;
 }
 
-} // namespace
+}
 
 bool ShouldIncludeReferencePriceInVisibleAxis(double visibleMinPrice,
                                               double visibleMaxPrice,
@@ -91,11 +91,9 @@ bool ShouldIncludeReferencePriceInVisibleAxis(double visibleMinPrice,
     const double scale = std::max({std::abs(visibleMinPrice),
                                    std::abs(visibleMaxPrice),
                                    1.0});
-    // Previous-close/reference lines are useful when they are near the traded
-    // range, but a large overnight gap should not make an otherwise stable
-    // intraday chart mostly empty. The 2% floor still keeps nearby references
-    // visible when the session itself is exceptionally flat.
-    const double referenceGuard = std::max(visibleSpan * 1.5, scale * 0.02);
+
+
+const double referenceGuard = std::max(visibleSpan * 1.5, scale * 0.02);
     return referencePrice >= visibleMinPrice - referenceGuard &&
            referencePrice <= visibleMaxPrice + referenceGuard;
 }
@@ -123,10 +121,9 @@ double ResolveVisibleReferenceLineY(double projectedY,
 
     const double safeLabelHeight =
         std::isfinite(labelHeight) ? std::max(labelHeight, 0.0) : 0.0;
-    // The pinned label starts six pixels below the plot edge. Place the line
-    // just beneath that block so both remain visible without implying that the
-    // far-away close is part of the plotted price range.
-    return std::clamp(
+
+
+return std::clamp(
         plotTop + safeLabelHeight + labelToLineGap, insideTop, insideBottom);
 }
 
@@ -182,4 +179,4 @@ void EnsureVisiblePriceTicks(application::StockContext& context,
     RefreshLabelPointers(cache.labels, cache.labelPtrs);
 }
 
-} // namespace squarestar::presentation
+}

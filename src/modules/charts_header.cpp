@@ -265,8 +265,8 @@ static void RenderStockQuoteRow(AppState& state,
             1.0f);
     }
     DrawObjectFocusOutline(state, priceFocusMin, priceFocusMax, priceHovered, 4);
-    // Alerts remain stored/evaluated on the raw U.S.-market quote basis (USD),
-    // while the editor mirrors the currently selected display currency.
+
+
     RenderPriceAlertEditor(state,
                            ctx,
                            priceClicked,
@@ -422,4 +422,4 @@ void RenderStockHeader(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

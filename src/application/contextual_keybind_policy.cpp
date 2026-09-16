@@ -30,4 +30,4 @@ bool HasContextualKeybindHint(ContextualKeybindSurface surface) noexcept {
            surface == ContextualKeybindSurface::Stock;
 }
 
-} // namespace squarestar::application
+}

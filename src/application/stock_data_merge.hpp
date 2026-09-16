@@ -18,20 +18,17 @@ enum StockFetchDetail : std::uint32_t {
 [[nodiscard]] bool HasAnyMarketMetricData(
     const squarestar::market::StockData& data) noexcept;
 
-// Applies the scalar quote fields and optional current-candle tail update in place.
-// This is used by StockMarketDataState so a quote refresh stays O(1) when no
-// immutable snapshot is retained by a reader.
+
 [[nodiscard]] bool ApplyStockQuotePatch(
     squarestar::market::StockData& current,
     const squarestar::market::StockData& patch,
     int timeRangeIndex);
 
-// Returns a new immutable raw-market snapshot. The published source object is
-// never modified in place, so readers cannot observe a partially merged patch.
+
 [[nodiscard]] squarestar::market::StockData MergeStockFetchPatch(
     const squarestar::market::StockData& current,
     squarestar::market::StockData patch,
     squarestar::market::FetchKind kind,
     int timeRangeIndex);
 
-} // namespace squarestar::application
+}

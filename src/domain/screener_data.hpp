@@ -19,8 +19,8 @@ struct ScreenerData {
     bool hasFiftyTwoWkChange = false;
     std::time_t lastMarketTime = 0;
     bool resolved = false, suspectedInactive = false;
-    // Set after the lightweight visible-page trend loader has attempted this row.
-    // The renderer uses it to distinguish an in-flight trend from unavailable data.
+
+
     bool sparklineAttempted = false;
 };
 
@@ -31,4 +31,4 @@ inline void ReplaceScreenerSparkline(ScreenerData& data, std::vector<float> valu
         ++data.sparklineRevision;
 }
 
-} // namespace squarestar::market
+}

@@ -18,4 +18,4 @@ void CompleteGuiLayoutPersistAttempt(std::string snapshot, bool succeeded);
 void CommitGuiLayoutSnapshot(std::string snapshot);
 void ResetGuiLayoutPersistence();
 
-} // namespace squarestar::application
+}

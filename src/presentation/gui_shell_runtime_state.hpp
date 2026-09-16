@@ -54,8 +54,7 @@ struct GuiShellRuntimeSnapshot {
     int settingsPage = 0;
 };
 
-// Process-lifetime presentation coordination. Rendering code submits focused
-// operations and snapshots; it never mutates the singleton's storage directly.
+
 class GuiShellRuntimeState final {
   public:
     class ChartExportSerialization final {
@@ -121,4 +120,4 @@ class GuiShellRuntimeState final {
 
 GuiShellRuntimeState& GuiShellRuntime() noexcept;
 
-} // namespace squarestar::presentation
+}

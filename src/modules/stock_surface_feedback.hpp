@@ -18,4 +18,4 @@ void ShowStockModeNotice(squarestar::application::AppState& state,
                          const char* title,
                          const char* message);
 
-} // namespace squarestar::shell
+}

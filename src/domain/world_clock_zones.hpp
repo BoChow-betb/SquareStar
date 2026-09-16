@@ -11,4 +11,4 @@ struct WorldClockZone {
 inline constexpr int WORLD_ZONE_COUNT = 8;
 extern const WorldClockZone WORLD_ZONES[WORLD_ZONE_COUNT];
 
-} // namespace squarestar::market
+}

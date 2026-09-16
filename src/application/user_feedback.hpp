@@ -46,4 +46,4 @@ struct UserFeedbackRoute {
 [[nodiscard]] UserFeedbackRoute ResolveUserFeedbackRoute(
     const UserFeedback& feedback) noexcept;
 
-} // namespace squarestar::application
+}

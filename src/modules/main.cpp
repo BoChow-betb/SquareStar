@@ -63,10 +63,9 @@ static int ShutdownApplicationRuntime(GLFWwindow* window,
         factoryResetSucceeded = DeletePersistentApplicationState();
         SetFinnhubApiKey("");
     } else if (!squarestar::benchmark::GuiProbeActive()) {
-        // Keep an existing saved session current on shutdown, but do not create
-        // portable storage merely because a clean first-run session opened and
-        // closed. New user changes already arrive here through RequestConfigSave().
-        if (hadPersistedConfig)
+
+
+if (hadPersistedConfig)
             squarestar::config::RequestConfigSave();
         configSaveSucceeded = squarestar::config::FlushPendingConfigSave(
             PersistedStateOf(state), true);
@@ -104,10 +103,9 @@ int RunSquareStar() {
     const bool benchmarkProbe = squarestar::benchmark::GuiProbeActive();
     AppState state;
     if (benchmarkProbe) {
-        // GUI benchmark probes use deterministic in-memory defaults so machine,
-        // render-stack, and scheduling costs are not mixed with user-specific
-        // config/provider state.
-        squarestar::benchmark::PrepareGuiProbeState(state);
+
+
+squarestar::benchmark::PrepareGuiProbeState(state);
     } else {
         ConfigLoadStatus loadStatus = LoadConfig(PersistedStateOf(state));
         if (loadStatus == ConfigLoadStatus::Rejected) {
@@ -159,7 +157,7 @@ int RunSquareStar() {
                         MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
         }
     }
-    // Only full GUI (0) and lite GUI (2) are valid persisted startup modes.
+
     state.config.lastOpenMode = state.config.lastOpenMode == 2 ? 2 : 0;
     state.alerts.SetAlertPresentationNotBefore(
         std::chrono::steady_clock::now() + std::chrono::milliseconds(250));
@@ -168,10 +166,8 @@ int RunSquareStar() {
     if (!benchmarkProbe && state.config.lastOpenMode == 0 && HasFinnhubApiKey())
         state.render.notifications.firstFetchWarmup.pending = true;
 
-    // Prime workers and libcurl before the UI can issue its first request.
-    // Benchmark probes keep their existing staged initialization so memory and
-    // GUI timing measurements remain comparable.
-    if (!benchmarkProbe)
+
+if (!benchmarkProbe)
         PrimeNetworkRuntimeWithoutIo();
 
     GLFWwindow* window = nullptr;
@@ -225,4 +221,4 @@ int RunSquareStar() {
     return ShutdownApplicationRuntime(window, state);
 }
 
-} // namespace squarestar::shell
+}

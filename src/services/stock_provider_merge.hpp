@@ -30,10 +30,10 @@ struct StockProviderMergeResult {
     std::string finnhubProfileCountry;
 };
 
-// Decode provider payloads and apply precedence rules without performing I/O.
+
 StockProviderMergeResult ApplyStockProviderPayloads(
     StockProviderPayloads payloads,
     const StockProviderMergeOptions& options,
     squarestar::market::StockFetchResult& destination);
 
-} // namespace squarestar::marketdata
+}

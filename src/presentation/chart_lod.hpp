@@ -31,4 +31,4 @@ void BuildChartRenderLod(squarestar::application::StockContext& context,
                          float pixelWidth,
                          float framebufferScale);
 
-} // namespace squarestar::presentation
+}

@@ -122,8 +122,8 @@ void UpdateContextualKeybindHint(AppState& state) {
     if (hint.showAt == std::chrono::steady_clock::time_point{})
         return;
     if (!IsContextualKeybindSurfaceReady(state, surface)) {
-        // Require a short settled interval after the page's own load/reveal
-        // completes so the reminder never races the content onto the screen.
+
+
         hint.showAt = now + std::chrono::milliseconds(250);
         RequestGuiWakeAt(hint.showAt);
         return;
@@ -243,7 +243,7 @@ void RenderContextualKeybindHint(AppState& state,
                                     0.0f,
                                     rows[rowIndex].second.c_str())
                 .x;
-        // Stack only the row whose shortcut exceeds the available width.
+
         stackRows[rowIndex] =
             ShouldStackNotificationRowValues(labelWidth, keyWidth, width, 18.0f);
         rowHeights[rowIndex] = stackRows[rowIndex] ? bodyFontSize * 2.0f + 6.0f
@@ -480,4 +480,4 @@ void RenderMonitorModeHint(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

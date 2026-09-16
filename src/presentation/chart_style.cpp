@@ -13,4 +13,4 @@ ImVec4 CrosshairDotColor(bool lightTheme, const ImVec4& source, float alpha) noe
                   source.w * std::clamp(alpha, 0.0f, 1.0f));
 }
 
-} // namespace squarestar::presentation
+}

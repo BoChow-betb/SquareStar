@@ -214,14 +214,13 @@ void RenderStockModeNotice(AppState& state, StockContext& ctx, float dt) {
                   textWidth);
     draw->PopClipRect();
     draw->PopClipRect();
-    // The card is drawn on the viewport foreground list, so requiring the
-    // underlying stock window to be hovered makes some of its text area miss
-    // clicks. Hit-test the visible card itself instead.
-    const bool noticeHovered = ImGui::IsMouseHoveringRect(revealMin, cardMax, false);
+
+
+const bool noticeHovered = ImGui::IsMouseHoveringRect(revealMin, cardMax, false);
     if (noticeHovered)
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
     if (noticeHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-        // Clear the hold only; the existing animation performs the wipe-out.
+
         ctx.render.transientNoticeUntil = {};
         PlayUISound("click.wav", state);
         RequestGuiRedraw();
@@ -232,4 +231,4 @@ void RenderStockModeNotice(AppState& state, StockContext& ctx, float dt) {
 }
 
 
-} // namespace squarestar::shell
+}

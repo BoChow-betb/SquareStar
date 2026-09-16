@@ -8,7 +8,7 @@
 
 namespace squarestar::application {
 
-// Application row combining provider-owned market data with renderer-owned cache data.
+
 struct ScreenerItem : squarestar::market::ScreenerData,
                       ScreenerRenderCache {};
 
@@ -23,4 +23,4 @@ inline size_t ApproximateScreenerItemsHeapBytes(
     return bytes;
 }
 
-} // namespace squarestar::application
+}

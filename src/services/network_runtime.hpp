@@ -80,10 +80,9 @@ class PersistentExecutor final {
                 rejectionReason = "queue capacity reached";
                 rejectedQueueDepth = queued_;
             } else {
-                // Executors that opt into idle retirement can respawn here.
-                // Latency-sensitive executors pass std::nullopt and remain parked
-                // on the condition variable instead of destroying thread-local state.
-                if (liveWorkers_ == 0)
+
+
+if (liveWorkers_ == 0)
                     StartWorkersLocked();
                 tasks_[static_cast<std::size_t>(priority)].push_back(
                     std::move(queuedTask));
@@ -117,10 +116,9 @@ class PersistentExecutor final {
             if (stopping_)
                 return;
             stopping_ = true;
-            // Shutdown is a cancellation boundary, not a request to drain the
-            // entire backlog. Destroyed packaged tasks make their futures ready
-            // with broken_promise, so dependents cannot wait forever.
-            for (auto& queue : tasks_)
+
+
+for (auto& queue : tasks_)
                 queue.clear();
             queued_ = 0;
         }
@@ -141,10 +139,9 @@ class PersistentExecutor final {
     void StartWorkersLocked() {
         if (stopping_ || liveWorkers_ != 0)
             return;
-        // Every retained jthread is known to have exited once liveWorkers_
-        // reaches zero. Destroying them here joins already-finished threads
-        // and releases their small bookkeeping allocations before respawn.
-        workers_.clear();
+
+
+workers_.clear();
         workers_.reserve(workerCount_);
         liveWorkers_ = workerCount_;
         for (std::size_t i = 0; i < workerCount_; ++i) {
@@ -169,8 +166,8 @@ class PersistentExecutor final {
                         return;
                     }
                 } else {
-                    // A persistent worker consumes no CPU while idle. It sleeps
-                    // in the condition variable and wakes immediately on Submit().
+
+
                     cv_.wait(lock, [this] { return stopping_ || queued_ != 0; });
                 }
                 if (stopping_ && queued_ == 0) {
@@ -255,9 +252,8 @@ class PersistentExecutor final {
 std::size_t ConfiguredHttpWorkerCount();
 std::future<squarestar::http::HttpResponse> QueueHttpGet(std::string url);
 std::future<squarestar::http::HttpResponse> QueueRealtimeHttpGet(std::string url);
-// Quote payloads are tiny and frequently requested by multiple surfaces.
-// Coalesce only these in-flight GETs so chart/news bodies retain move-only
-// future semantics and never pay a multi-megabyte shared_future copy.
+
+
 std::shared_future<squarestar::http::HttpResponse> QueueSingleFlightQuoteHttpGet(
     std::string flightKey,
     std::string url);
@@ -294,10 +290,10 @@ std::future<squarestar::market::StockFetchResult> QueueStockQuoteTask(
     std::function<squarestar::market::StockFetchResult()> work);
 
 std::shared_ptr<PersistentExecutor> GetBackgroundWorkerPool();
-// User-driven search gets a tiny compute lane so parsing/ranking cannot sit
-// behind stock jobs. Its HTTP transfers are routed through the shared HTTP lane.
+
+
 std::shared_ptr<PersistentExecutor> GetSearchWorkerPool();
-// Start the latency-sensitive executors/libcurl without making a network request.
+
 void PrimeNetworkRuntimeWithoutIo();
 void PrimeNetworkRuntimeWithoutIoForBenchmark();
 void ShutdownNetworkWorkerPools();

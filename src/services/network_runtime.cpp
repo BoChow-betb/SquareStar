@@ -61,12 +61,9 @@ size_t ConfiguredHttpWorkerCount() {
             return static_cast<size_t>(parsed);
     }
 #endif
-    // Two persistent HTTP lanes prevent a seconds-long background/provider
-    // transfer from blocking an interactive quote or chart refresh. Each worker
-    // owns its curl handle and Yahoo authentication session, so the concurrency
-    // does not share cookie/crumb state across threads. Set
-    // SQUARESTAR_HTTP_WORKERS=1 to trade latency isolation for minimum memory.
-    return 2;
+
+
+return 2;
 }
 namespace {
 
@@ -134,7 +131,7 @@ std::shared_ptr<PersistentExecutor> GetHttpWorkerPool() {
     return Executors().Http();
 }
 
-} // namespace
+}
 static std::future<HttpResponse>
 QueueHttpGetWithPriority(std::string url, ExecutorPriority priority) {
     const auto pool = GetHttpWorkerPool();
@@ -170,7 +167,7 @@ class QuoteSingleFlightCleanup final {
     std::string key_;
 };
 
-} // namespace
+}
 
 std::shared_future<HttpResponse> QueueSingleFlightQuoteHttpGet(
     std::string flightKey,
@@ -186,23 +183,18 @@ std::shared_future<HttpResponse> QueueSingleFlightQuoteHttpGet(
         }
         g_QuoteSingleFlights.erase(existing);
     }
-    // Hold the map mutex through Submit+insert. If the worker completes very
-    // quickly, its cleanup blocks here until the entry exists, then removes it.
-    // That keeps the map strictly in-flight-only instead of retaining completed
-    // shared_future<HttpResponse> bodies until the same symbol is requested again.
-    auto future =
+
+
+auto future =
         pool->Submit([requestUrl = std::move(url), cleanupKey = flightKey]() mutable {
                 squarestar::secrets::ScopedSecureClear clearUrl(requestUrl);
                 QuoteSingleFlightCleanup cleanup(std::move(cleanupKey));
                 return PerformHttpRequest(requestUrl);
             }, ExecutorPriority::High)
             .share();
-    // A saturated/stopping executor returns an already-ready rejection without
-    // running the worker lambda, so there will be no worker-side cleanup. Do
-    // not publish such completed futures into the in-flight registry. A real
-    // request cannot become ready here because its cleanup must acquire the
-    // mutex currently held by this function before the task can return.
-    if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+
+
+if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
         return future;
     g_QuoteSingleFlights.insert_or_assign(std::move(flightKey), future);
     return future;
@@ -300,7 +292,7 @@ void FulfillExpiredWaiter(const std::shared_ptr<QuoteWaiter>& waiter) noexcept {
     try {
         waiter->promise.set_value(ExpiredQuoteResult());
     } catch (...) {
-        // Promise satisfaction can race with shutdown.
+
     }
 }
 
@@ -394,7 +386,7 @@ StockFetchResult RunQuoteFlight(
     return {};
 }
 
-} // namespace
+}
 
 std::future<StockFetchResult> QueueBackgroundStockTask(
     std::function<StockFetchResult()> work,
@@ -470,10 +462,9 @@ std::future<StockFetchResult> QueueStockQuoteTask(
 }
 
 void PrimeNetworkRuntimeWithoutIo() {
-    // Create every user-facing lane before the first interaction. Persistent
-    // workers park on condition variables, so this costs no idle CPU while
-    // avoiding thread creation and libcurl easy-handle setup on the first click.
-    (void)GetBackgroundWorkerPool();
+
+
+(void)GetBackgroundWorkerPool();
     (void)GetSearchWorkerPool();
     const auto httpPool = GetHttpWorkerPool();
 
@@ -563,9 +554,8 @@ void ShutdownNetworkWorkerPools() {
     const auto& backgroundPool = executors.background;
     const auto& searchPool = executors.search;
 
-    // Stop dependencies first. Background jobs may be waiting on HTTP futures,
-    // so signal every queue before joining any worker.
-    if (httpPool)
+
+if (httpPool)
         httpPool->RequestShutdown();
     if (backgroundPool)
         backgroundPool->RequestShutdown();

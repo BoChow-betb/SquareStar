@@ -18,4 +18,4 @@ void RenderStockChartFooter(squarestar::application::AppState& state,
                             const ImVec2& chartCaptureMax,
                             float clockStripHeight);
 
-} // namespace squarestar::shell
+}

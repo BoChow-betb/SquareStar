@@ -22,8 +22,7 @@ struct NativeNotificationRequest {
     std::string actionTicker;
 };
 
-// Thread-safe handoff from application work to the Win32 tray adapter. Queue
-// bounds and batching synchronization live here rather than at every caller.
+
 class NativeNotificationChannel final {
   public:
     void Clear();
@@ -53,4 +52,4 @@ class NativeNotificationChannel final {
 
 NativeNotificationChannel& NotificationChannel() noexcept;
 
-} // namespace squarestar::application
+}

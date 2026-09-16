@@ -47,10 +47,9 @@ struct MonitorTileRect {
 
 struct GuiRenderDecisionInputs {
     bool inputQueued = false;
-    // Keep exactly one small follow-up render window after an input event.
-    // This lets hover-driven state changes settle without treating a single
-    // mouse/key event as hundreds of milliseconds of continuous activity.
-    bool inputSettleFramePending = false;
+
+
+bool inputSettleFramePending = false;
     bool mouseHeld = false;
     bool visualWorkPending = false;
     bool revisionChanged = false;
@@ -74,4 +73,4 @@ struct GuiRenderDecisionInputs {
     return visualWorkPending || mouseHeld || inputSettleFramePending;
 }
 
-} // namespace squarestar::application
+}

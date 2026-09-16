@@ -184,4 +184,4 @@ void RenderNotificationSettingsPage(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

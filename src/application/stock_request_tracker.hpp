@@ -23,8 +23,7 @@ struct StockRequestGeneration {
     }
 };
 
-// Track request generations per channel. Only the newest generation may apply;
-// completing one channel does not advance another.
+
 class StockRequestTracker {
   public:
     [[nodiscard]] std::uint64_t Request(StockRequestChannel channel) noexcept;
@@ -51,4 +50,4 @@ class StockRequestTracker {
         generations_{};
 };
 
-} // namespace squarestar::application
+}

@@ -7,8 +7,7 @@
 
 namespace squarestar::presentation {
 
-// Computes bottom-right notification offsets without depending on ImGui.
-// Call Reserve in presentation order; later blocks are placed above earlier ones.
+
 class NotificationBlockStack {
 public:
     explicit NotificationBlockStack(
@@ -17,9 +16,8 @@ public:
         std::size_t maximumBlocks = std::numeric_limits<std::size_t>::max()) noexcept
         : nextBottom_(margin), gap_(spacing), maximumBlocks_(maximumBlocks) {}
 
-    // Reserve empty vertical space (for example, an in-stock-surface notice)
-    // without consuming one of the foreground notification-card slots.
-    [[nodiscard]] float ReserveSpace(float height) noexcept {
+
+[[nodiscard]] float ReserveSpace(float height) noexcept {
         const float bottom = nextBottom_;
         nextBottom_ += std::max(0.0f, height) + gap_;
         return bottom;
@@ -59,4 +57,4 @@ private:
     std::size_t reservedBlocks_ = 0;
 };
 
-} // namespace squarestar::presentation
+}

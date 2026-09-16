@@ -14,9 +14,9 @@ namespace squarestar::market {
 
 struct TimeAxisCalendarDate {
     int year = 0;
-    int month = 0;      // 1-12
-    int day = 0;        // 1-31
-    int dayOfYear = 0;  // 0-365
+    int month = 0;
+    int day = 0;
+    int dayOfYear = 0;
     bool valid = false;
 };
 
@@ -163,4 +163,4 @@ std::vector<SparseTimeAxisTick> BuildSparseTimeAxisTicks(
     return result;
 }
 
-} // namespace squarestar::market
+}

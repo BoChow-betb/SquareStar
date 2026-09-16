@@ -45,4 +45,4 @@ void PumpQueuedStockRequest(StockContext& context,
         std::forward<TriggerFull>(triggerFull)();
 }
 
-} // namespace squarestar::application
+}

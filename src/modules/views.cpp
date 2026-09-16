@@ -121,10 +121,8 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
         }
     };
 
-    // FullGUI keeps the requested 3-windowed / 5-fullscreen price-alert limit.
-    // LiteGUI walks the whole five-item queue so hidden alerts can have their
-    // timers paused while the shared two-card tower is occupied.
-    const std::size_t toastCount =
+
+const std::size_t toastCount =
         state.navigation.liteGuiActive
             ? state.alerts.ToastCount()
             : std::min(state.alerts.ToastCount(),
@@ -282,8 +280,8 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
             state, lookupLabel.c_str(), "##PriceAlertOpenTicker", lookupWidth, 1.0f);
         const ImVec2 lookupMin = ImGui::GetItemRectMin();
         const ImVec2 lookupMax = ImGui::GetItemRectMax();
-        // RenderUnifiedLink includes an 8 px external-link arrow plus a 5 px gap.
-        // Extend the exclusion rect so clicking the icon cannot also dismiss the card.
+
+
         const bool lookupHovered =
             ImGui::IsWindowHovered() &&
             ImGui::IsMouseHoveringRect(
@@ -325,14 +323,13 @@ void RenderPriceAlertPopups(AppState& state, NotificationBlockStack& stack) {
         }
     }
 
-    // Mutating the toast deque is deferred until every visible card has been
-    // rendered, so dismissing one alert cannot invalidate the next card.
-    for (const auto& action : pendingActions)
+
+for (const auto& action : pendingActions)
         SilencePriceAlertTicker(state, action.ticker, action.muteUntilSettlement);
     if (requestConfigSave)
         squarestar::config::RequestConfigSave();
-    // Silencing may stop active audio, so play feedback only after all queued
-    // dismissals have been applied.
+
+
     if (playClick)
         PlayUISound("click.wav", state);
 }
@@ -370,8 +367,8 @@ void RenderHomePage(AppState& state) {
     ImGui::TextUnformatted(mktStr.c_str());
     ImGui::PopFont();
     float searchW = ImMin(600.0f, avail.x * 0.8f);
-    // customWidth already includes the search field, gaps, watchlist, and alert buttons.
-    // Center the complete control so it shares the title's vertical axis.
+
+
     ImGui::SetCursorPos(ImVec2((avail.x - searchW) * 0.5f, searchBarY));
     RenderIntegratedSearchBar(
         state,
@@ -391,8 +388,8 @@ static void DrawFiveDaySparkline(const char* id,
                           ImVec2 size,
                           const ImVec4& lineColor,
                           float revealProgress = 1.0f) {
-    // Published screener snapshots are shared with background trend workers.
-    // Keep renderer geometry thread-local instead of mutating a shared row.
+
+
     static thread_local std::vector<ImVec2> unitPoints;
     BuildSparklineUnitGeometry(item.sparkline, unitPoints);
     if (unitPoints.size() < 2 || size.x <= 2.0f || size.y <= 2.0f) {
@@ -549,11 +546,9 @@ static void RenderOverviewTable(AppState& state,
             ImGui::TableHeader(headers[headerColumn]);
             continue;
         }
-        // Use the same TableHeader path as every other column so the clickable
-        // currency label cannot increase the header-row height. The whole PRICE
-        // header is the unit selector; its last-item rectangle is a stable anchor
-        // for the shared picker without introducing a framed/inline control.
-        ImGui::TableHeader(headers[headerColumn]);
+
+
+ImGui::TableHeader(headers[headerColumn]);
         const bool priceHeaderHovered = ImGui::IsItemHovered();
         const ImVec2 priceHeaderMin = ImGui::GetItemRectMin();
         const ImVec2 priceHeaderMax = ImGui::GetItemRectMax();
@@ -651,8 +646,8 @@ static void RenderOverviewTable(AppState& state,
         } else if (row.sparklineAttempted) {
             ImGui::TextDisabled("N/A");
         } else {
-            // Reserve the chart cell while the 5D request is in flight without
-            // flashing placeholder text that is immediately replaced.
+
+
             ImGui::Dummy(ImVec2(std::max(28.0f, ImGui::GetContentRegionAvail().x - 8.0f),
                                 24.0f));
         }
@@ -981,10 +976,9 @@ void RenderOverviewFirstPage(AppState& state, bool allowDataRequests) {
         state.render.overviewRowsRevealFirstIndex =
             std::min(state.render.overviewRowsRevealFirstIndex, count);
     }
-    // Fetch only the rows that are visible now. If the window grows, the newly
-    // visible rows are requested then instead of making the normal window pay
-    // for fullscreen-only chart requests up front.
-    const size_t trendRequestCount = count;
+
+
+const size_t trendRequestCount = count;
     const uint64_t overviewRequestId = screenerSnapshot->generation;
     const uint64_t trendPageKey =
         (overviewRequestId << 16U) ^ (static_cast<uint64_t>(startIdx) << 5U) ^
@@ -1001,8 +995,8 @@ void RenderOverviewFirstPage(AppState& state, bool allowDataRequests) {
                 trendPageKey, std::memory_order_release);
         }
     }
-    // Keep pagination centered on the table itself rather than depending on
-    // whatever horizontal cursor state remains after EndTable().
+
+
     const float overviewTableLeft = ImGui::GetCursorPosX();
     const float overviewTableWidth = ImGui::GetContentRegionAvail().x;
     RenderOverviewTable(state, screenerItems, startIdx, count, overviewRowHeight);
@@ -1046,4 +1040,4 @@ void RenderOverviewFirstPage(AppState& state, bool allowDataRequests) {
     }
 }
 
-} // namespace squarestar::shell
+}

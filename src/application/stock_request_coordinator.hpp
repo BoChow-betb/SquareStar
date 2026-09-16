@@ -23,9 +23,7 @@ struct StockRequestGeneration {
     }
 };
 
-// Owns request freshness independently for each stock-data concern. A result
-// can be committed only when it still represents the latest desired generation
-// for its channel; completion in one channel never advances another channel.
+
 class StockRequestCoordinator {
   public:
     [[nodiscard]] std::uint64_t Request(StockRequestChannel channel) noexcept;
@@ -52,4 +50,4 @@ class StockRequestCoordinator {
         generations_{};
 };
 
-} // namespace squarestar::application
+}

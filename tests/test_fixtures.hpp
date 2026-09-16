@@ -15,4 +15,4 @@ namespace squarestar::test {
 [[nodiscard]] std::vector<squarestar::market::ScreenerData> BuildTestScreenerData(
     std::size_t count = 24);
 
-} // namespace squarestar::test
+}

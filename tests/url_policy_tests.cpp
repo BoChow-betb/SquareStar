@@ -14,7 +14,7 @@ void Check(bool condition, const char* message) {
     ++failures;
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::http::IsAllowedApiUrl;

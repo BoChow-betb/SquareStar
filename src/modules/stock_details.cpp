@@ -81,7 +81,7 @@ void RenderNewsList(AppState& state, StockContext& ctx) {
     ImGui::EndChild();
 }
 
-} // namespace
+}
 
 void RenderStockNews(AppState& state, StockContext& ctx) {
     ImGui::BeginChild("NewsRegion", ImVec2(0, 0), false);
@@ -110,12 +110,11 @@ void RenderStockMetrics(AppState& state, StockContext& ctx, double pC) {
                       ImVec2(0, 0),
                       false,
                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    // Lite metrics are a fixed, non-scrollable three-column surface. Child
-    // windows normally discard WindowPadding when borderless, so explicitly
-    // opt into it to keep equal breathing room at both horizontal edges.
-    if (liteMetrics) {
-        // Four-direction margins: the 4 px lead-in plus 16 px child padding
-        // moves the table upward while leaving a visibly larger bottom margin.
+
+
+if (liteMetrics) {
+
+
         ImGui::Dummy(ImVec2(0.0f, 4.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(32.0f, 16.0f));
         ImGui::BeginChild("MetricsSection",
@@ -218,11 +217,9 @@ void RenderStockMetrics(AppState& state, StockContext& ctx, double pC) {
         : ctx.RawData().fiftyTwoWkChangePercent > 0.0 ? ThemeVec(state.config.theme.positive)
                                                         : ThemeVec(state.config.theme.textDisabled);
     const float metricsWidth = std::max(1.0f, ImGui::GetContentRegionAvail().x);
-    // The Lite window has a fixed 900 px width. All three sections comfortably
-    // fit across that surface, and keeping them on one row prevents FUNDAMENTALS
-    // from being pushed into a partially visible second row. Normal GUI mode
-    // remains responsive at its existing breakpoints.
-    const int metricColumns =
+
+
+const int metricColumns =
         liteMetrics ? 3 : (metricsWidth >= 900.0f ? 3 : (metricsWidth >= 620.0f ? 2 : 1));
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
                         ImVec2(liteMetrics ? 10.0f : 14.0f, 10.0f));
@@ -328,4 +325,4 @@ void RenderStockMetrics(AppState& state, StockContext& ctx, double pC) {
     ImGui::EndChild();
 }
 
-} // namespace squarestar::shell
+}

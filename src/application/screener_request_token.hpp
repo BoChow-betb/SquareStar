@@ -5,8 +5,7 @@
 
 namespace squarestar::application {
 
-// A request token has one identity: its generation. Cancellation is only a
-// cooperative stop signal for work that belongs to that generation.
+
 class ScreenerRequestToken final {
   public:
     explicit ScreenerRequestToken(std::uint64_t generation) noexcept
@@ -29,4 +28,4 @@ class ScreenerRequestToken final {
     std::atomic_bool cancelled_{false};
 };
 
-} // namespace squarestar::application
+}

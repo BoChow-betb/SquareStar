@@ -26,7 +26,7 @@ std::string_view HttpsAuthority(std::string_view url,
 }
 
 
-} // namespace
+}
 
 bool IsAllowedApiUrl(std::string_view url) noexcept {
     const std::string_view host = HttpsAuthority(url, 8192);
@@ -57,10 +57,8 @@ bool IsSafeExternalHttpsUrl(std::string_view url) noexcept {
         return false;
     }
 
-    // System-browser links use ordinary DNS hostnames only. Reject literal
-    // addresses, credentials, and custom ports so notification/news URLs cannot
-    // smuggle surprising authority syntax into ShellExecute.
-    if (authority.front() == '[' || authority.find(':') != std::string_view::npos)
+
+if (authority.front() == '[' || authority.find(':') != std::string_view::npos)
         return false;
     std::string host(authority);
     std::transform(host.begin(), host.end(), host.begin(), [](unsigned char value) {
@@ -78,4 +76,4 @@ bool IsSafeExternalHttpsUrl(std::string_view url) noexcept {
     return !looksLikeIpv4;
 }
 
-} // namespace squarestar::http
+}

@@ -90,9 +90,8 @@ inline int BoundedEditDistance(std::string_view left,
                    ? static_cast<int>(left.size())
                    : maximumDistance + 1;
 
-    // Search only asks for distance <= 1. That case can be decided with one
-    // linear scan and no heap allocation instead of building a DP table.
-    if (maximumDistance == 1) {
+
+if (maximumDistance == 1) {
         if (left.size() > right.size())
             std::swap(left, right);
         size_t leftIndex = 0;
@@ -115,7 +114,7 @@ inline int BoundedEditDistance(std::string_view left,
         return edits <= 1 ? edits : 2;
     }
 
-    // Keep the shorter string on the DP columns to bound temporary storage.
+
     if (right.size() > left.size())
         std::swap(left, right);
     std::vector<int> previous(right.size() + 1);
@@ -222,8 +221,8 @@ inline int ScoreMatch(const QueryInfo& query,
         symbolScore = 5'200;
     } else if (query.key.size() >= 3 && query.key.size() <= 8 && symbolKey.size() <= 8 &&
                BoundedEditDistance(query.key, symbolKey, 1) <= 1) {
-        // One-character ticker typos such as APPL -> AAPL are useful, but they
-        // must never outrank exact/prefix matches.
+
+
         symbolScore = 8'200;
     }
 

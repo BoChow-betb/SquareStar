@@ -52,11 +52,9 @@ struct ProcessLifetimeMappedFont {
 const ProcessLifetimeMappedFont& MappedSegoeUiSymbolFont() {
     static const ProcessLifetimeMappedFont mapped = [] {
         ProcessLifetimeMappedFont view;
-        // Keep this read-only file mapping for the process lifetime. ImGui 1.92
-        // requires source font bytes to remain valid, and a mapped system font
-        // stays file-backed instead of adding another multi-megabyte private
-        // heap allocation. Windows releases the mapping/handles at process exit.
-        const HANDLE file = CreateFileW(L"C:\\Windows\\Fonts\\seguisym.ttf",
+
+
+const HANDLE file = CreateFileW(L"C:\\Windows\\Fonts\\seguisym.ttf",
                                         GENERIC_READ,
                                         FILE_SHARE_READ | FILE_SHARE_WRITE |
                                             FILE_SHARE_DELETE,
@@ -84,10 +82,9 @@ const ProcessLifetimeMappedFont& MappedSegoeUiSymbolFont() {
             CloseHandle(file);
             return view;
         }
-        // The mapped view remains valid after both handles are closed; keep the
-        // read-only view itself for process lifetime so the bytes remain
-        // file-backed rather than copied into the private heap.
-        CloseHandle(mapping);
+
+
+CloseHandle(mapping);
         CloseHandle(file);
         view.data = static_cast<const unsigned char*>(address);
         view.size = static_cast<std::size_t>(fileSize.QuadPart);
@@ -104,13 +101,13 @@ void MergeFinancialSymbolFallback(ImFontAtlas* atlas, ImFont* baseFont, float si
         "C:\\Windows\\Fonts\\seguisym.ttf";
     if (!squarestar::platform::FileExistsForFont(kSegoeUiSymbolPath))
         return;
-    // Outfit misses some symbols used in news copy. Merge Segoe UI Symbol so
-    // operators and arrows do not fall back to '?'.
+
+
     static constexpr ImWchar kFinancialSymbolRanges[] = {
-        0x20A0, 0x20CF, // Currency symbols
-        0x2100, 0x214F, // Letterlike symbols
-        0x2190, 0x21FF, // Arrows
-        0x2200, 0x22FF, // Mathematical operators
+        0x20A0, 0x20CF,
+        0x2100, 0x214F,
+        0x2190, 0x21FF,
+        0x2200, 0x22FF,
         0,
     };
     ImFontConfig fallbackConfig{};
@@ -139,7 +136,7 @@ void MergeFinancialSymbolFallback(ImFontAtlas* atlas, ImFont* baseFont, float si
                               kFinancialSymbolRanges);
 }
 
-} // namespace
+}
 
 void RebuildApplicationFonts(squarestar::application::AppState& state) {
     ImGuiIO& io = ImGui::GetIO();
@@ -198,12 +195,9 @@ void RebuildApplicationFonts(squarestar::application::AppState& state) {
                                                   outfitMedium,
                                                   state.config.theme.fontData,
                                                   mediumConfig);
-    // Keep the large Segoe UI Symbol fallback only on the body/news font.
-    // ImGui 1.92 retains font source data for the atlas lifetime, so merging
-    // the same system font into every size duplicates both source allocations
-    // and baked fallback glyphs. Numeric market-data surfaces do not need that
-    // broad arrows/math block and remain on the compact Outfit face.
-    state.render.fontLarge = AddEmbeddedOrFileFont(io.Fonts,
+
+
+state.render.fontLarge = AddEmbeddedOrFileFont(io.Fonts,
                                                    "Outfit-SemiBold.ttf",
                                                    outfitSemiBold,
                                                    state.config.theme.fontTitle,
@@ -229,4 +223,4 @@ void RebuildApplicationFonts(squarestar::application::AppState& state) {
     io.Fonts->CompactCache();
 }
 
-} // namespace squarestar::presentation
+}

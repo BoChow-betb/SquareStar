@@ -79,7 +79,7 @@ void RotateIfNeeded(const std::filesystem::path& path) {
     std::filesystem::rename(path, first, error);
 }
 
-} // namespace
+}
 
 void WriteDiagnosticEvent(const DiagnosticEvent& event) noexcept {
     try {
@@ -111,8 +111,8 @@ void WriteDiagnosticEvent(const DiagnosticEvent& event) noexcept {
         output << '\n';
         output.flush();
     } catch (...) {
-        // Diagnostics must never destabilize the application or recurse into
-        // user-facing failure handling.
+
+
     }
 }
 
@@ -121,4 +121,4 @@ void ReportBackgroundFailureEvent(const char* boundary) noexcept {
         {"internal", "background", boundary ? boundary : "background task", 0});
 }
 
-} // namespace squarestar::diagnostics
+}

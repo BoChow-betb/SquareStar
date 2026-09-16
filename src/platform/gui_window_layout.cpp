@@ -35,7 +35,7 @@ HMONITOR ResolveCenteringMonitor(HWND hwnd) noexcept {
     return hwnd ? MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST) : nullptr;
 }
 
-} // namespace
+}
 #endif
 
 void CenterGlfwWindowInWorkArea(GLFWwindow* window, int width, int height) {
@@ -53,8 +53,8 @@ void CenterGlfwWindowInWorkArea(GLFWwindow* window, int width, int height) {
     RECT placementRect{0, 0, std::max(1, width), std::max(1, height)};
     (void)GetWindowRect(hwnd, &placementRect);
     RECT visualRect = placementRect;
-    // DWM can add invisible resize borders outside the visible frame. Center
-    // the visible frame while still moving the Win32 placement rectangle.
+
+
     (void)DwmGetWindowAttribute(hwnd,
                                 DWMWA_EXTENDED_FRAME_BOUNDS,
                                 &visualRect,
@@ -129,4 +129,4 @@ void ApplyResizableGlfwWindowLayout(GLFWwindow* window,
 #endif
 }
 
-} // namespace squarestar::platform
+}

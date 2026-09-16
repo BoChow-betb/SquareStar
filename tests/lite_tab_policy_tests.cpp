@@ -18,7 +18,7 @@ void Check(bool condition, const char* message) {
     }
 }
 
-} // namespace
+}
 
 int main() {
     using namespace squarestar::application;

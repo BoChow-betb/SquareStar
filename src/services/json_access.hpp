@@ -33,4 +33,4 @@ bool JsonString(yyjson_val* object,
                 std::string& out,
                 std::size_t maxBytes = static_cast<std::size_t>(-1));
 
-} // namespace squarestar::json
+}

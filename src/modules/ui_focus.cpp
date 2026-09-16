@@ -69,13 +69,13 @@ void DrawCurrentWindowFocusOutline(const AppState& state, int priority) {
 void RenderObjectFocusOverlay(AppState& state, ImVec2 viewportMin, ImVec2 viewportMax) {
     const bool popupOpen =
         ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
-    // The home watchlist is itself a focusable object; keep its focus mask while open.
+
     if (popupOpen && !state.navigation.watchlistOpen) {
         state.render.objectFocusAnim = 0.0f;
         GuiShellRuntime().ClearObjectFocusFadingRegions();
         return;
     }
-    // Drop focus regions as soon as their source object or window disappears.
+
     if (GuiShellRuntime().ObjectFocusRegionsEmpty()) {
         state.render.objectFocusAnim = 0.0f;
         GuiShellRuntime().ClearObjectFocusFadingRegions();
@@ -173,4 +173,4 @@ void RenderObjectFocusOverlay(AppState& state, ImVec2 viewportMin, ImVec2 viewpo
     }
 }
 
-} // namespace squarestar::shell
+}

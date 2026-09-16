@@ -13,4 +13,4 @@ void RenderSingleStockWindowContent(squarestar::application::AppState& state,
                                     squarestar::application::StockContext& ctx,
                                     bool compactLite = false);
 
-} // namespace squarestar::shell
+}

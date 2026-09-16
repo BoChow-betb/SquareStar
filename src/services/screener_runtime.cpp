@@ -18,8 +18,8 @@ ScreenerFetchDependencies DefaultScreenerFetchDependencies() {
     };
 }
 
-} // namespace
-} // namespace squarestar::providers
+}
+}
 
 namespace squarestar::application {
 namespace {
@@ -72,7 +72,7 @@ class ProductionScreenerDataSource final : public ScreenerDataSource {
     }
 };
 
-} // namespace
+}
 
 ScreenerDataSource& DefaultScreenerDataSource() {
     static ProductionScreenerDataSource source;
@@ -91,4 +91,4 @@ void StartScreenerFetch(AppState& state, const std::string& screenerId) {
     StartScreenerFetch(state, screenerId, DefaultScreenerDataSource());
 }
 
-} // namespace squarestar::application
+}

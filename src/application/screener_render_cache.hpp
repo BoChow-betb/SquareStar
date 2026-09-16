@@ -10,4 +10,4 @@ struct ScreenerRenderCache {
     std::vector<ImVec2> sparklineUnitPoints;
 };
 
-} // namespace squarestar::application
+}

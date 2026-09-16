@@ -16,4 +16,4 @@ extern const std::array<ScreenerRoute, kScreenerRouteCount> kScreenerRoutes;
 
 const ScreenerRoute* FindScreenerRouteByGuiId(std::string_view id) noexcept;
 
-} // namespace squarestar::market
+}

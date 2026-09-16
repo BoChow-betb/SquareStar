@@ -316,4 +316,4 @@ void RenderMonitorStockWindows(AppState& state,
     }
 }
 
-} // namespace squarestar::shell
+}

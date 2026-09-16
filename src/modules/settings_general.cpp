@@ -468,11 +468,8 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
     ImGui::TextDisabled("OPTIONS");
     const float optionWidth = ImGui::GetContentRegionAvail().x;
 
-    // Five equal columns only work when the longest toggle has enough room
-    // for its 48 px switch, 9 px label gap, full label, and some breathing
-    // room.  Using the rendered label width also keeps this safe if the
-    // UI/font scale changes.
-    const float minBehaviorCellWidth =
+
+const float minBehaviorCellWidth =
         48.0f + 9.0f + ImGui::CalcTextSize("Keybind reminders").x + 24.0f;
     const int behaviorColumns =
         optionWidth >= minBehaviorCellWidth * 5.0f ? 5 :
@@ -534,11 +531,8 @@ static void RenderStorageCleanupSettingsCard(AppState& state,
                                              bool& openSavedDataModal) {
     BeginSettingsCard(state, "StorageCleanupSettings", "Storage & cleanup");
 
-    // Match the Export card's vertical layout exactly: one label line, the
-    // normal ItemSpacing gap, then one fixed-height control line. A table
-    // adds row/cell padding to the child content height, which made this
-    // card extend below its neighbor even though the controls looked aligned.
-    constexpr float storageGap = 8.0f;
+
+constexpr float storageGap = 8.0f;
     const float storageStartX = ImGui::GetCursorPosX();
     const float storageWidth = ImGui::GetContentRegionAvail().x;
     const float storageColumnWidth =
@@ -719,10 +713,8 @@ void RenderGeneralSettingsPage(AppState& state,
     RenderAppearanceSettingsCard(state, bodyContentWidth);
     ImGui::Dummy(ImVec2(0.0f, 2.0f));
 
-    // BeginChild can restore the parent's default X after the full-width card.
-    // Re-anchor the lower grid explicitly so all Settings cards share the
-    // exact same left/right bounds.
-    ImGui::SetCursorPosX(pageContentStartX);
+
+ImGui::SetCursorPosX(pageContentStartX);
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
                         ImVec2(useTwoColumns ? 8.0f : 0.0f, 4.0f));
     if (ImGui::BeginTable("SettingsGrid",
@@ -762,4 +754,4 @@ void RenderGeneralSettingsPage(AppState& state,
 }
 
 
-} // namespace squarestar::shell
+}

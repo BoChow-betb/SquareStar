@@ -210,8 +210,8 @@ void FetchScreenerDataBackground(
     std::uint64_t generation,
     const RequestToken& requestToken,
     ScreenerDataSource& source) {
-    // HTTP callbacks retain only the request token. It contains generation +
-    // cancellation and never retains AppState.
+
+
     const auto staleRequest = [requestToken] {
         return TokenCancelled(requestToken);
     };
@@ -241,9 +241,8 @@ void FetchScreenerDataBackground(
         return;
     }
 
-    // A list refresh owns publication. Stop unfinished visible-page trend work,
-    // while retaining any trend data that already reached the current snapshot.
-    CancelRequestToken(state.requests.screenerTrendRequest);
+
+CancelRequestToken(state.requests.screenerTrendRequest);
     const auto current = state.marketData.LoadScreenerSnapshot();
     if (current && current->generation == generation &&
         current->screenerId == screenerId && current->items) {
@@ -312,7 +311,7 @@ bool PublishTrendPhase(AppState& state,
     }
 }
 
-} // namespace
+}
 
 bool StartScreenerTrendFetch(AppState& state,
                              const std::string& screenerId,
@@ -537,4 +536,4 @@ void ResetScreenerFetch(AppState& state) {
     RequestGuiRedraw();
 }
 
-} // namespace squarestar::application
+}

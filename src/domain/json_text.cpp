@@ -22,4 +22,4 @@ std::string EscapeJsonStringValue(std::string_view value) {
     return out;
 }
 
-} // namespace squarestar::text
+}

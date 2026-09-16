@@ -61,4 +61,4 @@ class TokenBucket {
     std::chrono::steady_clock::time_point lastRefill_{};
 };
 
-} // namespace squarestar::http
+}

@@ -71,8 +71,8 @@ void RenderCustomTitleBar(GLFWwindow* window, AppState& state) {
     const float controlCount = static_cast<float>(
         liteGui ? LITE_TITLE_BAR_CONTROL_COUNT : APP_TITLE_BAR_CONTROL_COUNT);
     const float dragAreaWidth = ImGui::GetWindowWidth() - buttonWidth * controlCount;
-    // WM_NCHITTEST owns this region. Keeping it passive prevents a native move
-    // from stranding an ImGui active id when Windows delivers a non-client release.
+
+
     ImGui::Dummy(ImVec2(dragAreaWidth, APP_TITLE_BAR_HEIGHT));
     ImGui::PushFont(state.render.fontNormal);
     const float titleY =
@@ -186,4 +186,4 @@ void RenderCustomTitleBar(GLFWwindow* window, AppState& state) {
     ImGui::PopStyleVar(3);
 }
 
-} // namespace squarestar::shell
+}

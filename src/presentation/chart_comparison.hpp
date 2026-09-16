@@ -19,4 +19,4 @@ void EnsureComparisonYAxisTicks(application::StockContext& primary,
                                 double& minY,
                                 double& maxY);
 
-} // namespace squarestar::presentation
+}

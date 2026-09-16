@@ -15,9 +15,7 @@
 
 namespace squarestar::application {
 
-// Small render-only state objects keep notification lifetime and cleanup rules
-// next to the data they govern. The shell decides *what* to show; these types
-// only own transient presentation state.
+
 struct TimedNoticeRenderState {
     std::chrono::steady_clock::time_point until{};
     float animation = 0.0f;
@@ -104,8 +102,8 @@ struct MarketMoveRenderState {
     void Clear() noexcept {
         notices.clear();
         lastQueuedAt = {};
-        // Keep nextSerial monotonic for the process lifetime so an ImGui window
-        // ID is never accidentally reused while old internal state may linger.
+
+
     }
 };
 
@@ -270,9 +268,8 @@ struct NotificationRenderState {
     NotificationCenterRenderState notificationCenter;
     ContextualKeybindHintRenderState keybindHint;
 
-    // LiteGUI only shows price-alert and market-move cards. Drop the FullGUI
-    // card state when switching modes so old cards do not reappear later.
-    void ClearLiteGuiSuppressed() noexcept {
+
+void ClearLiteGuiSuppressed() noexcept {
         interaction.Clear();
         marketOpen.Clear();
         firstFetchWarmup.Clear();
@@ -280,9 +277,8 @@ struct NotificationRenderState {
         keybindHint.ResetSurface();
     }
 
-    // Hidden/minimized windows cannot show foreground cards. Keep the first-fetch
-    // warmup pending until the normal GUI is visible again.
-    void ClearUnavailableForeground() noexcept {
+
+void ClearUnavailableForeground() noexcept {
         interaction.Clear();
         marketOpen.Clear();
         marketMoves.Clear();
@@ -291,4 +287,4 @@ struct NotificationRenderState {
     }
 };
 
-} // namespace squarestar::application
+}

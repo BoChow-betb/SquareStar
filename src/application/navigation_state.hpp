@@ -77,4 +77,4 @@ struct SavedGuiStockTab {
     bool monitorExcluded = false;
 };
 
-} // namespace squarestar::application
+}

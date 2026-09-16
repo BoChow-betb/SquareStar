@@ -15,10 +15,7 @@
 namespace squarestar::providers {
 namespace {
 
-// The parser later groups samples by converting Unix seconds to int64_t. Keep
-// provider-controlled values inside that conversion's defined range; 2^63 is
-// exactly representable as a double and is therefore a convenient exclusive
-// upper bound.
+
 constexpr double kEpochSecondsUpperBoundExclusive = 9223372036854775808.0;
 
 struct JsonDocumentDeleter {
@@ -158,8 +155,8 @@ bool SplitAdjustmentImprovesContinuity(double before,
         return false;
     const double rawDistance = std::abs(std::log(before / after));
     const double adjustedDistance = std::abs(std::log((before / factor) / after));
-    // A corporate action must make the boundary materially more coherent.
-    // This protects already-adjusted payloads from being adjusted a second time.
+
+
     return std::isfinite(adjustedDistance) && adjustedDistance + 0.08 < rawDistance;
 }
 
@@ -182,10 +179,8 @@ void NormalizeSplitBoundaries(const std::vector<SplitEvent>& splits,
     std::vector<Adjustment> accepted;
     accepted.reserve(splits.size());
 
-    // Decide which boundaries really need adjustment without rewriting the
-    // whole prefix after every split. Earlier split boundaries cannot change
-    // the sample immediately before a later boundary.
-    for (const SplitEvent& split : splits) {
+
+for (const SplitEvent& split : splits) {
         const auto boundary =
             std::lower_bound(timestamps.begin(), timestamps.end(), split.timestamp);
         const size_t index = static_cast<size_t>(boundary - timestamps.begin());
@@ -214,9 +209,8 @@ void NormalizeSplitBoundaries(const std::vector<SplitEvent>& splits,
     if (accepted.empty())
         return;
 
-    // Walk the samples once from newest to oldest. A sample is adjusted by
-    // every accepted split whose boundary lies to its right.
-    size_t adjustment = accepted.size();
+
+size_t adjustment = accepted.size();
     long double factor = 1.0L;
     for (size_t sample = closes.size(); sample-- > 0;) {
         while (adjustment > 0 && accepted[adjustment - 1].index > sample) {
@@ -233,7 +227,7 @@ void NormalizeSplitBoundaries(const std::vector<SplitEvent>& splits,
     }
 }
 
-} // namespace
+}
 
 bool ApplyYahooChartPayload(std::string payload,
                             bool aggregateLatestTradingDayVolume,
@@ -387,8 +381,8 @@ bool ApplyYahooChartPayload(std::string payload,
         destination.currency = std::move(currency);
     if (!exchange.empty())
         destination.exchange = std::move(exchange);
-    // If the quote endpoint is unavailable, chart metadata can still provide a
-    // previous-close fallback. A later quote merge may replace it.
+
+
     if (hasChartPreviousClose) {
         destination.chartPreviousClose = chartPreviousClose;
         destination.previousClose = chartPreviousClose;
@@ -547,4 +541,4 @@ std::optional<double> ParseFinnhubMetricMarketCap(std::string_view payload) {
     return marketCapMillions * 1e6;
 }
 
-} // namespace squarestar::providers
+}

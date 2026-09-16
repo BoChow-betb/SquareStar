@@ -33,4 +33,4 @@ void ShutdownGuiRuntime(GLFWwindow*& window,
                         squarestar::application::AppState& state);
 void WaitForStockStateRequests(squarestar::application::AppState& state);
 
-} // namespace squarestar::shell
+}

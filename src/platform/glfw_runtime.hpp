@@ -6,4 +6,4 @@ bool EnsureGlfwPlatformRuntimeInitialized();
 void ShutdownGlfwPlatformRuntime();
 bool GlfwPlatformRuntimeInitialized() noexcept;
 
-} // namespace squarestar::platform
+}

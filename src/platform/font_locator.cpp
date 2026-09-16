@@ -82,4 +82,4 @@ std::string ResolveOutfitFontPath(OutfitWeight weight) {
     return {};
 }
 
-} // namespace squarestar::platform
+}

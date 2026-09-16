@@ -122,4 +122,4 @@ Win32AppRuntimeState& Win32AppRuntime() noexcept;
 
 int ReportConfigPersistenceFailure();
 
-} // namespace squarestar::platform
+}

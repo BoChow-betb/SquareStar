@@ -44,8 +44,8 @@ class StockMarketDataState {
                                    std::uint64_t revision) {
         if (!patch.success)
             return false;
-        // Preserve immutability for any retained RawDataSnapshot(),
-        // while keeping the common no-snapshot quote path O(1).
+
+
         if (rawMarketData_.use_count() != 1)
             rawMarketData_ =
                 std::make_shared<squarestar::market::StockData>(*rawMarketData_);
@@ -70,4 +70,4 @@ class StockMarketDataState {
     std::shared_ptr<squarestar::market::StockData> rawMarketData_;
 };
 
-} // namespace squarestar::application
+}

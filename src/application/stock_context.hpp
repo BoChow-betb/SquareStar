@@ -51,4 +51,4 @@ struct StockContext {
     void ClearRawData() { marketData.ClearRawData(); }
 };
 
-} // namespace squarestar::application
+}

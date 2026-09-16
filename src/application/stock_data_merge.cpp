@@ -15,7 +15,7 @@ bool HasNonZeroMetricValue(double value) noexcept {
     return value < 0.0 || value > 0.0;
 }
 
-} // namespace
+}
 
 bool HasResolvedCompanyName(const std::string& companyName) noexcept {
     return !companyName.empty() && companyName != "Fetching...";
@@ -81,8 +81,8 @@ StockData MergeStockFetchPatch(const StockData& current,
         merged.lows = std::move(patch.lows);
         merged.closes = std::move(patch.closes);
         merged.volumes = std::move(patch.volumes);
-        // Chart refreshes own the range-specific previous-close reference but
-        // must never replace the authoritative regular-session previous close.
+
+
         merged.chartPreviousClose = patch.chartPreviousClose;
         if (patch.hasRegularMarketVolume) {
             merged.regularMarketVolume = patch.regularMarketVolume;
@@ -139,4 +139,4 @@ StockData MergeStockFetchPatch(const StockData& current,
     return merged;
 }
 
-} // namespace squarestar::application
+}

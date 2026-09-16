@@ -16,4 +16,4 @@ bool ChartExportJobBusy();
 std::optional<ChartExportResult> PollChartExportJob();
 void WaitForChartExportJob();
 
-} // namespace squarestar::presentation
+}

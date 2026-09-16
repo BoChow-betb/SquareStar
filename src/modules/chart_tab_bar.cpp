@@ -207,4 +207,4 @@ void RenderStockTabBar(AppState& state,
     ImGui::EndGroup();
 }
 
-} // namespace squarestar::shell
+}

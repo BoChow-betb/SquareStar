@@ -13,4 +13,4 @@ void StartConfiguredApplicationMode(squarestar::application::AppState& state,
 void RunApplicationMainLoop(GLFWwindow*& window,
                             squarestar::application::AppState& state);
 
-} // namespace squarestar::shell
+}

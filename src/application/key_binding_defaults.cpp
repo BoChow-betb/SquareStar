@@ -46,4 +46,4 @@ void InitializeDefaultKeybinds(AppConfig& config) {
     config.KeyBinds[TerminalAction::ToggleGuiMode] = {ImGuiKey_G, true, true, false};
 }
 
-} // namespace squarestar::application
+}

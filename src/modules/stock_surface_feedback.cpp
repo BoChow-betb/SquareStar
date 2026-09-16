@@ -22,9 +22,8 @@ void DrawSelectedWorldClockTooltip(const AppState& state, const std::time_t now)
     if (visibleClocks.empty())
         return;
 
-    // Tooltips belong to the stock window that produced them. Clamping to the
-    // monitor still lets a tooltip escape a small floated stock window.
-    const ImGuiStyle& style = ImGui::GetStyle();
+
+const ImGuiStyle& style = ImGui::GetStyle();
     float labelWidth = 0.0f;
     float timeWidth = 0.0f;
     int validClockCount = 0;
@@ -129,4 +128,4 @@ void ShowStockModeNotice(AppState& state,
     RequestGuiRedraw();
 }
 
-} // namespace squarestar::shell
+}

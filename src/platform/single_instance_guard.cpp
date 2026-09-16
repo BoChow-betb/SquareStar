@@ -45,14 +45,14 @@ std::wstring CurrentUserSidText() {
     return result;
 }
 
-} // namespace
+}
 
 std::wstring CurrentUserSquareStarInstanceMutexName() {
     const std::wstring sid = CurrentUserSidText();
     if (sid.empty())
         return {};
-    // Keep writer ownership tied to the Windows user rather than the application
-    // version so every normal instance contends for the same state-writer identity.
+
+
     return L"Global\\SquareStar-StateWriter-" + sid;
 }
 #endif
@@ -78,10 +78,9 @@ bool SingleInstanceGuard::Acquire() {
 
     HANDLE handle = CreateMutexW(nullptr, FALSE, name.c_str());
     if (!handle) {
-        // When the object exists with a DACL that does not grant create access,
-        // opening SYNCHRONIZE is enough to distinguish "another instance" from
-        // "could not create the guard". Either way, fail closed.
-        if (GetLastError() == ERROR_ACCESS_DENIED) {
+
+
+if (GetLastError() == ERROR_ACCESS_DENIED) {
             HANDLE existing = OpenMutexW(SYNCHRONIZE, FALSE, name.c_str());
             if (existing)
                 CloseHandle(existing);
@@ -113,4 +112,4 @@ void SingleInstanceGuard::Release() noexcept {
 #endif
 }
 
-} // namespace squarestar::platform
+}

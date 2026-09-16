@@ -109,4 +109,4 @@ void RenderStockTerminal(AppState& state, GLFWwindow* window) {
 }
 
 
-} // namespace squarestar::shell
+}

@@ -127,4 +127,4 @@ struct StockRenderCache {
     std::vector<ComparisonHoverSample> comparisonHoverSamples;
 };
 
-} // namespace squarestar::application
+}

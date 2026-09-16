@@ -11,7 +11,7 @@ struct StockContext;
 
 namespace squarestar::shell {
 
-// Private cross-translation-unit helpers for the stock chart surface.
+
 void RenderStockHeader(squarestar::application::AppState& state,
                        squarestar::application::StockContext& ctx,
                        float dt,
@@ -45,4 +45,4 @@ void RenderStockModeNotice(squarestar::application::AppState& state,
                            squarestar::application::StockContext& ctx,
                            float dt);
 
-} // namespace squarestar::shell
+}

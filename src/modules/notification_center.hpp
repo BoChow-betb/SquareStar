@@ -17,4 +17,4 @@ void RenderNotificationCenterMenu(
     int visibleCardLimit,
     const std::function<void(const std::string&)>& onExecute);
 
-} // namespace squarestar::shell
+}

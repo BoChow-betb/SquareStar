@@ -11,7 +11,7 @@ namespace {
 std::mutex g_ChartExportJobMutex;
 std::future<ChartExportResult> g_ChartExportJob;
 
-} // namespace
+}
 
 bool QueueChartExportJob(std::string path, std::function<bool()> exportWork) {
     std::lock_guard<std::mutex> lock(g_ChartExportJobMutex);
@@ -67,4 +67,4 @@ void WaitForChartExportJob() {
     }
 }
 
-} // namespace squarestar::presentation
+}

@@ -276,7 +276,7 @@ std::string CleanAndValidate(std::string_view input) {
     return output;
 }
 
-} // namespace
+}
 
 std::string NormalizeNewsText(std::string_view text) {
     std::string normalized = DecodeHtmlEntities(text);
@@ -285,4 +285,4 @@ std::string NormalizeNewsText(std::string_view text) {
     return CleanAndValidate(normalized);
 }
 
-} // namespace squarestar::news
+}

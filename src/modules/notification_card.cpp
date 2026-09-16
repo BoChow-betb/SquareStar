@@ -52,7 +52,7 @@ using squarestar::presentation::NotificationCardWidth;
 using squarestar::presentation::LinkedNotificationCardHeight;
 using squarestar::presentation::ShouldStackNotificationRowValues;
 
-// ============================================================================
+
 struct GroupedStockMoveLineLayout {
     std::string bodyText;
     std::string valueText;
@@ -285,7 +285,7 @@ static NotificationCardInputResult HandleNotificationCardInput(
         if (ImGui::IsItemHovered())
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
     } else {
-        // The click that created the notice must not dismiss it in the same frame.
+
         ImGui::Dummy(ImVec2(layout.width, layout.dismissHeight));
     }
 
@@ -467,8 +467,8 @@ NotificationCardRenderResult RenderNotificationCard(
         return NotificationCardRenderResult::Deferred;
 
     const NotificationCardLayout layout = BuildNotificationCardLayout(state, *viewport, spec);
-    // LiteGUI grows its host window on the next redraw instead of clipping a card
-    // into the compact search shell.
+
+
     const float verticalCapacity = squarestar::presentation::NotificationVerticalCapacity(
         viewport->WorkSize.y, APP_TITLE_BAR_HEIGHT);
     const auto bottomReservation = stack.TryReserve(layout.height, verticalCapacity);
@@ -515,4 +515,4 @@ NotificationCardRenderResult RenderNotificationCard(
 }
 
 
-} // namespace squarestar::shell
+}

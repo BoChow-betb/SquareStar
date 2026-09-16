@@ -21,7 +21,7 @@ bool EqualsAsciiCaseInsensitive(std::string_view left, std::string_view right) {
     return true;
 }
 
-} // namespace
+}
 
 std::string GetExecutableDirectory() {
 #ifdef _WIN32
@@ -86,4 +86,4 @@ std::string GetDiagnosticLogPath() {
                                         "diagnostics.log");
 }
 
-} // namespace squarestar::platform
+}

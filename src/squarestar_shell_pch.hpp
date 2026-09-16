@@ -1,7 +1,6 @@
 #pragma once
 
-// Keep the shell PCH limited to state/runtime/UI headers used throughout the shell.
-// Feature and service dependencies stay in the .cpp files that use them.
+
 #include "squarestar_pch.hpp"
 
 #include "application/app_state.hpp"

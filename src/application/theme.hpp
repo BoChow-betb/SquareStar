@@ -86,4 +86,4 @@ struct Theme {
     float tabBorderSize = 0.0f;
 };
 
-} // namespace squarestar::application
+}

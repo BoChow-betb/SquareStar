@@ -201,7 +201,7 @@ void CaptureAdapterName() {
     SafeRelease(dxgiDevice);
 }
 
-} // namespace
+}
 
 void SetGuiRendererContexts(ImGuiContext* imguiContext, ImPlotContext* implotContext) noexcept {
     g_MainImGuiContext.store(imguiContext, std::memory_order_release);
@@ -247,11 +247,8 @@ bool InitializeGuiD3D11(HWND hwnd,
     const int width = std::max(framebufferWidth, 1);
     const int height = std::max(framebufferHeight, 1);
 
-    // SquareStar is a lightweight desktop UI. Prefer the minimum-power hardware
-    // adapter (normally the integrated GPU on hybrid systems) to avoid paying
-    // the large private-commit cost of initializing a discrete-GPU user-mode
-    // driver. Fall back to the system-default hardware adapter, then WARP.
-    IDXGIAdapter1* preferredAdapter = SelectMinimumPowerAdapter();
+
+IDXGIAdapter1* preferredAdapter = SelectMinimumPowerAdapter();
     bool created = false;
     if (preferredAdapter) {
         created = CreateDeviceAndSwapChain(
@@ -455,4 +452,4 @@ bool PrimeGuiRendererForStartup(GLFWwindow* window, std::string* failureReason) 
     return true;
 }
 
-} // namespace squarestar::presentation
+}

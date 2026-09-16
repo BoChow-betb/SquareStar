@@ -28,9 +28,7 @@ enum class ScreenerLoadState : std::uint8_t {
     Failed,
 };
 
-// A screener surface is published as one immutable value. Keeping the route,
-// generation, phase, and rows together prevents the renderer from combining a
-// newly selected route with rows or flags left behind by the previous request.
+
 struct ScreenerSnapshot {
     std::uint64_t generation = 0;
     std::string screenerId;
@@ -71,17 +69,13 @@ struct AppMarketData {
         activeContexts.clear();
     }
 
-    // StockContext objects themselves stay heap-stable behind unique_ptr. The
-    // active set is capped at sixteen tabs and is traversed far more often than
-    // it is inserted/erased, so contiguous pointer storage is a better fit than
-    // one allocation per std::list node.
-    CurrencyDisplayRuntime currencyDisplay;
+
+CurrencyDisplayRuntime currencyDisplay;
 
     std::vector<std::unique_ptr<StockContext>> activeContexts;
-    // Retired contexts may outlive the visible surface while in-flight work
-    // settles, so keep the node-stable retirement queue independent of the hot
-    // active-tab traversal container.
-    std::list<std::unique_ptr<StockContext>> retiredLiteContexts;
+
+
+std::list<std::unique_ptr<StockContext>> retiredLiteContexts;
 
     [[nodiscard]] std::shared_ptr<const ScreenerSnapshot>
     LoadScreenerSnapshot() const noexcept {
@@ -110,4 +104,4 @@ struct AppMarketData {
     std::atomic<std::shared_ptr<const ScreenerSnapshot>> screenerSnapshot;
 };
 
-} // namespace squarestar::application
+}

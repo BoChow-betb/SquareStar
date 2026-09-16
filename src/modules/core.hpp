@@ -29,8 +29,8 @@ inline constexpr int APP_TITLE_BAR_CONTROL_COUNT = 3;
 inline constexpr int LITE_TITLE_BAR_CONTROL_COUNT = 3;
 inline constexpr int LITE_GUI_WIDTH = 900;
 inline constexpr int LITE_GUI_SEARCH_HEIGHT = 108;
-// Search-only LiteGUI temporarily grows to this height while foreground
-// notification cards are present, leaving enough room for a two-card tower.
+
+
 inline constexpr int LITE_GUI_NOTIFICATION_HEIGHT = 420;
 inline constexpr std::size_t LITE_GUI_NOTIFICATION_MAX_BLOCKS = 2;
 inline constexpr int LITE_GUI_STOCK_HEIGHT = 620;
@@ -41,8 +41,8 @@ bool AnimatedButton(const squarestar::application::AppState& state,
                     const ImVec2& requestedSize,
                     bool active,
                     bool animEnabled);
-// Shared monochrome link treatment used by company websites, news headlines,
-// and browser fallbacks. The caller owns navigation behavior.
+
+
 bool RenderUnifiedLink(const squarestar::application::AppState& state,
                        const char* label,
                        const char* id,
@@ -170,4 +170,4 @@ float UiFrameDelta() noexcept;
 bool UseBackgroundNotificationBlock();
 bool UseForegroundNotificationBlocks();
 
-} // namespace squarestar::shell
+}

@@ -45,7 +45,7 @@ using squarestar::presentation::ChartExportJobBusy;
 using squarestar::presentation::PollChartExportJob;
 using squarestar::text::EscapeJsonStringValue;
 
-// Application paths, font discovery, UTF-8 path conversion, and world-clock
+
 static bool GetImageEncoderClsid(const WCHAR* mimeType, CLSID& clsid) {
     UINT count = 0, bytes = 0;
     if (Gdiplus::GetImageEncodersSize(&count, &bytes) != Gdiplus::Ok || !bytes)
@@ -182,8 +182,8 @@ static bool WriteGuiCapturePdf(const std::string& filename,
     std::vector<unsigned char> jpeg;
     if (!EncodeGuiCaptureJpeg(rgba, width, height, jpeg))
         return false;
-    // Keep a conventional landscape presentation page while preserving the
-    // capture's exact aspect ratio and full pixel payload.
+
+
     const double pageScale =
         std::min(960.0 / std::max(1, width), 540.0 / std::max(1, height));
     const double pageWidth = width * pageScale;
@@ -231,18 +231,15 @@ static bool WriteGuiCapturePdf(const std::string& filename,
     return out.good();
 }
 
-// Direct3D 11 GUI captures use a render-target texture plus a CPU-readable
-// staging texture. The live renderer and export path share one device/context,
-// avoiding a second graphics device or any hidden WGL/OpenGL context.
+
 ImVec2 GuiExportFramebufferScale(ImVec2 nativeScale) {
     const float safeNativeX =
         std::isfinite(nativeScale.x) && nativeScale.x > 0.0f ? nativeScale.x : 1.0f;
     const float safeNativeY =
         std::isfinite(nativeScale.y) && nativeScale.y > 0.0f ? nativeScale.y : 1.0f;
-    // Export at the GUI's real render density. Do not upscale a lower-density
-    // font/icon atlas to a nominal 3840x2160 buffer and present that as "4K".
-    // A uniform density keeps the live GUI aspect ratio intact.
-    const float density = std::max({1.0f, safeNativeX, safeNativeY});
+
+
+const float density = std::max({1.0f, safeNativeX, safeNativeY});
     return ImVec2(density, density);
 }
 bool ExportGuiDrawDataImage(const std::string& filename,
@@ -351,8 +348,8 @@ bool ExportGuiDrawDataImage(const std::string& filename,
     drawData->FramebufferScale = previousFramebufferScale;
 
     context->CopyResource(stagingTexture, renderTexture);
-    // Drop the context's RTV reference before releasing the temporary capture
-    // resources. The next live frame will bind the main/viewport target again.
+
+
     context->OMSetRenderTargets(0, nullptr, nullptr);
     D3D11_MAPPED_SUBRESOURCE mapped{};
     if (FAILED(context->Map(stagingTexture, 0, D3D11_MAP_READ, 0, &mapped))) {
@@ -360,9 +357,8 @@ bool ExportGuiDrawDataImage(const std::string& filename,
         return false;
     }
 
-    // Encoders consume a bottom-up RGBA buffer, so flip rows while copying from
-    // D3D's top-down staging texture. RowPitch may include driver padding.
-    std::vector<unsigned char> rgba(static_cast<size_t>(pixelCount) * 4);
+
+std::vector<unsigned char> rgba(static_cast<size_t>(pixelCount) * 4);
     const size_t rowBytes = static_cast<size_t>(width) * 4;
     for (int y = 0; y < height; ++y) {
         const auto* src = static_cast<const unsigned char*>(mapped.pData) +
@@ -397,8 +393,8 @@ bool ExportGuiDrawDataImage(const std::string& filename,
     return saved;
 }
 bool IsCleanGuiCaptureFrame() {
-    // Export frames rebuild the stock presentation without interactive chrome
-    // or transient overlays; normal on-screen frames remain unchanged.
+
+
     return GuiShellRuntime().ForceCleanGuiCaptureFrame();
 }
 static void QueueGuiCapture(const std::string& path,
@@ -410,11 +406,9 @@ static void QueueGuiCapture(const std::string& path,
     capture.active = true;
     capture.cleanFramesRemaining = 1;
     capture.viewportId = viewport ? viewport->ID : 0;
-    // Keep padding a caller-owned presentation choice. Chart/VS exports use a
-    // small breathing margin, while monitor exports pass zero so a crop that
-    // already spans the complete monitor surface cannot reach back into the
-    // title bar or native window edge.
-    capture.screenMin =
+
+
+capture.screenMin =
         ImVec2(std::min(screenMin.x, screenMax.x) - capturePadding,
                std::min(screenMin.y, screenMax.y) - capturePadding);
     capture.screenMax =
@@ -445,9 +439,8 @@ void PumpGuiCapture(GLFWwindow* window,
         return;
     }
 
-    // Rebuild the stock presentation from the same ImGui/ImPlot code used by
-    // the live GUI, but without transient menus, tooltips, or focus veils.
-    auto previousGuiRuntime = GuiShellRuntime().Snapshot();
+
+auto previousGuiRuntime = GuiShellRuntime().Snapshot();
     CloseAllAnimatedFloatingMenus();
     const bool previousObjectFocus = state.config.objectFocus;
     const float previousObjectFocusAnim = state.render.objectFocusAnim;
@@ -494,10 +487,9 @@ void PumpGuiCapture(GLFWwindow* window,
     renderCaptureSurface(window, state);
     ImGui::Render();
 #ifdef IMGUI_HAS_VIEWPORT
-    // PumpGuiCapture owns a complete extra ImGui frame. Multi-viewport mode
-    // requires every rendered frame to finish the platform-window update even
-    // though this clean capture pass itself is rendered off-screen.
-    if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0)
+
+
+if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) != 0)
         ImGui::UpdatePlatformWindows();
 #endif
 
@@ -605,11 +597,9 @@ static bool ExportChartData(const Data& data,
     };
     out << std::setprecision(15);
     if (format == ChartExportFormat::Csv) {
-        // CSV stays a compact numeric table. Its default filename carries the
-        // ticker/range/visual/currency/time-basis context instead of repeating
-        // the same metadata on every row. ISO UTC text also prevents spreadsheet
-        // apps from shortening the visible timestamp to minute precision.
-        out << "timestamp_utc,open,high,low,close,volume\n";
+
+
+out << "timestamp_utc,open,high,low,close,volume\n";
         for (size_t row = 0; row < count; ++row) {
             const size_t i = validIndices[row];
             const double close = data.closes[i];
@@ -911,8 +901,8 @@ bool ChooseChartExportPathForMethod(HWND owner,
     dialog.lpstrFile = buffer.data();
     dialog.nMaxFile = static_cast<DWORD>(buffer.size());
     dialog.lpstrTitle = L"Export chart";
-    // Leave extension selection to nFilterIndex below. A fixed lpstrDefExt would
-    // silently turn a JPEG/PDF or TXT/JSON selection back into PNG/CSV.
+
+
     dialog.lpstrDefExt = nullptr;
     dialog.lpstrInitialDir = initialDirectoryWide.empty() ? nullptr : initialDirectoryWide.c_str();
     dialog.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
@@ -935,4 +925,4 @@ bool ChooseChartExportPathForMethod(HWND owner,
     path.clear();
     return false;
 }
-} // namespace squarestar::shell
+}

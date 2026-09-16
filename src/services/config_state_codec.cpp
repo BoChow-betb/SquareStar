@@ -206,7 +206,7 @@ bool DecodePrivateFields(yyjson_val* obj,
     return foundAny;
 }
 
-} // namespace
+}
 
 std::string EncodePrivateConfigState(
     squarestar::application::PersistedStateConstView persisted,
@@ -529,4 +529,4 @@ ConfigDecodeResult DecodeConfigState(
     return decoded;
 }
 
-} // namespace squarestar::config
+}

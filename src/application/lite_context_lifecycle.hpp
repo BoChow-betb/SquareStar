@@ -8,4 +8,4 @@ struct StockContext;
 bool LiteContextWorkFinished(StockContext& context);
 void ReapRetiredLiteContexts(AppState& state);
 
-} // namespace squarestar::application
+}

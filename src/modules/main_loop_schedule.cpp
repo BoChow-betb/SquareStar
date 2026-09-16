@@ -40,7 +40,7 @@ double GuiPeriodicRefreshSeconds(const AppState&, GuiPageKind page) {
     switch (page) {
     case GuiPageKind::Stock:
     case GuiPageKind::Comparison:
-        return 1.0; // clocks and live market labels can visibly change each second
+        return 1.0;
     default:
         return 30.0;
     }
@@ -70,7 +70,7 @@ double GuiSettledWaitSeconds(AppState& state,
     waitSeconds = std::min(waitSeconds, SecondsUntilPendingTrayPriceMoveFlush());
     waitSeconds = std::min(waitSeconds, squarestar::config::SecondsUntilConfigSaveDue());
     if (!windowSuspended) {
-        // Animation and notice owners register only their nearest future transition.
+
         waitSeconds = std::min(waitSeconds, SecondsUntilGuiWakeDeadline());
 
         const GuiPageKind page = CurrentGuiPage(state);
@@ -100,4 +100,4 @@ double GuiSettledWaitSeconds(AppState& state,
     return std::clamp(waitSeconds, 0.01, 30.0);
 }
 
-} // namespace squarestar::shell
+}

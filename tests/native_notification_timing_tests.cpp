@@ -13,7 +13,7 @@ bool Check(bool condition, const char* message) {
     return false;
 }
 
-} // namespace
+}
 
 int main() {
     using squarestar::application::EvaluateNativeNotificationTimeline;

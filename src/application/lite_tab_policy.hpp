@@ -72,9 +72,7 @@ inline bool SelectAdjacentStockTab(AppState& state, int direction) noexcept {
     return true;
 }
 
-// Lite monitor mode keeps the first four open tabs in stable workspace order.
-// If the active tab sits beyond that cap, it replaces the final tile so the
-// user can still step through every open stock without a large picker.
+
 inline LiteMonitorTabSelection ResolveLiteMonitorStockTabs(
     const AppState& state) noexcept {
     LiteMonitorTabSelection selection;
@@ -97,4 +95,4 @@ inline LiteMonitorTabSelection ResolveLiteMonitorStockTabs(
     return selection;
 }
 
-} // namespace squarestar::application
+}

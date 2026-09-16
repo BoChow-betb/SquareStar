@@ -17,4 +17,4 @@ class GuiFramePacer {
     void* timer_ = nullptr;
 };
 
-} // namespace squarestar::platform
+}

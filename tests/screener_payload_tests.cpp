@@ -11,7 +11,7 @@ bool Near(float left, float right) {
     return std::fabs(left - right) < 0.001f;
 }
 
-} // namespace
+}
 
 int main() {
     squarestar::application::ScreenerItem item;

@@ -1,6 +1,5 @@
 #pragma once
 
-// Keep project headers out of the PCH so their dependencies stay visible.
 
 #include <algorithm>
 #include <array>
@@ -50,8 +49,8 @@
 #include <commdlg.h>
 #include <wincrypt.h>
 #include <dwmapi.h>
-// WIN32_LEAN_AND_MEAN omits COM interface declarations that GDI+ expects.
-// Include them explicitly so the PCH is valid under both MSVC and MinGW.
+
+
 #include <objidl.h>
 #include <gdiplus.h>
 #include <mmsystem.h>

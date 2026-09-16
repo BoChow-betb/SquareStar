@@ -67,4 +67,4 @@ void StartScreenerFetch(AppState& state,
 
 void ResetScreenerFetch(AppState& state);
 
-} // namespace squarestar::application
+}

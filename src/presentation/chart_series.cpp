@@ -56,4 +56,4 @@ bool SampleSortedSeriesAtX(const std::vector<double>& x,
     return std::isfinite(value);
 }
 
-} // namespace squarestar::presentation
+}

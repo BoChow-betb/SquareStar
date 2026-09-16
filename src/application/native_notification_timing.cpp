@@ -18,7 +18,7 @@ std::uint32_t ClampWake(std::uint64_t milliseconds) noexcept {
         std::numeric_limits<std::uint32_t>::max()));
 }
 
-} // namespace
+}
 
 NativeNotificationTimeline EvaluateNativeNotificationTimeline(
     std::uint64_t elapsedMs,
@@ -55,4 +55,4 @@ NativeNotificationTimeline EvaluateNativeNotificationTimeline(
     return {NativeNotificationPhase::Exit, 1.0 - SmoothStep(progress), tick};
 }
 
-} // namespace squarestar::application
+}

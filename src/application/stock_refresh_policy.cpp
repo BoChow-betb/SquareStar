@@ -63,4 +63,4 @@ bool StockAutoRefreshSessionEligible(std::string_view ticker,
     return symbol->IsYahooFutures() || regularEquityMarketOpen;
 }
 
-} // namespace squarestar::application
+}

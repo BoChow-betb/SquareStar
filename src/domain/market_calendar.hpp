@@ -31,4 +31,4 @@ std::time_t NextMarketOpenAt(std::time_t utcTime);
 std::time_t NextMarketSettlementAt(std::time_t utcTime);
 std::string MarketSettlementTimeLabel(std::time_t utcTime);
 
-} // namespace squarestar::market
+}

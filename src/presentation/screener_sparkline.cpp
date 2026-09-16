@@ -60,4 +60,4 @@ void BuildSparklineUnitGeometry(std::span<const float> values,
     }
 }
 
-} // namespace squarestar::presentation
+}

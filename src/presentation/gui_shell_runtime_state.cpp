@@ -183,4 +183,4 @@ GuiShellRuntimeState& GuiShellRuntime() noexcept {
     return state;
 }
 
-} // namespace squarestar::presentation
+}

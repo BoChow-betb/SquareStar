@@ -9,4 +9,4 @@ enum class ChartVisualType { Candlestick, LineShaded };
 const char* ChartVisualTypeName(ChartVisualType type) noexcept;
 const char* ChartVisualTypeSlug(ChartVisualType type) noexcept;
 
-} // namespace squarestar::presentation
+}

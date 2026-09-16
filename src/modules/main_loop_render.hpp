@@ -27,8 +27,8 @@ struct MainLoopState {
     std::uint64_t renderedGuiRevision = 0;
     squarestar::application::GuiWindowGeometry renderedGeometry{-1, -1, -1, -1};
     std::optional<squarestar::platform::GuiFramePacer> guiFramePacer;
-    // Two total frames per fresh input burst: the event frame plus one settle
-    // frame. Continuous animations request their own redraws explicitly.
+
+
     unsigned inputSettleFramesRemaining = 0;
     std::time_t lastPriceAlertMuteCheckSecond = 0;
 };
@@ -40,4 +40,4 @@ void RenderMainGuiFrame(GLFWwindow* window,
                         bool visualWorkPending,
                         std::chrono::steady_clock::time_point frameStart);
 
-} // namespace squarestar::shell
+}
