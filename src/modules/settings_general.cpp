@@ -415,6 +415,11 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
                       bodyContentWidth);
 
     const bool primaryTwoColumns = ImGui::GetContentRegionAvail().x >= 560.0f;
+    const float comboPaddingY =
+        std::max(0.0f, (kControlHeight - ImGui::GetFontSize()) * 0.5f);
+    ImGui::PushStyleVar(
+        ImGuiStyleVar_FramePadding,
+        ImVec2(ImGui::GetStyle().FramePadding.x, comboPaddingY));
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
                         ImVec2(primaryTwoColumns ? 6.0f : 0.0f, 2.0f));
     if (ImGui::BeginTable("AppearancePrimaryGrid",
@@ -462,7 +467,7 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
         }
         ImGui::EndTable();
     }
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
 
     ImGui::Dummy(ImVec2(0.0f, 2.0f));
     ImGui::TextDisabled("OPTIONS");
@@ -586,12 +591,14 @@ static void RenderPrivacySettingsCard(AppState& state) {
 
     ImGui::SameLine();
     constexpr float clearHistoryWidth = 132.0f;
+    constexpr float clearHistoryHeight = 26.0f;
     AlignNextSettingsControlRight(clearHistoryWidth);
     const bool hasSearchHistory = !state.config.searchHistory.empty() ||
                                   !state.config.searchHistoryNames.empty();
     if (!hasSearchHistory)
         ImGui::BeginDisabled();
-    if (ImGui::Button("Clear history", ImVec2(clearHistoryWidth, kControlHeight))) {
+    if (ImGui::Button("Clear history",
+                      ImVec2(clearHistoryWidth, clearHistoryHeight))) {
         state.config.searchHistory.clear();
         state.config.searchHistoryNames.clear();
         squarestar::config::RequestConfigSave();
