@@ -1,5 +1,3 @@
-[![SquareStar | AlternativeTo](https://alternativeto.net/static/badges/badge-compact-color.svg)](https://alternativeto.net/software/squarestar/about/?utm_source=badge&utm_medium=referral) 
-
 # SquareStar
 
 SquareStar is a native C++20 market viewer for Windows. It has ticker search, charts, watchlists, screeners, comparisons, news, and price alerts without needing a browser dashboard.

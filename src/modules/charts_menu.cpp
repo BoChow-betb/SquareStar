@@ -88,7 +88,7 @@ void RenderStockChartContextMenu(AppState& state,
     bool chartMenuOpen = false;
     bool liteMenuStylePushed = false;
     if (nativePopupMenu) {
-        const ImVec2 menuEstimate(244.0f, 316.0f);
+        const ImVec2 menuEstimate(300.0f, 360.0f);
         constexpr const char* popupName = "##LiteChartContextMenu";
         const bool menuTrigger =
             contextMenuInteractive &&
@@ -133,7 +133,7 @@ void RenderStockChartContextMenu(AppState& state,
         ImGui::PushStyleColor(ImGuiCol_Text, popupText);
         ImGui::PushStyleColor(ImGuiCol_TextDisabled, popupDim);
         ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 6.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 9.0f));
         liteMenuStylePushed = true;
         chartMenuOpen = ImGui::BeginPopup(
             popupName,
@@ -159,8 +159,8 @@ void RenderStockChartContextMenu(AppState& state,
     }
     if (chartMenuOpen) {
         if (compactLiteMenu) {
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(7.0f, 3.0f));
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7.0f, 2.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(9.0f, 5.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(9.0f, 4.0f));
             static const char* chartStyles[] = {
                 "Candlestick", "Line + Shaded Area"};
             static const char* crosshairModes[] = {
@@ -172,7 +172,7 @@ void RenderStockChartContextMenu(AppState& state,
                                   ImGuiTableFlags_SizingStretchProp |
                                       ImGuiTableFlags_NoSavedSettings)) {
                 ImGui::TableSetupColumn(
-                    "##LiteChartMenuLabels", ImGuiTableColumnFlags_WidthFixed, 76.0f);
+                    "##LiteChartMenuLabels", ImGuiTableColumnFlags_WidthFixed, 88.0f);
                 ImGui::TableSetupColumn(
                     "##LiteChartMenuValues", ImGuiTableColumnFlags_WidthStretch);
 
@@ -228,30 +228,32 @@ void RenderStockChartContextMenu(AppState& state,
                 AddTickerToWatchlist(state, ctx.navigation.ticker);
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::Separator();
-            ImGui::TextDisabled("Modes");
-            if (ImGui::MenuItem("VS Mode")) {
-                if (!CanEnterStockComparison(state)) {
-                    ShowStockModeNotice(state,
-                                        ctx,
-                                        "Comparison needs another tab",
-                                        "Open one more stock tab to compare.");
-                } else {
-                    ctx.navigation.nextUpperTab = 3;
-                    PrepareStockComparisonMode(state, ctx, true);
-                    PlayUISound("transition.wav", state);
-                    RequestGuiRedraw();
-                    ImGui::CloseCurrentPopup();
+            if (squarestar::application::CountOpenStockTabs(state) >= 2) {
+                ImGui::Separator();
+                ImGui::TextDisabled("Modes");
+                if (ImGui::MenuItem("VS Mode")) {
+                    if (!CanEnterStockComparison(state)) {
+                        ShowStockModeNotice(state,
+                                            ctx,
+                                            "Comparison needs another tab",
+                                            "Open one more stock tab to compare.");
+                    } else {
+                        ctx.navigation.nextUpperTab = 3;
+                        PrepareStockComparisonMode(state, ctx, true);
+                        PlayUISound("transition.wav", state);
+                        RequestGuiRedraw();
+                        ImGui::CloseCurrentPopup();
+                    }
                 }
-            }
-            if (ImGui::MenuItem("Monitor Mode")) {
-                if (!SetLiteMonitorMode(state, true)) {
-                    ShowStockModeNotice(state,
-                                        ctx,
-                                        "Monitor needs another tab",
-                                        "Open one more stock tab to monitor.");
-                } else {
-                    ImGui::CloseCurrentPopup();
+                if (ImGui::MenuItem("Monitor Mode")) {
+                    if (!SetLiteMonitorMode(state, true)) {
+                        ShowStockModeNotice(state,
+                                            ctx,
+                                            "Monitor needs another tab",
+                                            "Open one more stock tab to monitor.");
+                    } else {
+                        ImGui::CloseCurrentPopup();
+                    }
                 }
             }
             ImGui::Separator();

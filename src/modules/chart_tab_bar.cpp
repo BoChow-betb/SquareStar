@@ -98,7 +98,9 @@ void RenderStockTabBar(AppState& state,
     if (drawTabButton("##MetricsBtn", 2, ctx.navigation.upperTabIndex == 2))
         ctx.navigation.nextUpperTab = 2;
 
-    if (squarestar::application::CountOpenStockTabs(state) >= 2) {
+    const bool multipleOpenTabs =
+        squarestar::application::CountOpenStockTabs(state) >= 2;
+    if (multipleOpenTabs) {
         ImGui::SameLine();
         ImVec2 position = ImGui::GetCursorScreenPos();
         const float gap = ImGui::GetStyle().ItemSpacing.x;
@@ -142,62 +144,64 @@ void RenderStockTabBar(AppState& state,
         }
     }
 
-    ImGui::SameLine();
-    ImVec2 position = ImGui::GetCursorScreenPos();
-    position.x = std::max(position.x, tabRowRight - buttonSize.x);
-    ImGui::SetCursorScreenPos(position);
-    const bool pressed = ImGui::InvisibleButton("##CompareBtn", buttonSize);
-    const bool hovered = ImGui::IsItemHovered();
-    const bool active = ctx.navigation.upperTabIndex == 3;
-    ImGui::GetWindowDrawList()->AddRectFilled(
-        position,
-        ImVec2(position.x + buttonSize.x, position.y + buttonSize.y),
-        ImGui::GetColorU32(active    ? ImGuiCol_ButtonActive
-                           : hovered ? ImGuiCol_ButtonHovered
-                                     : ImGuiCol_Button),
-        UiRounding(state, 12.0f));
-    const ImU32 color =
-        active ? ImGui::GetColorU32(ImGuiCol_Text)
-               : (hovered ? ImGui::GetColorU32(ImGuiCol_TextDisabled)
-                          : ImGui::ColorConvertFloat4ToU32(
-                                ThemeVec(state.config.theme.textDisabled, 0.30f)));
-    ImFont* versusFont = state.render.fontData ? state.render.fontData : ImGui::GetFont();
-    const float versusFontSize =
-        state.render.fontData ? state.config.theme.fontData : ImGui::GetFontSize();
-    const ImVec2 versusSize = versusFont->CalcTextSizeA(
-        versusFontSize, std::numeric_limits<float>::max(), 0.0f, "VS");
-    ImGui::GetWindowDrawList()->AddText(
-        versusFont,
-        versusFontSize,
-        ImVec2(position.x + (buttonSize.x - versusSize.x) * 0.5f,
-               position.y + (buttonSize.y - versusSize.y) * 0.5f),
-        color,
-        "VS");
-    DrawObjectFocusRegion(
-        state,
-        {position, ImVec2(position.x + buttonSize.x, position.y + buttonSize.y)},
-        hovered,
-        3);
-    if (pressed) {
-        PlayUISound("click.wav", state);
-        if (active) {
-            CloseAllAnimatedFloatingMenus();
-            ctx.navigation.comparisonPickerRequested = false;
-            ctx.navigation.nextUpperTab = -1;
-            ctx.navigation.upperTabIndex = 0;
-            ctx.render.tabFadeAnim = state.UiAnimationsEnabled() ? 0.0f : 1.0f;
-            RequestGuiRedraw();
-        } else if (!CanEnterStockComparison(state)) {
-            ShowStockModeNotice(state,
-                                ctx,
-                                "Comparison needs another tab",
-                                "Open one more stock tab to compare.");
-        } else {
-            PrepareStockComparisonMode(state, ctx, true);
-            ctx.navigation.nextUpperTab = -1;
-            ctx.navigation.upperTabIndex = 3;
-            ctx.render.tabFadeAnim = state.UiAnimationsEnabled() ? 0.0f : 1.0f;
-            RequestGuiRedraw();
+    if (multipleOpenTabs) {
+        ImGui::SameLine();
+        ImVec2 position = ImGui::GetCursorScreenPos();
+        position.x = std::max(position.x, tabRowRight - buttonSize.x);
+        ImGui::SetCursorScreenPos(position);
+        const bool pressed = ImGui::InvisibleButton("##CompareBtn", buttonSize);
+        const bool hovered = ImGui::IsItemHovered();
+        const bool active = ctx.navigation.upperTabIndex == 3;
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            position,
+            ImVec2(position.x + buttonSize.x, position.y + buttonSize.y),
+            ImGui::GetColorU32(active    ? ImGuiCol_ButtonActive
+                               : hovered ? ImGuiCol_ButtonHovered
+                                         : ImGuiCol_Button),
+            UiRounding(state, 12.0f));
+        const ImU32 color =
+            active ? ImGui::GetColorU32(ImGuiCol_Text)
+                   : (hovered ? ImGui::GetColorU32(ImGuiCol_TextDisabled)
+                              : ImGui::ColorConvertFloat4ToU32(
+                                    ThemeVec(state.config.theme.textDisabled, 0.30f)));
+        ImFont* versusFont = state.render.fontData ? state.render.fontData : ImGui::GetFont();
+        const float versusFontSize =
+            state.render.fontData ? state.config.theme.fontData : ImGui::GetFontSize();
+        const ImVec2 versusSize = versusFont->CalcTextSizeA(
+            versusFontSize, std::numeric_limits<float>::max(), 0.0f, "VS");
+        ImGui::GetWindowDrawList()->AddText(
+            versusFont,
+            versusFontSize,
+            ImVec2(position.x + (buttonSize.x - versusSize.x) * 0.5f,
+                   position.y + (buttonSize.y - versusSize.y) * 0.5f),
+            color,
+            "VS");
+        DrawObjectFocusRegion(
+            state,
+            {position, ImVec2(position.x + buttonSize.x, position.y + buttonSize.y)},
+            hovered,
+            3);
+        if (pressed) {
+            PlayUISound("click.wav", state);
+            if (active) {
+                CloseAllAnimatedFloatingMenus();
+                ctx.navigation.comparisonPickerRequested = false;
+                ctx.navigation.nextUpperTab = -1;
+                ctx.navigation.upperTabIndex = 0;
+                ctx.render.tabFadeAnim = state.UiAnimationsEnabled() ? 0.0f : 1.0f;
+                RequestGuiRedraw();
+            } else if (!CanEnterStockComparison(state)) {
+                ShowStockModeNotice(state,
+                                    ctx,
+                                    "Comparison needs another tab",
+                                    "Open one more stock tab to compare.");
+            } else {
+                PrepareStockComparisonMode(state, ctx, true);
+                ctx.navigation.nextUpperTab = -1;
+                ctx.navigation.upperTabIndex = 3;
+                ctx.render.tabFadeAnim = state.UiAnimationsEnabled() ? 0.0f : 1.0f;
+                RequestGuiRedraw();
+            }
         }
     }
     ImGui::EndGroup();
