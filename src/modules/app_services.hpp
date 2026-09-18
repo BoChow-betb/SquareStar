@@ -12,7 +12,8 @@ struct StockContext;
 namespace squarestar::shell {
 
 void EnterLiteGuiWorkspace(GLFWwindow* window,
-                           squarestar::application::AppState& state);
+                           squarestar::application::AppState& state,
+                           bool startupInitialization = false);
 bool InitializeGuiRuntime(GLFWwindow*& window,
                           squarestar::application::AppState& state,
                           bool buildFonts,

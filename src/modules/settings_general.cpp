@@ -395,12 +395,6 @@ static constexpr std::array<BehaviorSettingRenderer, 5> kBehaviorSettingRenderer
     RenderUiAnimationsSetting,
     RenderKeybindRemindersSetting};
 
-static void AlignNextSettingsControlRight(float width) {
-    ImGui::SetCursorPosX(
-        ImGui::GetCursorPosX() +
-        std::max(0.0f, ImGui::GetContentRegionAvail().x - width));
-}
-
 static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth) {
     const char* themes[] = {"Dark Mode", "Light Mode"};
     const char* fpsModes[] = {
@@ -425,8 +419,7 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
                           primaryTwoColumns ? 2 : 1,
                           ImGuiTableFlags_SizingStretchSame |
                               ImGuiTableFlags_NoSavedSettings)) {
-        auto DrawThemeControl = [&] {
-            ImGui::TextDisabled("APP THEME");
+        auto DrawThemeCombo = [&] {
             ImGui::SetNextItemWidth(-1.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
                                 primaryComboFramePadding);
@@ -444,8 +437,7 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
                 squarestar::config::RequestConfigSave();
             }
         };
-        auto DrawFrameRateControl = [&] {
-            ImGui::TextDisabled("FRAME RATE");
+        auto DrawFrameRateCombo = [&] {
             ImGui::SetNextItemWidth(-1.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
                                 primaryComboFramePadding);
@@ -459,16 +451,31 @@ static void RenderAppearanceSettingsCard(AppState& state, float bodyContentWidth
                 CommitUiSetting(state, "transition.wav");
         };
 
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        DrawThemeControl();
         if (primaryTwoColumns) {
+            // Keep the labels in one table row and the combos in the next.
+            // This prevents ImGui's per-line text baseline state from leaking
+            // from the first combo into the second column and shifting it down.
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextDisabled("APP THEME");
             ImGui::TableSetColumnIndex(1);
-            DrawFrameRateControl();
+            ImGui::TextDisabled("FRAME RATE");
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            DrawThemeCombo();
+            ImGui::TableSetColumnIndex(1);
+            DrawFrameRateCombo();
         } else {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            DrawFrameRateControl();
+            ImGui::TextDisabled("APP THEME");
+            DrawThemeCombo();
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextDisabled("FRAME RATE");
+            DrawFrameRateCombo();
         }
         ImGui::EndTable();
     }
@@ -584,35 +591,59 @@ constexpr float storageGap = 8.0f;
 static void RenderPrivacySettingsCard(AppState& state) {
     BeginSettingsCard(state, "PrivacySettings", "Privacy");
     ImGui::TextDisabled("LOCAL SEARCH HISTORY");
-    ImGui::AlignTextToFramePadding();
-    const bool saveSearchHistoryChanged =
-        NeutralCheckbox("Save search history", state.config.saveSearchHistory, state);
-    const float searchHistoryControlHeight = ImGui::GetItemRectSize().y;
-    if (saveSearchHistoryChanged) {
-        if (!state.config.saveSearchHistory) {
+
+    constexpr float clearHistoryWidth = 132.0f;
+    constexpr float toggleHeight = 26.0f;
+    constexpr float privacyRowHeight = kControlHeight;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 0.0f));
+    if (ImGui::BeginTable("PrivacyHistoryControls",
+                          2,
+                          ImGuiTableFlags_SizingStretchProp |
+                              ImGuiTableFlags_NoPadOuterX |
+                              ImGuiTableFlags_NoPadInnerX |
+                              ImGuiTableFlags_NoSavedSettings)) {
+        ImGui::TableSetupColumn("PrivacyHistoryToggle",
+                                ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("PrivacyHistoryClear",
+                                ImGuiTableColumnFlags_WidthFixed,
+                                clearHistoryWidth);
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, privacyRowHeight);
+
+        ImGui::TableSetColumnIndex(0);
+        const float toggleOffsetY = std::max(0.0f, (privacyRowHeight - toggleHeight) * 0.5f);
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + toggleOffsetY);
+        const bool saveSearchHistoryChanged =
+            NeutralCheckbox("Save search history", state.config.saveSearchHistory, state);
+        if (saveSearchHistoryChanged) {
+            if (!state.config.saveSearchHistory) {
+                state.config.searchHistory.clear();
+                state.config.searchHistoryNames.clear();
+            }
+            PlayUISound(state.config.saveSearchHistory ? "on.wav" : "off.wav", state);
+            squarestar::config::RequestConfigSave();
+        }
+
+        ImGui::TableSetColumnIndex(1);
+        const bool hasSearchHistory = !state.config.searchHistory.empty() ||
+                                      !state.config.searchHistoryNames.empty();
+        if (!hasSearchHistory)
+            ImGui::BeginDisabled();
+        ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.5f));
+        if (ImGui::Button("Clear history",
+                          ImVec2(clearHistoryWidth, privacyRowHeight))) {
             state.config.searchHistory.clear();
             state.config.searchHistoryNames.clear();
+            squarestar::config::RequestConfigSave();
+            PlayUISound("click.wav", state);
         }
-        PlayUISound(state.config.saveSearchHistory ? "on.wav" : "off.wav", state);
-        squarestar::config::RequestConfigSave();
-    }
+        ImGui::PopStyleVar();
+        if (!hasSearchHistory)
+            ImGui::EndDisabled();
 
-    ImGui::SameLine();
-    constexpr float clearHistoryWidth = 132.0f;
-    AlignNextSettingsControlRight(clearHistoryWidth);
-    const bool hasSearchHistory = !state.config.searchHistory.empty() ||
-                                  !state.config.searchHistoryNames.empty();
-    if (!hasSearchHistory)
-        ImGui::BeginDisabled();
-    if (ImGui::Button("Clear history",
-                      ImVec2(clearHistoryWidth, searchHistoryControlHeight))) {
-        state.config.searchHistory.clear();
-        state.config.searchHistoryNames.clear();
-        squarestar::config::RequestConfigSave();
-        PlayUISound("click.wav", state);
+        ImGui::EndTable();
     }
-    if (!hasSearchHistory)
-        ImGui::EndDisabled();
+    ImGui::PopStyleVar();
     EndSettingsCard();
 }
 

@@ -50,11 +50,35 @@ using squarestar::application::ShouldPollGuiEvents;
 using squarestar::platform::Win32AppRuntime;
 using squarestar::presentation::EnsureGuiRendererContext;
 
+static void InitializeStartupPresentationState(AppState& state) {
+    // Startup UI state is initialized to its resting values before the window
+    // becomes visible. This is not an animation snap and is not used after launch.
+    state.render.navigationTransition = 1.0f;
+    state.render.sidebarAnim = state.config.theme.sidebarCollapsed;
+
+    if (state.render.notifications.firstFetchWarmup.pending)
+        state.render.notifications.firstFetchWarmup.presentation.animation = 1.0f;
+    if (!state.render.notifications.interaction.title.empty())
+        state.render.notifications.interaction.presentation.animation = 1.0f;
+
+    for (auto& context : state.marketData.activeContexts) {
+        if (!context)
+            continue;
+        context->render.animProgress = 1.0f;
+        context->render.tabFadeAnim = 1.0f;
+        context->render.openTransitionProgress = 1.0f;
+        context->render.chartRevealProgress = 1.0f;
+        context->render.loadingBlockAnim = context->requests.isLoading ? 1.0f : 0.0f;
+        context->render.fadeAlpha = context->requests.isLoading ? 0.0f : 1.0f;
+        context->render.suppressInitialLoadPresentation = context->requests.isLoading;
+    }
+}
+
 void StartConfiguredApplicationMode(AppState& state,
                                     GLFWwindow* window) {
     if (state.config.lastOpenMode == 2) {
         ApplicationRuntime().SetUiMode(AppUiMode::LiteGui);
-        EnterLiteGuiWorkspace(window, state);
+        EnterLiteGuiWorkspace(window, state, true);
 
 
 if (!squarestar::benchmark::SuppressExternalWork() &&
@@ -69,6 +93,8 @@ if (!squarestar::benchmark::SuppressExternalWork() &&
             state.marketData.activeContexts.empty())
             state.navigation.mainSearch.focusRequested = true;
     }
+
+    InitializeStartupPresentationState(state);
     glfwShowWindow(window);
     glfwPollEvents();
     if (!squarestar::benchmark::SuppressExternalWork()) {

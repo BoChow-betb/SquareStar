@@ -95,6 +95,7 @@ struct StockRenderCache {
     float loadingBlockAnim = 0.0f;
     float openTransitionProgress = 0.0f;
     bool dataJustLoaded = false;
+    bool suppressInitialLoadPresentation = false;
     float chartRevealProgress = 0.0f;
     double displayPrice = 0.0;
     float hoverAlpha = 0.0f;

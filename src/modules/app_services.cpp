@@ -358,7 +358,9 @@ void RestoreSavedGuiStockTabs(AppState& state, bool keepSavedTabs) {
         },
         keepSavedTabs);
 }
-void EnterLiteGuiWorkspace(GLFWwindow* window, AppState& state) {
+void EnterLiteGuiWorkspace(GLFWwindow* window,
+                           AppState& state,
+                           bool startupInitialization) {
     if (state.navigation.liteGuiActive)
         return;
     state.navigation.guiWorkspace.wasFullscreen = state.navigation.isFullscreen;
@@ -431,7 +433,8 @@ state.navigation.liteWorldClocks.assign(
     state.navigation.liteSearch.focusRequested = false;
     state.render.appliedZeroGraphics = false;
     CloseAllAnimatedFloatingMenus();
-    SnapAllUiAnimations(state);
+    if (!startupInitialization)
+        SnapAllUiAnimations(state);
     ReleaseGuiStateRenderMemory(state);
     ApplyLiteGuiWindowStyle(window, state);
 }

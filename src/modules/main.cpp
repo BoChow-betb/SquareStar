@@ -194,8 +194,6 @@ if (!benchmarkProbe)
         CenterGlfwWindowInWorkArea(window, GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT);
     }
     glfwPollEvents();
-    if (!state.UiAnimationsEnabled())
-        SnapAllUiAnimations(state);
     if (!benchmarkProbe && !HasFinnhubApiKey()) {
         UserFeedback feedback;
         feedback.type = UserFeedbackType::Warning;
@@ -214,6 +212,7 @@ if (!benchmarkProbe)
             RestoreSavedGuiStockTabs(state);
         else if (!state.navigation.lastActiveTab.empty())
             OpenStock(state, state.navigation.lastActiveTab);
+
     }
 
     StartConfiguredApplicationMode(state, window);

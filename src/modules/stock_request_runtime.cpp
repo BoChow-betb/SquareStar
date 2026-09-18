@@ -212,6 +212,7 @@ static void HandleFailedStockCompletion(AppState& state,
                                         StockContext& ctx,
                                         const StockRequestCompletion& completion) {
     ctx.requests.isLoading = false;
+    ctx.render.suppressInitialLoadPresentation = false;
     ctx.requests.isBackgroundFetching = false;
     if (completion.result.rateLimited && completion.wasBackground &&
         (completion.kind == FetchKind::LiveQuote ||
@@ -328,8 +329,18 @@ static StockPublicationResult PublishStockCompletion(
          completion.rangeIndex == 0)) {
         ctx.marketData.needsPlotDataUpdate = true;
     }
-    if ((!completion.wasBackground && completion.kind == FetchKind::Full) ||
-        publication.switchedChartRange) {
+    const bool suppressInitialPresentation =
+        ctx.render.suppressInitialLoadPresentation &&
+        !completion.wasBackground && completion.kind == FetchKind::Full;
+    if (suppressInitialPresentation) {
+        ctx.render.suppressInitialLoadPresentation = false;
+        ctx.render.dataJustLoaded = false;
+        ctx.render.animProgress = 1.0f;
+        ctx.render.fadeAlpha = 1.0f;
+        ctx.render.loadingBlockAnim = 0.0f;
+        ctx.render.chartRevealProgress = 1.0f;
+    } else if ((!completion.wasBackground && completion.kind == FetchKind::Full) ||
+               publication.switchedChartRange) {
         ctx.render.dataJustLoaded = true;
     }
     if (!completion.hadPrevious && completion.kind == FetchKind::Full) {
